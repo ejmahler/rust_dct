@@ -4,7 +4,7 @@ use num::{Complex, Zero, FromPrimitive, Signed};
 
 use super::math_utils;
 
-pub struct DCT2<T: 'static> {
+pub struct DCT2<T> {
     fft: rustfft::FFT<T>,
     fft_input: Vec<Complex<T>>,
     fft_output: Vec<Complex<T>>,
@@ -12,8 +12,8 @@ pub struct DCT2<T: 'static> {
     output_correction: Vec<Complex<T>>,
 }
 
-impl<T: 'static> DCT2<T>
-    where T: Signed + FromPrimitive + Copy
+impl<T> DCT2<T>
+    where T: Signed + FromPrimitive + Copy + 'static
 {
     /// Creates a new DCT2 context that will process signals of length `len`.
     pub fn new(len: usize) -> Self {

@@ -4,7 +4,7 @@ use num::{Complex, Zero, Signed, FromPrimitive};
 
 use super::math_utils;
 
-pub struct DCT3<T: 'static> {
+pub struct DCT3<T> {
     fft: rustfft::FFT<T>,
     fft_input: Vec<Complex<T>>,
     fft_output: Vec<Complex<T>>,
@@ -12,8 +12,8 @@ pub struct DCT3<T: 'static> {
     input_correction: Vec<Complex<T>>,
 }
 
-impl<T: 'static> DCT3<T>
-    where T: Signed + FromPrimitive + Copy
+impl<T> DCT3<T>
+    where T: Signed + FromPrimitive + Copy + 'static
 {
     /// Creates a new DCT3 context that will process signals of length `len`.
     pub fn new(len: usize) -> Self {
