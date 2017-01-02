@@ -107,20 +107,7 @@ mod test {
     use super::*;
     use std::f32;
 
-    fn fuzzy_cmp(a: f32, b: f32, tolerance: f32) -> bool {
-        a >= b - tolerance && a <= b + tolerance
-    }
-
-    fn compare_float_vectors(expected: &[f32], observed: &[f32]) {
-        assert_eq!(expected.len(), observed.len());
-
-        let tolerance: f32 = 0.0001;
-
-        for i in 0..expected.len() {
-            assert!(fuzzy_cmp(observed[i], expected[i], tolerance));
-        }
-    }
-
+    use ::test_utils::{compare_float_vectors, random_signal};
 
     fn execute_slow(input: &[f32]) -> Vec<f32> {
 
@@ -168,23 +155,17 @@ mod test {
         }
     }
 
+    /// Verify that our fast implementation of the DCT2 gives the same output as the slow version, for many different inputs
     #[test]
     fn test_fast() {
-        let input_list = vec![
-            vec![1_f32, 1_f32],
-            vec![1_f32, 1_f32, 1_f32, 1_f32],
-            vec![4_f32, 1_f32, 6_f32, 2_f32, 8_f32],
-        ];
+        for size in 2..50 {
+            let input = random_signal(size);
 
-        for input in input_list {
             let slow_output = execute_slow(&input);
 
-            let mut dct = DCT2::new(input.len());
-            let mut fast_output = input.clone();
-            dct.process(&input, &mut fast_output);
-
-            println!("{:?}", slow_output);
-            println!("{:?}", fast_output);
+            let mut dct = DCT2::new(size);
+            let mut fast_output = vec![0f32; size];
+            dct.process(&input, fast_output.as_mut_slice());
 
             compare_float_vectors(&slow_output.as_slice(), &fast_output);
         }
