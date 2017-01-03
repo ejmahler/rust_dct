@@ -19,6 +19,7 @@ pub use self::dct_type_2::DCT2;
 pub use self::dct_type_3::DCT3;
 pub use self::dct_type_4::DCT4;
 pub use self::mdct::MDCT;
+pub use self::mdct::window_fn;
 
 pub use self::dct_type_2::dct2_2d;
 pub use self::dct_type_3::dct3_2d;

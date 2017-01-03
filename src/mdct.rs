@@ -1,4 +1,5 @@
 use num::{Zero, One, Signed, FromPrimitive};
+
 use super::dct_type_4::DCT4;
 
 use std::fmt::Debug;
@@ -23,13 +24,13 @@ impl<T> MDCT<T>
     }
 
     /// Creates a new MDCT context that will process signals of length `len * 2`, resulting in outputs of length `len`
-    pub fn new_windowed<F>(len: usize, window_fn: F) -> Self where F: Fn(usize) -> T {
+    pub fn new_windowed<F>(len: usize, window_fn: F) -> Self where F: Fn(usize) -> Vec<T> {
         assert!(len % 2 == 0, "The MDCT `len` parameter must be even");
-        let test: Vec<T> = (0..len*2).map(window_fn).collect();
+
         MDCT {
             dct: DCT4::new(len),
             dct_buffer: vec![Zero::zero(); len],
-            window: test,
+            window: window_fn(len * 2),
         }
     }
 
@@ -287,7 +288,36 @@ impl<T> MDCT<T>
     }
 }
 
+pub mod window_fn {
+    use num::{Float, FromPrimitive};
+    use num::traits::FloatConst;
 
+    pub fn mp3<T>(len: usize) -> Vec<T>
+        where T: Float + FloatConst + FromPrimitive
+    {
+        let constant_term: T = T::PI() / FromPrimitive::from_usize(len).unwrap();
+        let half: T = FromPrimitive::from_f32(0.5f32).unwrap();
+
+        (0..len).map(|n| {
+            let n_float: T = FromPrimitive::from_usize(n).unwrap();
+            (constant_term * (n_float + half)).sin()
+        }).collect()
+    }
+
+    pub fn vorbis<T>(len: usize) -> Vec<T>
+        where T: Float + FloatConst + FromPrimitive
+    {
+        let constant_term: T = T::PI() / FromPrimitive::from_usize(len).unwrap();
+        let half: T = FromPrimitive::from_f32(0.5f32).unwrap();
+
+        (0..len).map(|n| {
+            let n_float: T = FromPrimitive::from_usize(n).unwrap();
+            let inner_sin = (constant_term * (n_float + half)).sin();
+
+            (T::FRAC_PI_2() * inner_sin * inner_sin).sin()
+        }).collect()
+    }
+}
 
 
 
@@ -298,7 +328,7 @@ mod test {
     use super::*;
     use std::f32;
 
-    use ::test_utils::{compare_float_vectors, random_signal};
+    use ::test_utils::{compare_float_vectors, random_signal, fuzzy_cmp};
 
     /// Verify that our O(N^2) implementation of the MDCT is working as expected
     #[test]
@@ -389,17 +419,15 @@ mod test {
             let size = i * 4;
             let input = random_signal(size);
 
-            let size_float = size as f32;
-            let mp3_window_fn = |n| { (f32::consts::PI / size_float * (n as f32 + 0.5f32)).sin() };
-
+            let evaluated_window: Vec<f32> = window_fn::mp3(size);
             
             //first do the forward direction
-            let mut dct = MDCT::new_windowed(size / 2, &mp3_window_fn);
+            let mut dct = MDCT::new_windowed(size / 2, window_fn::mp3);
             let mut fast_output = vec![0f32; size / 2];
             dct.process(&input, fast_output.as_mut_slice());
 
             //to simulate the window function for the slow algorithm, we'll pre-multiply the input vector with the window function
-            let slow_input: Vec<f32> = input.iter().enumerate().map(|(index, element)| *element * mp3_window_fn(index)).collect();
+            let slow_input: Vec<f32> = input.iter().zip(&evaluated_window).map(|(element, window_val)| *element * *window_val).collect();
             let mut slow_output = vec![0f32; size / 2];
             execute_slow(&slow_input, slow_output.as_mut_slice());
 
@@ -414,7 +442,7 @@ mod test {
             execute_slow_inverse(&slow_output, slow_inverse.as_mut_slice());
 
             //to simulate the window function for the slow algorithm for the inverse, we'll post-multiply the slow output vector with the window function
-            slow_inverse = slow_inverse.iter().enumerate().map(|(index, element)| *element * mp3_window_fn(index)).collect();
+            slow_inverse = slow_inverse.iter().zip(&evaluated_window).map(|(element, window_val)| *element * *window_val).collect();
 
             let mut fast_inverse = vec![0f32; size];
             dct.process_inverse(&slow_output, fast_inverse.as_mut_slice());
@@ -470,9 +498,7 @@ mod test {
                 let mut output_buffer = vec![0f32; signal.len()];
                 let mut intermediate_buffer = vec![0f32; signal.len() + segment_size];
 
-                let size_float = segment_size as f32;
-                let mp3_window_fn = |n| { (f32::consts::PI / (2f32 * size_float) * (n as f32 + 0.5f32)).sin() };
-                let mut dct = MDCT::new_windowed(segment_size, mp3_window_fn);
+                let mut dct = MDCT::new_windowed(segment_size, window_fn::mp3);
 
                 dct.process_overlapped(&signal, intermediate_buffer.as_mut_slice());
                 dct.process_inverse_overlapped(&intermediate_buffer, output_buffer.as_mut_slice());
@@ -570,14 +596,13 @@ mod test {
         for signal in input_list {
 
             let segment_size = signal.len();
-
-            let size_float = (segment_size * 2) as f32;
-            let mp3_window_fn = |n| { (f32::consts::PI / size_float * (n as f32 + 0.5f32)).sin() };
+            let evaluated_window: Vec<f32> = window_fn::mp3(segment_size * 2);
 
             //compute the fast algorithm into the fast_output
-            let mut dct = MDCT::new_windowed(segment_size, &mp3_window_fn);
+            let mut dct = MDCT::new_windowed(segment_size, window_fn::mp3);
             let mut fast_output = vec![0f32; segment_size * 2];
             dct.process_overlapped(&signal, fast_output.as_mut_slice());
+
 
             //for the slow algorithm, we have to cmput ethe two slow segments separately
             let mut first_slow_input = vec![0f32; segment_size * 2];
@@ -588,8 +613,9 @@ mod test {
             for (input, signal) in first_slow_input.iter_mut().skip(segment_size).zip(signal.iter()) {
                 *input = *signal;
             }
-            first_slow_input = first_slow_input.iter().enumerate().map(|(index, element)| *element * mp3_window_fn(index)).collect();
+            first_slow_input = first_slow_input.iter().zip(&evaluated_window).map(|(element, window_val)| *element * *window_val).collect();
             execute_slow(&first_slow_input, first_slow_output.as_mut_slice());
+
 
             //second half of slow algorithm
             let mut second_slow_input = vec![0f32; segment_size * 2];
@@ -600,7 +626,7 @@ mod test {
             for (input, signal) in second_slow_input.iter_mut().skip(segment_size).zip(signal.iter().rev()) {
                 *input = -*signal;
             }
-            second_slow_input = second_slow_input.iter().enumerate().map(|(index, element)| *element * mp3_window_fn(index)).collect();
+            second_slow_input = second_slow_input.iter().zip(&evaluated_window).map(|(element, window_val)| *element * *window_val).collect();
             execute_slow(&second_slow_input, second_slow_output.as_mut_slice());
 
             compare_float_vectors(&first_slow_output, &fast_output[..segment_size]);
@@ -620,18 +646,29 @@ mod test {
             execute_slow_inverse(&second_slow_output, &mut second_slow_inverse);
 
             //apply the window function to both the slow outputs
-            first_slow_inverse = first_slow_inverse.iter().enumerate().map(|(index, element)| *element * mp3_window_fn(index)).collect();
-            second_slow_inverse = second_slow_inverse.iter().enumerate().map(|(index, element)| *element * mp3_window_fn(index)).collect();
-
-            println!("inverse 1st slow result (windowed): {:?}", first_slow_inverse);
-            println!("forward 2nd slow result (windowed): {:?}", second_slow_inverse);
-
-            let slow_inverse: Vec<f32> = first_slow_inverse[segment_size..].iter().zip(second_slow_inverse).map(|(first, second)| *first + second).collect();
-
-
-            println!("inverse expected: {:?}, actual: {:?}", slow_inverse, fast_inverse);
+            let first_slow_inverse_mapped = first_slow_inverse.iter().zip(&evaluated_window).map(|(element, window_val)| *element * *window_val);
+            let second_slow_inverse_mapped = second_slow_inverse.iter().zip(&evaluated_window).map(|(element, window_val)| *element * *window_val);
+            let slow_inverse: Vec<f32> = first_slow_inverse_mapped.skip(segment_size).zip(second_slow_inverse_mapped).map(|(first, second)| first + second).collect();
 
             compare_float_vectors(&slow_inverse, &fast_inverse);
+        }
+    }
+
+    /// Verify that each of the built-in window functions does what we expect
+    #[test]
+    fn test_window_fns() {
+        for test_fn in &[window_fn::mp3, window_fn::vorbis] {
+            for half_size in 1..20 {
+                let evaluated_window: Vec<f32> = test_fn(half_size * 2);
+
+                //verify that for all i from 0 to half_size, window[i]^2 + window[i+half_size]^2 == 1
+                //also known as the "Princen-Bradley condition"
+                for i in 0..half_size {
+                    let first = evaluated_window[i];
+                    let second = evaluated_window[i + half_size];
+                    assert!(fuzzy_cmp(first*first + second*second, 1f32, 0.001f32));
+                }
+            }
         }
     }
 
