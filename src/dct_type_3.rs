@@ -1,23 +1,40 @@
 use std::f32;
+use std::rc::Rc;
 use rustfft;
-use num::{Complex, Zero, Signed, FromPrimitive};
+use num::{Complex, Zero, FromPrimitive};
 
 pub struct DCT3<T> {
-    fft: rustfft::FFT<T>,
+    fft: Rc<rustfft::FFT<T>>,
     fft_input: Vec<Complex<T>>,
     fft_output: Vec<Complex<T>>,
 
     input_correction: Vec<Complex<T>>,
 }
 
-impl<T> DCT3<T>
-    where T: Signed + FromPrimitive + Copy + 'static
-{
+impl<T: rustfft::FFTnum> DCT3<T> {
     /// Creates a new DCT3 context that will process signals of length `len`.
     pub fn new(len: usize) -> Self {
-        let fft = rustfft::FFT::new(len, false);
+        let mut planner = rustfft::Planner::new(false);
         DCT3 {
-            fft: fft,
+            fft: planner.plan_fft(len),
+            fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len],
+            fft_output: vec![Complex::new(Zero::zero(),Zero::zero()); len],
+            input_correction: (0..len)
+                .map(|i| i as f32 * 0.5 * f32::consts::PI / len as f32)
+                .map(|phase| Complex::from_polar(&0.5, &phase).conj())
+                .map(|c| {
+                    Complex {
+                        re: FromPrimitive::from_f32(c.re).unwrap(),
+                        im: FromPrimitive::from_f32(c.im).unwrap(),
+                    }
+                })
+                .collect(),
+        }
+    }
+
+    pub fn new_with_planner(len: usize, planner: &mut rustfft::Planner<T>) -> Self {
+        DCT3 {
+            fft: planner.plan_fft(len),
             fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len],
             fft_output: vec![Complex::new(Zero::zero(),Zero::zero()); len],
             input_correction: (0..len)
@@ -58,7 +75,7 @@ impl<T> DCT3<T>
         }
 
         // run the fft
-        self.fft.process(&self.fft_input, &mut self.fft_output);
+        self.fft.process(&mut self.fft_input, &mut self.fft_output);
 
         // copy the first half of the fft output into the even elements of the spectrum
         let even_end = (signal.len() + 1) / 2;

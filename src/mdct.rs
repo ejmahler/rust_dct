@@ -1,8 +1,7 @@
-use num::{Zero, One, Signed, FromPrimitive};
+use num::{Zero, One};
 
 use super::dct_type_4::DCT4;
-
-use std::fmt::Debug;
+use rustfft::FFTnum;
 
 pub struct MDCT<T> {
     dct: super::dct_type_4::DCT4<T>,
@@ -10,9 +9,7 @@ pub struct MDCT<T> {
     window: Vec<T>,
 }
 
-impl<T> MDCT<T>
-    where T: Signed + FromPrimitive + Copy + 'static + Debug
-{
+impl<T: FFTnum> MDCT<T> {
     /// Creates a new MDCT context that will process signals of length `len * 2`, resulting in outputs of length `len`
     pub fn new(len: usize) -> Self {
         assert!(len % 2 == 0, "The MDCT `len` parameter must be even");
@@ -227,11 +224,12 @@ impl<T> MDCT<T>
 }
 
 pub mod window_fn {
+    use rustfft::FFTnum;
     use num::{Float, FromPrimitive};
     use num::traits::FloatConst;
 
     pub fn mp3<T>(len: usize) -> Vec<T>
-        where T: Float + FloatConst + FromPrimitive
+        where T: Float + FloatConst + FFTnum
     {
         let constant_term: T = T::PI() / FromPrimitive::from_usize(len).unwrap();
         let half: T = FromPrimitive::from_f32(0.5f32).unwrap();
@@ -243,7 +241,7 @@ pub mod window_fn {
     }
 
     pub fn vorbis<T>(len: usize) -> Vec<T>
-        where T: Float + FloatConst + FromPrimitive
+        where T: Float + FloatConst + FFTnum
     {
         let constant_term: T = T::PI() / FromPrimitive::from_usize(len).unwrap();
         let half: T = FromPrimitive::from_f32(0.5f32).unwrap();
@@ -321,7 +319,7 @@ mod test {
 
     /// Verify that our fast implementation of the MDCT and IMDCT gives the same output as the slow version, for many different inputs
     #[test]
-    fn test_fast() {
+    fn test_fast_abc() {
         for i in 1..11 {
             let size = i * 4;
             let input = random_signal(size);
@@ -334,8 +332,6 @@ mod test {
             let mut dct = MDCT::new(size / 2);
             let mut fast_output = vec![0f32; size / 2];
             dct.process(&input, fast_output.as_mut_slice());
-
-            println!("forward expected: {:?}, actual: {:?}", slow_output, fast_output);
             compare_float_vectors(&slow_output, &fast_output);
 
             //now compute the inverse
@@ -344,8 +340,6 @@ mod test {
 
             let mut fast_inverse = vec![0f32; size];
             dct.process_inverse(&slow_output, fast_inverse.as_mut_slice());
-
-            println!("inverse expected: {:?}, actual: {:?}", slow_inverse, fast_inverse);
             compare_float_vectors(&slow_inverse, &fast_inverse);
         }
     }

@@ -1,20 +1,28 @@
+use std::rc::Rc;
+
 use rustfft;
-use num::{Complex, Zero, Signed, FromPrimitive};
+use num::{Complex, Zero, FromPrimitive};
 
 pub struct DCT4<T> {
-    fft: rustfft::FFT<T>,
+    fft: Rc<rustfft::FFT<T>>,
     fft_input: Vec<Complex<T>>,
     fft_output: Vec<Complex<T>>,
 }
 
-impl<T> DCT4<T>
-    where T: Signed + FromPrimitive + Copy + 'static
-{
+impl<T: rustfft::FFTnum> DCT4<T> {
     /// Creates a new DCT4 context that will process signals of length `len`.
     pub fn new(len: usize) -> Self {
-        let fft = rustfft::FFT::new(len * 8, false);
+        let mut planner = rustfft::Planner::new(false);
         DCT4 {
-            fft: fft,
+            fft: planner.plan_fft(len * 8),
+            fft_input: vec![Zero::zero(); len * 8],
+            fft_output: vec![Zero::zero(); len * 8],
+        }
+    }
+
+    pub fn new_with_planner(len: usize, planner: &mut rustfft::Planner<T>) -> Self {
+        DCT4 {
+            fft: planner.plan_fft(len * 8),
             fft_input: vec![Zero::zero(); len * 8],
             fft_output: vec![Zero::zero(); len * 8],
         }
@@ -30,6 +38,12 @@ impl<T> DCT4<T>
 
         assert_eq!(signal.len() * 8, self.fft_input.len());
 
+        //all even elements are zero
+        for i in 0..self.fft_input.len() / 2 {
+            self.fft_input[i * 2] = Zero::zero();
+        }
+
+        //the odd elements are the DCT input, repeated and reversed and etc
         for (index, element) in signal.iter().enumerate() {
             self.fft_input[index * 2 + 1] = Complex::from(*element);
         }
@@ -44,7 +58,7 @@ impl<T> DCT4<T>
         }
 
         // run the fft
-        self.fft.process(&self.fft_input, &mut self.fft_output);
+        self.fft.process(&mut self.fft_input, &mut self.fft_output);
 
         for (index, element) in spectrum.iter_mut().enumerate() {
             *element = self.fft_output[index * 2 + 1].re * FromPrimitive::from_f32(0.25).unwrap();
@@ -88,11 +102,13 @@ mod test {
         let input_list = vec![
             vec![0_f32,0_f32,0_f32,0_f32,0_f32],
             vec![1_f32,1_f32,1_f32,1_f32,1_f32],
+            vec![4.7015433_f32, -11.926178_f32, 27.098675_f32, -1.9793236_f32],
             vec![6_f32,9_f32,1_f32,5_f32,2_f32,6_f32,2_f32,-1_f32],
         ];
         let expected_list = vec![
             vec![0_f32,0_f32,0_f32,0_f32,0_f32],
             vec![3.19623_f32, -1.10134_f32, 0.707107_f32, -0.561163_f32, 0.506233_f32],
+            vec![9.36402_f32, -19.242455_f32, 17.949997_f32, 32.01607_f32],
             vec![23.9103_f32, 0.201528_f32, 5.36073_f32, 2.53127_f32, -5.21319_f32, -0.240328_f32, -9.32464_f32, -5.56147_f32],
         ];
 
