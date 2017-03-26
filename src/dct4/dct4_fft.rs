@@ -1,41 +1,31 @@
 use std::rc::Rc;
 
-use rustfft;
 use num::{Complex, Zero, FromPrimitive};
+use rustfft::{FFT, FFTnum, Length};
 
-pub struct DCT4<T> {
-    fft: Rc<rustfft::FFT<T>>,
+use dct4::DCT4;
+
+pub struct DCT4ViaFFT<T> {
+    inner_fft: Rc<FFT<T>>,
     fft_input: Vec<Complex<T>>,
     fft_output: Vec<Complex<T>>,
 }
 
-impl<T: rustfft::FFTnum> DCT4<T> {
-    /// Creates a new DCT4 context that will process signals of length `len`.
-    pub fn new(len: usize) -> Self {
-        let mut planner = rustfft::Planner::new(false);
-        DCT4 {
-            fft: planner.plan_fft(len * 8),
-            fft_input: vec![Zero::zero(); len * 8],
-            fft_output: vec![Zero::zero(); len * 8],
+impl<T: FFTnum> DCT4ViaFFT<T> {
+    /// Creates a new DCT4 context that will process signals of length `inner_fft.len() / 8`.
+    pub fn new(inner_fft: Rc<FFT<T>>) -> Self {
+        let inner_len = inner_fft.len();
+        assert_eq!(inner_len % 8, 0, "inner_fft.len() for DCT4ViaFFT must be a multiple of 8. The DCT4 length will be inner_fft.len() / 8. Got {}", inner_fft.len());
+
+        DCT4ViaFFT {
+            inner_fft: inner_fft,
+            fft_input: vec![Zero::zero(); inner_len],
+            fft_output: vec![Zero::zero(); inner_len],
         }
     }
-
-    pub fn new_with_planner(len: usize, planner: &mut rustfft::Planner<T>) -> Self {
-        DCT4 {
-            fft: planner.plan_fft(len * 8),
-            fft_input: vec![Zero::zero(); len * 8],
-            fft_output: vec![Zero::zero(); len * 8],
-        }
-    }
-
-    /// Runs the DCT4 on the input `signal` buffer, and places the output in the
-    /// `spectrum` buffer.
-    ///
-    /// # Panics
-    /// This method will panic if `signal` and `spectrum` are not the length
-    /// specified in the struct's constructor.
-    pub fn process(&mut self, signal: &[T], spectrum: &mut [T]) {
-
+}
+impl<T: FFTnum> DCT4<T> for DCT4ViaFFT<T> {
+    fn process(&mut self, signal: &[T], spectrum: &mut [T]) {
         assert_eq!(signal.len() * 8, self.fft_input.len());
 
         //all even elements are zero
@@ -58,11 +48,16 @@ impl<T: rustfft::FFTnum> DCT4<T> {
         }
 
         // run the fft
-        self.fft.process(&mut self.fft_input, &mut self.fft_output);
+        self.inner_fft.process(&mut self.fft_input, &mut self.fft_output);
 
         for (index, element) in spectrum.iter_mut().enumerate() {
             *element = self.fft_output[index * 2 + 1].re * FromPrimitive::from_f32(0.25).unwrap();
         }
+    }
+}
+impl<T> Length for DCT4ViaFFT<T> {
+    fn len(&self) -> usize {
+        self.fft_input.len() / 8
     }
 }
 
@@ -70,7 +65,8 @@ impl<T: rustfft::FFTnum> DCT4<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use ::test_utils::{compare_float_vectors, random_signal};
+    use test_utils::{compare_float_vectors, random_signal};
+    use rustfft::Planner;
     use std::f32;
 
     fn execute_slow(input: &[f32]) -> Vec<f32> {
@@ -123,12 +119,14 @@ mod test {
     /// Verify that our fast implementation of the DCT4 gives the same output as the slow version, for many different inputs
     #[test]
     fn test_fast() {
-        for size in 1..50 {
+        for size in 1..20 {
             let input = random_signal(size);
 
             let slow_output = execute_slow(&input);
 
-            let mut dct = DCT4::new(size);
+            let mut fft_planner = Planner::new(false);
+
+            let mut dct = DCT4ViaFFT::new(fft_planner.plan_fft(size * 8));
             let mut fast_output = vec![0f32; size];
             dct.process(&input, fast_output.as_mut_slice());
 

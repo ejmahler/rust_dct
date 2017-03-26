@@ -1,10 +1,11 @@
 use num::{Zero, One};
 
-use super::dct_type_4::DCT4;
 use rustfft::FFTnum;
+use dct4::DCT4;
+use plan::DCTPlanner;
 
 pub struct MDCT<T> {
-    dct: super::dct_type_4::DCT4<T>,
+    dct: Box<DCT4<T>>,
     dct_buffer: Vec<T>,
     window: Vec<T>,
 }
@@ -13,8 +14,10 @@ impl<T: FFTnum> MDCT<T> {
     /// Creates a new MDCT context that will process signals of length `len * 2`, resulting in outputs of length `len`
     pub fn new(len: usize) -> Self {
         assert!(len % 2 == 0, "The MDCT `len` parameter must be even");
+
+        let mut planner = DCTPlanner::new();
         MDCT {
-            dct: DCT4::new(len),
+            dct: planner.plan_dct4(len),
             dct_buffer: vec![Zero::zero(); len],
             window: vec![One::one(); len*2],
         }
@@ -24,8 +27,9 @@ impl<T: FFTnum> MDCT<T> {
     pub fn new_windowed<F>(len: usize, window_fn: F) -> Self where F: Fn(usize) -> Vec<T> {
         assert!(len % 2 == 0, "The MDCT `len` parameter must be even");
 
+        let mut planner = DCTPlanner::new();
         MDCT {
-            dct: DCT4::new(len),
+            dct: planner.plan_dct4(len),
             dct_buffer: vec![Zero::zero(); len],
             window: window_fn(len * 2),
         }
