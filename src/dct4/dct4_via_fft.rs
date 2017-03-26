@@ -26,7 +26,7 @@ impl<T: DCTnum> DCT4ViaFFT<T> {
     }
 }
 impl<T: DCTnum> DCT4<T> for DCT4ViaFFT<T> {
-    fn process(&mut self, signal: &[T], spectrum: &mut [T]) {
+    fn process(&mut self, signal: &mut [T], spectrum: &mut [T]) {
         assert_eq!(signal.len() * 8, self.fft_input.len());
 
         //all even elements are zero
@@ -74,17 +74,18 @@ mod test {
     #[test]
     fn test_fast() {
         for size in 1..20 {
-            let input = random_signal(size);
+            let mut expected_input = random_signal(size);
+            let mut actual_input = random_signal(size);
 
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
             let mut naive_dct = DCT4Naive::new(size);
-            naive_dct.process(&input, &mut expected_output);
+            naive_dct.process(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = Planner::new(false);
             let mut dct = DCT4ViaFFT::new(fft_planner.plan_fft(size * 8));
-            dct.process(&input, &mut actual_output);
+            dct.process(&mut actual_input, &mut actual_output);
 
             compare_float_vectors(&expected_output, &actual_output);
         }

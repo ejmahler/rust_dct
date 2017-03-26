@@ -10,6 +10,7 @@ mod dct_type_3;
 pub mod dct4;
 mod mdct;
 mod plan;
+mod twiddles;
 
 #[cfg(test)]
 mod test_utils;

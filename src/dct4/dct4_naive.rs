@@ -26,8 +26,9 @@ impl<T: DCTnum> DCT4Naive<T> {
         }
     }
 }
+
 impl<T: DCTnum> DCT4<T> for DCT4Naive<T> {
-    fn process(&mut self, input: &[T], output: &mut [T]) {
+    fn process(&mut self, input: &mut [T], output: &mut [T]) {
         assert_eq!(input.len(), self.len());
 
         for k in 0..output.len() {
@@ -106,11 +107,12 @@ mod test {
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
             let slow_output = slow_dct4(&input);
 
+            let mut actual_input = input.to_vec();
             let mut actual_output = vec![Zero::zero(); input.len()];
 
             let mut dct = DCT4Naive::new(input.len());
 
-            dct.process(&input, &mut actual_output);
+            dct.process(&mut actual_input, &mut actual_output);
 
             compare_float_vectors(&expected, &slow_output);
             compare_float_vectors(&expected, &actual_output);
@@ -121,9 +123,8 @@ mod test {
     /// Verify that our fast implementation of the DCT4 gives the same output as the slow version, for many different inputs
     #[test]
     fn test_matches_dct4() {
-        for size in 6..7 {
-            let input = random_signal(size);
-
+        for size in 1..20 {
+            let mut input = random_signal(size);
             let slow_output = slow_dct4(&input);
 
             
@@ -131,7 +132,7 @@ mod test {
 
             let mut dct = DCT4Naive::new(size);
 
-            dct.process(&input, &mut fast_output);
+            dct.process(&mut input, &mut fast_output);
 
             println!("{}", size);
             println!("expected: {:?}", slow_output);

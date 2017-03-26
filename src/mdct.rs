@@ -55,7 +55,7 @@ impl<T: DCTnum> MDCT<T> {
     /// # Panics
     /// This method will panic if `signal` and `spectrum` are not the length
     /// specified in the struct's constructor.
-    pub fn process_inverse(&mut self, signal: &[T], spectrum: &mut [T]) {
+    pub fn process_inverse(&mut self, signal: &mut [T], spectrum: &mut [T]) {
         let spectrum_len = spectrum.len();
 
         assert_eq!(signal.len(), self.dct_buffer.len());
@@ -105,7 +105,7 @@ impl<T: DCTnum> MDCT<T> {
     ///
     /// # Panics
     /// This method will panic if `signal` or `spectrum` is not a multiple of the specified `segment_len`, or if signal.len() != spectrum.len()
-    pub fn process_inverse_overlapped(&mut self, signal: &[T], spectrum: &mut [T]) {
+    pub fn process_inverse_overlapped(&mut self, signal: &mut [T], spectrum: &mut [T]) {
         let segment_len = self.dct_buffer.len();
         let signal_len = signal.len();
 
@@ -121,7 +121,7 @@ impl<T: DCTnum> MDCT<T> {
         } else {
 
             //do each of the "normal_segments"
-            for (index, input) in signal.chunks(segment_len).take(num_segments - 1).enumerate() {
+            for (index, input) in signal.chunks_mut(segment_len).take(num_segments - 1).enumerate() {
                 let output_slice = &mut spectrum[index*segment_len..(index+2)*segment_len];
                 let (output_left, output_right) = output_slice.split_at_mut(segment_len);
 
@@ -130,7 +130,7 @@ impl<T: DCTnum> MDCT<T> {
 
             //finally, treat the final segment differently. it contains data for the final output spegment, followed by the first output segment
             let (spectrum_main, spectrum_end) = spectrum.split_at_mut(signal_len - segment_len);
-            self.process_inverse_internal(&signal[signal_len-segment_len..], spectrum_end, &mut spectrum_main[..segment_len]);
+            self.process_inverse_internal(&mut signal[signal_len-segment_len..], spectrum_end, &mut spectrum_main[..segment_len]);
         }
     }
 
@@ -162,7 +162,7 @@ impl<T: DCTnum> MDCT<T> {
             *element = a_val - br_val;
         }
 
-        self.dct.process(&self.dct_buffer, spectrum);
+        self.dct.process(&mut self.dct_buffer, spectrum);
     }
 
 
@@ -170,8 +170,8 @@ impl<T: DCTnum> MDCT<T> {
 
     /// Runs the IMDCT on the signal and puts int in the spectrum. we split the spectrum into two halves to make code elsewhere in this impl simpler
     /// The two halves are usually contiguous, but sometimes not
-    fn process_inverse_internal(&mut self, signal: &[T], spectrum_left: &mut [T], spectrum_right: &mut [T]) {
-        self.dct.process(signal, self.dct_buffer.as_mut_slice());
+    fn process_inverse_internal(&mut self, signal: &mut [T], spectrum_left: &mut [T], spectrum_right: &mut [T]) {
+        self.dct.process(signal, &mut self.dct_buffer);
 
         let segment_size = self.dct_buffer.len();
         let group_size = segment_size / 2;
@@ -199,8 +199,8 @@ impl<T: DCTnum> MDCT<T> {
 
     /// Runs the IMDCT on the signal and puts int in the spectrum. this version is intended for ocomputing an overlapped inverse with only a single segment
     //in that case, the beginning segment and end segment are the same slice
-    fn process_inverse_internal_single(&mut self, signal: &[T], spectrum: &mut [T]) {
-        self.dct.process(signal, self.dct_buffer.as_mut_slice());
+    fn process_inverse_internal_single(&mut self, signal: &mut [T], spectrum: &mut [T]) {
+        self.dct.process(signal, &mut self.dct_buffer);
 
         let segment_size = self.dct_buffer.len();
         let group_size = segment_size / 2;
@@ -343,7 +343,7 @@ mod test {
             execute_slow_inverse(&slow_output, slow_inverse.as_mut_slice());
 
             let mut fast_inverse = vec![0f32; size];
-            dct.process_inverse(&slow_output, fast_inverse.as_mut_slice());
+            dct.process_inverse(&mut slow_output, fast_inverse.as_mut_slice());
             compare_float_vectors(&slow_inverse, &fast_inverse);
         }
     }
@@ -381,7 +381,7 @@ mod test {
             slow_inverse = slow_inverse.iter().zip(&evaluated_window).map(|(element, window_val)| *element * *window_val).collect();
 
             let mut fast_inverse = vec![0f32; size];
-            dct.process_inverse(&slow_output, fast_inverse.as_mut_slice());
+            dct.process_inverse(&mut slow_output, fast_inverse.as_mut_slice());
 
             println!("expected inverse: {:?}, actual: {:?}", slow_inverse, fast_inverse);
             compare_float_vectors(&slow_inverse, &fast_inverse);
@@ -420,14 +420,15 @@ mod test {
 
         //now verify that the inverse works as well
         let mut fast_overlapped_inverse = vec![0f32; input.len()];
-        dct.process_inverse_overlapped(&slow_result, fast_overlapped_inverse.as_mut_slice());
+        let mut inverse_input = slow_result.clone();
+        dct.process_inverse_overlapped(&mut inverse_input, fast_overlapped_inverse.as_mut_slice());
 
         let mut fast_inverse = vec![0f32; input.len() + segment_size];
         let mut slow_inverse = vec![0f32; input.len() + segment_size];
 
         for i in 0..input.len()/segment_size {
             execute_slow_inverse(&slow_result[segment_size*i..segment_size*(i+1)], &mut slow_inverse[segment_size*i..segment_size*(i+2)]);
-            dct.process_inverse(&slow_result[segment_size*i..segment_size*(i+1)], &mut fast_inverse[segment_size*i..segment_size*(i+2)]);
+            dct.process_inverse(&mut slow_result[segment_size*i..segment_size*(i+1)], &mut fast_inverse[segment_size*i..segment_size*(i+2)]);
         }
 
         //part of the data for the first segment is sitting at the end of the array, add it to the beginning
@@ -457,7 +458,7 @@ mod test {
                 let mut dct = MDCT::new_windowed(segment_size, window_fn::mp3);
 
                 dct.process_overlapped(&signal, intermediate_buffer.as_mut_slice());
-                dct.process_inverse_overlapped(&intermediate_buffer, output_buffer.as_mut_slice());
+                dct.process_inverse_overlapped(&mut intermediate_buffer, output_buffer.as_mut_slice());
 
                 for element in output_buffer.iter_mut() {
                     *element = *element * 2f32 / (segment_size as f32);
