@@ -1,8 +1,9 @@
 use std::rc::Rc;
 
 use num::{Complex, Zero, FromPrimitive};
-use rustfft::{FFT, FFTnum, Length};
+use rustfft::{FFT, Length};
 
+use DCTnum;
 use dct4::DCT4;
 
 pub struct DCT4ViaFFT<T> {
@@ -11,7 +12,7 @@ pub struct DCT4ViaFFT<T> {
     fft_output: Vec<Complex<T>>,
 }
 
-impl<T: FFTnum> DCT4ViaFFT<T> {
+impl<T: DCTnum> DCT4ViaFFT<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_fft.len() / 8`.
     pub fn new(inner_fft: Rc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
@@ -24,7 +25,7 @@ impl<T: FFTnum> DCT4ViaFFT<T> {
         }
     }
 }
-impl<T: FFTnum> DCT4<T> for DCT4ViaFFT<T> {
+impl<T: DCTnum> DCT4<T> for DCT4ViaFFT<T> {
     fn process(&mut self, signal: &[T], spectrum: &mut [T]) {
         assert_eq!(signal.len() * 8, self.fft_input.len());
 

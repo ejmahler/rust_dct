@@ -1,8 +1,8 @@
 use num::{Zero, One};
 
-use rustfft::FFTnum;
 use dct4::DCT4;
 use plan::DCTPlanner;
+use DCTnum;
 
 pub struct MDCT<T> {
     dct: Box<DCT4<T>>,
@@ -10,7 +10,7 @@ pub struct MDCT<T> {
     window: Vec<T>,
 }
 
-impl<T: FFTnum> MDCT<T> {
+impl<T: DCTnum> MDCT<T> {
     /// Creates a new MDCT context that will process signals of length `len * 2`, resulting in outputs of length `len`
     pub fn new(len: usize) -> Self {
         assert!(len % 2 == 0, "The MDCT `len` parameter must be even");
@@ -228,12 +228,12 @@ impl<T: FFTnum> MDCT<T> {
 }
 
 pub mod window_fn {
-    use rustfft::FFTnum;
+    use DCTnum;
     use num::{Float, FromPrimitive};
     use num::traits::FloatConst;
 
     pub fn mp3<T>(len: usize) -> Vec<T>
-        where T: Float + FloatConst + FFTnum
+        where T: Float + FloatConst + DCTnum
     {
         let constant_term: T = T::PI() / FromPrimitive::from_usize(len).unwrap();
         let half: T = FromPrimitive::from_f32(0.5f32).unwrap();
@@ -245,7 +245,7 @@ pub mod window_fn {
     }
 
     pub fn vorbis<T>(len: usize) -> Vec<T>
-        where T: Float + FloatConst + FFTnum
+        where T: Float + FloatConst + DCTnum
     {
         let constant_term: T = T::PI() / FromPrimitive::from_usize(len).unwrap();
         let half: T = FromPrimitive::from_f32(0.5f32).unwrap();

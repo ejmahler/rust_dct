@@ -1,9 +1,11 @@
-use rustfft::{FFTnum, Length};
+use rustfft::Length;
+
+use DCTnum;
 
 mod dct4_fft;
 mod dct4_naive;
 
-pub trait DCT4<T: FFTnum>: Length {
+pub trait DCT4<T: DCTnum>: Length {
 	fn process(&mut self, input: &[T], output: &mut [T]);
 }
 

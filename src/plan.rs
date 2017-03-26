@@ -1,10 +1,11 @@
-use rustfft::{Planner, FFTnum};
+use rustfft::{Planner};
+use DCTnum;
 use dct4::*;
 
 pub struct DCTPlanner<T> {
 	fft_planner: Planner<T>,
 }
-impl<T: FFTnum> DCTPlanner<T> {
+impl<T: DCTnum> DCTPlanner<T> {
 	pub fn new() -> Self {
 		Self {
 			fft_planner: Planner::new(false)

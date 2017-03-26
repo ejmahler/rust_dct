@@ -1,15 +1,16 @@
 use std::f64;
 
 use num::{Zero, FromPrimitive};
-use rustfft::{FFTnum, Length};
+use rustfft::Length;
 
 use dct4::DCT4;
+use DCTnum;
 
 pub struct DCT4Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: FFTnum> DCT4Naive<T> {
+impl<T: DCTnum> DCT4Naive<T> {
     /// Creates a new DCT4 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
 
@@ -25,7 +26,7 @@ impl<T: FFTnum> DCT4Naive<T> {
         }
     }
 }
-impl<T: FFTnum> DCT4<T> for DCT4Naive<T> {
+impl<T: DCTnum> DCT4<T> for DCT4Naive<T> {
     fn process(&mut self, input: &[T], output: &mut [T]) {
         assert_eq!(input.len(), self.len());
 

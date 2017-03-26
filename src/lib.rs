@@ -14,6 +14,10 @@ mod plan;
 #[cfg(test)]
 mod test_utils;
 
+pub trait DCTnum: rustfft::FFTnum {}
+impl DCTnum for f32 {}
+impl DCTnum for f64 {}
+
 pub use self::dct_type_2::DCT2;
 pub use self::dct_type_3::DCT3;
 pub use self::mdct::MDCT;

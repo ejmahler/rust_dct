@@ -1,20 +1,23 @@
 use std::f32;
 use std::rc::Rc;
-use rustfft;
+
 use num::{Complex, Zero, FromPrimitive};
+use rustfft::{FFT, Planner};
+
+use DCTnum;
 
 pub struct DCT2<T> {
-    fft: Rc<rustfft::FFT<T>>,
+    fft: Rc<FFT<T>>,
     fft_input: Vec<Complex<T>>,
     fft_output: Vec<Complex<T>>,
 
     output_correction: Vec<Complex<T>>,
 }
 
-impl<T: rustfft::FFTnum> DCT2<T> {
+impl<T: DCTnum> DCT2<T> {
     /// Creates a new DCT2 context that will process signals of length `len`.
     pub fn new(len: usize) -> Self {
-        let mut planner = rustfft::Planner::new(false);
+        let mut planner = Planner::new(false);
         DCT2 {
             fft: planner.plan_fft(len),
             fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len],
@@ -33,7 +36,7 @@ impl<T: rustfft::FFTnum> DCT2<T> {
     }
 
     /// Creates a new DCT2 context that will process signals of length `len`.
-    pub fn new_with_planner(len: usize, planner: &mut rustfft::Planner<T>) -> Self {
+    pub fn new_with_planner(len: usize, planner: &mut Planner<T>) -> Self {
         DCT2 {
             fft: planner.plan_fft(len),
             fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len],
