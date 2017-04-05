@@ -1,65 +1,43 @@
-use std::f32;
 use std::rc::Rc;
 
-use rustfft::{FFT, Planner};
 use num::{Complex, Zero, FromPrimitive};
+use rustfft::{FFT, Length};
 
 use DCTnum;
+use twiddles;
+use dct3::DCT3;
 
-pub struct DCT3<T> {
+pub struct DCT3ViaFFT<T> {
     fft: Rc<FFT<T>>,
-    fft_input: Vec<Complex<T>>,
-    fft_output: Vec<Complex<T>>,
+    fft_input: Box<[Complex<T>]>,
+    fft_output: Box<[Complex<T>]>,
 
-    input_correction: Vec<Complex<T>>,
+    twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: DCTnum> DCT3<T> {
+impl<T: DCTnum> DCT3ViaFFT<T> {
     /// Creates a new DCT3 context that will process signals of length `len`.
-    pub fn new(len: usize) -> Self {
-        let mut planner = Planner::new(false);
-        DCT3 {
-            fft: planner.plan_fft(len),
-            fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len],
-            fft_output: vec![Complex::new(Zero::zero(),Zero::zero()); len],
-            input_correction: (0..len)
-                .map(|i| i as f32 * 0.5 * f32::consts::PI / len as f32)
-                .map(|phase| Complex::from_polar(&0.5, &phase).conj())
-                .map(|c| {
-                    Complex {
-                        re: FromPrimitive::from_f32(c.re).unwrap(),
-                        im: FromPrimitive::from_f32(c.im).unwrap(),
-                    }
-                })
-                .collect(),
+    pub fn new(inner_fft: Rc<FFT<T>>) -> Self {
+
+        let len = inner_fft.len();
+
+        let half = T::from_f32(0.5f32).unwrap();
+
+        let twiddles: Vec<Complex<T>> = (0..len)
+            .map(|i| twiddles::single_twiddle(i, len * 4, false) * half)
+            .collect();
+
+        Self {
+            fft: inner_fft,
+            fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len].into_boxed_slice(),
+            fft_output: vec![Complex::new(Zero::zero(),Zero::zero()); len].into_boxed_slice(),
+            twiddles: twiddles.into_boxed_slice(),
         }
     }
+}
 
-    pub fn new_with_planner(len: usize, planner: &mut Planner<T>) -> Self {
-        DCT3 {
-            fft: planner.plan_fft(len),
-            fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len],
-            fft_output: vec![Complex::new(Zero::zero(),Zero::zero()); len],
-            input_correction: (0..len)
-                .map(|i| i as f32 * 0.5 * f32::consts::PI / len as f32)
-                .map(|phase| Complex::from_polar(&0.5, &phase).conj())
-                .map(|c| {
-                    Complex {
-                        re: FromPrimitive::from_f32(c.re).unwrap(),
-                        im: FromPrimitive::from_f32(c.im).unwrap(),
-                    }
-                })
-                .collect(),
-        }
-    }
-
-    /// Runs the DCT3 on the input `signal` buffer, and places the output in the
-    /// `spectrum` buffer.
-    ///
-    /// # Panics
-    /// This method will panic if `signal` and `spectrum` are not the length
-    /// specified in the struct's constructor.
-    pub fn process(&mut self, signal: &[T], spectrum: &mut [T]) {
+impl<T: DCTnum> DCT3<T> for DCT3ViaFFT<T> {
+    fn process(&mut self, signal: &mut [T], spectrum: &mut [T]) {    
 
         assert!(signal.len() == self.fft_input.len());
 
@@ -67,13 +45,13 @@ impl<T: DCTnum> DCT3<T> {
         for i in 0..signal.len() {
             unsafe {
                 let imaginary_part = if i == 0 {
-                    Zero::zero()
+                    T::zero()
                 } else {
                     *signal.get_unchecked(signal.len() - i)
                 };
                 *self.fft_input.get_unchecked_mut(i) = Complex::new(*signal.get_unchecked(i),
                                                                     imaginary_part) *
-                                                       *self.input_correction.get_unchecked(i);
+                                                       *self.twiddles.get_unchecked(i);
             }
         }
 
@@ -98,6 +76,11 @@ impl<T: DCTnum> DCT3<T> {
         }
     }
 }
+impl<T> Length for DCT3ViaFFT<T> {
+    fn len(&self) -> usize {
+        self.fft_input.len()
+    }
+}
 
 
 #[cfg(test)]
@@ -106,6 +89,7 @@ mod test {
     use std::f32;
 
     use ::test_utils::{compare_float_vectors, random_signal};
+    use rustfft::Planner;
 
     fn execute_slow(input: &[f32]) -> Vec<f32> {
         let mut result = Vec::with_capacity(input.len());
@@ -149,23 +133,26 @@ mod test {
 
             println!("{:?}", output);
 
-            compare_float_vectors(&expected.as_slice(), &output.as_slice());
+            compare_float_vectors(&expected, &output);
         }
     }
 
     /// Verify that our fast implementation of the DCT3 gives the same output as the slow version, for many different inputs
     #[test]
     fn test_fast() {
-        for size in 2..50 {
-            let input = random_signal(size);
+        for size in 2..25 {
+            let mut input = random_signal(size);
 
             let slow_output = execute_slow(&input);
 
-            let mut dct = DCT3::new(size);
-            let mut fast_output = vec![0f32; size];
-            dct.process(&input, fast_output.as_mut_slice());
+            let mut planner = Planner::new(false);
+            let inner_fft = planner.plan_fft(size);
 
-            compare_float_vectors(&slow_output.as_slice(), &fast_output);
+            let mut dct = DCT3ViaFFT::new(inner_fft);
+            let mut fast_output = vec![0f32; size];
+            dct.process(&mut input, &mut fast_output);
+
+            compare_float_vectors(&slow_output, &fast_output);
         }
     }
 }

@@ -30,36 +30,3 @@ pub fn random_signal(length: usize) -> Vec<f32> {
     }
     return sig;
 }
-
-
-
-
-#[test]
-fn test_dct2_dct3_inverse() {
-
-    let input_list = vec![
-		vec![1_f32, 1_f32],
-		vec![1_f32, 1_f32, 1_f32, 1_f32, 1_f32],
-		vec![1_f32, 2_f32],
-		vec![1_f32, 9_f32, 1_f32, 2_f32, 3_f32],
-	];
-
-    for input in input_list {
-        let mut midpoint = input.clone();
-        let mut output = input.clone();
-
-        let mut dct2 = DCT2::new(input.len());
-        dct2.process(input.as_slice(), midpoint.as_mut_slice());
-
-        let mut dct3 = DCT3::new(input.len());
-        dct3.process(midpoint.as_slice(), output.as_mut_slice());
-
-        // scale the result by 2/N
-        let scale = 2_f32 / input.len() as f32;
-        for item in output.iter_mut() {
-            *item *= scale
-        }
-
-        compare_float_vectors(&input.as_slice(), &output.as_slice());
-    }
-}
