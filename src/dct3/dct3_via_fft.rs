@@ -1,6 +1,6 @@
 use std::rc::Rc;
 
-use num::{Complex, Zero, FromPrimitive};
+use num::{Complex, Zero};
 use rustfft::{FFT, Length};
 
 use DCTnum;
@@ -86,73 +86,29 @@ impl<T> Length for DCT3ViaFFT<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::f32;
+    use dct3::DCT3Naive;
 
     use ::test_utils::{compare_float_vectors, random_signal};
     use rustfft::Planner;
 
-    fn execute_slow(input: &[f32]) -> Vec<f32> {
-        let mut result = Vec::with_capacity(input.len());
-
-        let size_float = input.len() as f32;
-
-        for k in 0..input.len() {
-            let mut current_value = input[0] * 0.5_f32;
-
-            let k_float = k as f32;
-
-            for i in 1..(input.len()) {
-                let i_float = i as f32;
-
-                current_value +=
-                    input[i] * (f32::consts::PI * i_float * (k_float + 0.5_f32) / size_float).cos();
-            }
-            result.push(current_value);
-
-        }
-
-        return result;
-    }
-
-
-    #[test]
-    fn test_slow() {
-        let input_list = vec![
-            vec![2_f32, 0_f32],
-            vec![4_f32, 0_f32, 0_f32, 0_f32],
-            vec![21_f32, -4.39201132_f32, 2.78115295_f32, -1.40008449_f32, 7.28115295_f32],
-        ];
-        let expected_list = vec![
-            vec![1_f32, 1_f32],
-            vec![2_f32, 2_f32, 2_f32, 2_f32],
-            vec![10_f32, 2.5_f32, 15_f32, 5_f32, 20_f32],
-        ];
-
-        for (input, expected) in input_list.iter().zip(expected_list.iter()) {
-            let output = execute_slow(&input);
-
-            println!("{:?}", output);
-
-            compare_float_vectors(&expected, &output);
-        }
-    }
-
     /// Verify that our fast implementation of the DCT3 gives the same output as the slow version, for many different inputs
     #[test]
-    fn test_fast() {
-        for size in 2..25 {
-            let mut input = random_signal(size);
+    fn test_dct3_via_fft() {
+        for size in 2..20 {
+            let mut expected_input = random_signal(size);
+            let mut actual_input = random_signal(size);
 
-            let slow_output = execute_slow(&input);
+            let mut expected_output = vec![0f32; size];
+            let mut actual_output = vec![0f32; size];
 
-            let mut planner = Planner::new(false);
-            let inner_fft = planner.plan_fft(size);
+            let mut naive_dct = DCT3Naive::new(size);
+            naive_dct.process(&mut expected_input, &mut expected_output);
 
-            let mut dct = DCT3ViaFFT::new(inner_fft);
-            let mut fast_output = vec![0f32; size];
-            dct.process(&mut input, &mut fast_output);
+            let mut fft_planner = Planner::new(false);
+            let mut dct = DCT3ViaFFT::new(fft_planner.plan_fft(size));
+            dct.process(&mut actual_input, &mut actual_output);
 
-            compare_float_vectors(&slow_output, &fast_output);
+            compare_float_vectors(&expected_output, &actual_output);
         }
     }
 }

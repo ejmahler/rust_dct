@@ -5,6 +5,8 @@ extern crate rustfft;
 #[cfg(test)]
 extern crate rand;
 
+use std::fmt::Debug;
+
 mod dct_type_2;
 pub mod dct3;
 pub mod dct4;
@@ -15,7 +17,7 @@ mod twiddles;
 #[cfg(test)]
 mod test_utils;
 
-pub trait DCTnum: rustfft::FFTnum {}
+pub trait DCTnum: rustfft::FFTnum + Debug {}
 impl DCTnum for f32 {}
 impl DCTnum for f64 {}
 
