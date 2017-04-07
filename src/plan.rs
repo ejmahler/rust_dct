@@ -1,5 +1,7 @@
 use rustfft::{Planner};
 use DCTnum;
+use dct2::*;
+use dct3::*;
 use dct4::*;
 
 pub struct DCTPlanner<T> {
@@ -9,6 +11,26 @@ impl<T: DCTnum> DCTPlanner<T> {
 	pub fn new() -> Self {
 		Self {
 			fft_planner: Planner::new(false)
+		}
+	}
+
+	pub fn plan_dct2(&mut self, len: usize) -> Box<DCT2<T>> {
+		//50 is a guess for the point at which converting to FFT will be faster than  performing the naive algorithm
+		if len < 50 {
+			Box::new(DCT2Naive::new(len))
+		} else {
+			let fft = self.fft_planner.plan_fft(len);
+			Box::new(DCT2ViaFFT::new(fft))
+		}
+	}
+
+	pub fn plan_dct3(&mut self, len: usize) -> Box<DCT3<T>> {
+		//50 is a guess for the point at which converting to FFT will be faster than  performing the naive algorithm
+		if len < 50 {
+			Box::new(DCT3Naive::new(len))
+		} else {
+			let fft = self.fft_planner.plan_fft(len);
+			Box::new(DCT3ViaFFT::new(fft))
 		}
 	}
 
