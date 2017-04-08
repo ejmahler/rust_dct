@@ -21,9 +21,9 @@ fn bench_dct1_naive(b: &mut Bencher, len: usize) {
     b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
 }
 
-// small mixed composites times a large prime
-#[bench] fn dct1_naive_0016(b: &mut Bencher) { bench_dct1_naive(b,   16); }
-#[bench] fn dct1_naive_0256(b: &mut Bencher) { bench_dct1_naive(b,  256); }
+#[bench] fn dct1_naive_0024(b: &mut Bencher) { bench_dct1_naive(b,   24); }
+#[bench] fn dct1_naive_0025(b: &mut Bencher) { bench_dct1_naive(b,   25); }
+#[bench] fn dct1_naive_0026(b: &mut Bencher) { bench_dct1_naive(b,   26); }
 
 
 
@@ -38,9 +38,11 @@ fn bench_dct2_naive(b: &mut Bencher, len: usize) {
     b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
 }
 
-// small mixed composites times a large prime
-#[bench] fn dct2_naive_0016(b: &mut Bencher) { bench_dct2_naive(b,   16); }
-#[bench] fn dct2_naive_0256(b: &mut Bencher) { bench_dct2_naive(b,  256); }
+#[bench] fn dct2_naive_0003(b: &mut Bencher) { bench_dct2_naive(b,   3); }
+#[bench] fn dct2_naive_0004(b: &mut Bencher) { bench_dct2_naive(b,   4); }
+#[bench] fn dct2_naive_0005(b: &mut Bencher) { bench_dct2_naive(b,   5); }
+#[bench] fn dct2_naive_0006(b: &mut Bencher) { bench_dct2_naive(b,   6); }
+
 
 
 
@@ -56,9 +58,10 @@ fn bench_dct3_naive(b: &mut Bencher, len: usize) {
     b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
 }
 
-// small mixed composites times a large prime
-#[bench] fn dct3_naive_0016(b: &mut Bencher) { bench_dct3_naive(b,   16); }
-#[bench] fn dct3_naive_0256(b: &mut Bencher) { bench_dct3_naive(b,  256); }
+#[bench] fn dct3_naive_0003(b: &mut Bencher) { bench_dct3_naive(b,   3); }
+#[bench] fn dct3_naive_0004(b: &mut Bencher) { bench_dct3_naive(b,   4); }
+#[bench] fn dct3_naive_0005(b: &mut Bencher) { bench_dct3_naive(b,   5); }
+#[bench] fn dct3_naive_0006(b: &mut Bencher) { bench_dct3_naive(b,   6); }
 
 
 
@@ -74,6 +77,5 @@ fn bench_dct4_naive(b: &mut Bencher, len: usize) {
     b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
 }
 
-// small mixed composites times a large prime
 #[bench] fn dct4_naive_0016(b: &mut Bencher) { bench_dct4_naive(b,   16); }
 #[bench] fn dct4_naive_0256(b: &mut Bencher) { bench_dct4_naive(b,  256); }

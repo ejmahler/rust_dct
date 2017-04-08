@@ -1,4 +1,4 @@
-use rustfft::{Planner};
+use rustfft::Planner;
 use DCTnum;
 use dct1::*;
 use dct2::*;
@@ -16,8 +16,8 @@ impl<T: DCTnum> DCTPlanner<T> {
 	}
 
 	pub fn plan_dct1(&mut self, len: usize) -> Box<DCT1<T>> {
-		//75 is a guess for the point at which converting to FFT will be faster than  performing the naive algorithm
-		if len < 75 {
+		//benchmarking shows that below about 25, it's faster to just use the naive DCT1 algorithm
+		if len < 25 {
 			Box::new(DCT1Naive::new(len))
 		} else {
 			let fft = self.fft_planner.plan_fft((len - 1) * 2);
@@ -26,8 +26,8 @@ impl<T: DCTnum> DCTPlanner<T> {
 	}
 
 	pub fn plan_dct2(&mut self, len: usize) -> Box<DCT2<T>> {
-		//50 is a guess for the point at which converting to FFT will be faster than  performing the naive algorithm
-		if len < 50 {
+		//benchmarking shows that below about 5, it's faster to just use the naive DCT1 algorithm
+		if len < 5 {
 			Box::new(DCT2Naive::new(len))
 		} else {
 			let fft = self.fft_planner.plan_fft(len);
@@ -36,8 +36,8 @@ impl<T: DCTnum> DCTPlanner<T> {
 	}
 
 	pub fn plan_dct3(&mut self, len: usize) -> Box<DCT3<T>> {
-		//50 is a guess for the point at which converting to FFT will be faster than  performing the naive algorithm
-		if len < 50 {
+		//benchmarking shows that below about 5, it's faster to just use the naive DCT1 algorithm
+		if len < 5 {
 			Box::new(DCT3Naive::new(len))
 		} else {
 			let fft = self.fft_planner.plan_fft(len);

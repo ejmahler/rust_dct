@@ -1,6 +1,6 @@
 
 extern crate num;
-extern crate rustfft;
+pub extern crate rustfft;
 
 #[cfg(test)]
 extern crate rand;
