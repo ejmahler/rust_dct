@@ -16,7 +16,13 @@ impl<T: DCTnum> DCTPlanner<T> {
 	}
 
 	pub fn plan_dct1(&mut self, len: usize) -> Box<DCT1<T>> {
-		Box::new(DCT1Naive::new(len))
+		//75 is a guess for the point at which converting to FFT will be faster than  performing the naive algorithm
+		if len < 75 {
+			Box::new(DCT1Naive::new(len))
+		} else {
+			let fft = self.fft_planner.plan_fft((len - 1) * 2);
+			Box::new(DCT1ViaFFT::new(fft))
+		}
 	}
 
 	pub fn plan_dct2(&mut self, len: usize) -> Box<DCT2<T>> {

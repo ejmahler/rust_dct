@@ -72,7 +72,6 @@ mod test {
     fn slow_dct1(input: &[f32]) -> Vec<f32> {
         let mut result = Vec::with_capacity(input.len());
         let twiddle_constant = f32::consts::PI / ((input.len() - 1) as f32);
-        println!("");
 
         for k in 0..input.len() {
             let mut current_value = if k %2 == 0 {
