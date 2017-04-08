@@ -7,6 +7,7 @@ extern crate rand;
 
 use std::fmt::Debug;
 
+pub mod dct1;
 pub mod dct2;
 pub mod dct3;
 pub mod dct4;
