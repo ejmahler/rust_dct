@@ -102,7 +102,7 @@ mod test {
         let input_list = vec![
             vec![1_f32, 1_f32],
             vec![1_f32, 2_f32, 3_f32, 5_f32],
-            vec![1_f32, 2_f32, 3_f32, 5_f32 ,1_f32,-3_f32],
+            vec![1_f32, 2_f32, 3_f32, 5_f32, 1_f32, -3_f32],
         ]; 
         let expected_list = vec![
             vec![1_f32, 0_f32],

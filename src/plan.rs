@@ -1,5 +1,6 @@
 use rustfft::{Planner};
 use DCTnum;
+use dct1::*;
 use dct2::*;
 use dct3::*;
 use dct4::*;
@@ -12,6 +13,10 @@ impl<T: DCTnum> DCTPlanner<T> {
 		Self {
 			fft_planner: Planner::new(false)
 		}
+	}
+
+	pub fn plan_dct1(&mut self, len: usize) -> Box<DCT1<T>> {
+		Box::new(DCT1Naive::new(len))
 	}
 
 	pub fn plan_dct2(&mut self, len: usize) -> Box<DCT2<T>> {
