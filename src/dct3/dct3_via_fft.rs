@@ -43,16 +43,14 @@ impl<T: DCTnum> DCT3<T> for DCT3ViaFFT<T> {
 
         // compute the FFT input based on the correction factors
         for i in 0..signal.len() {
-            unsafe {
-                let imaginary_part = if i == 0 {
-                    T::zero()
-                } else {
-                    *signal.get_unchecked(signal.len() - i)
-                };
-                *self.fft_input.get_unchecked_mut(i) = Complex::new(*signal.get_unchecked(i),
-                                                                    imaginary_part) *
-                                                       *self.twiddles.get_unchecked(i);
-            }
+            let imaginary_part = if i == 0 {
+                T::zero()
+            } else {
+                signal[signal.len() - i]
+            };
+            let c = Complex{ re: signal[i], im: imaginary_part };
+
+            self.fft_input[i] = c * self.twiddles[i];
         }
 
         // run the fft
@@ -61,18 +59,13 @@ impl<T: DCTnum> DCT3<T> for DCT3ViaFFT<T> {
         // copy the first half of the fft output into the even elements of the spectrum
         let even_end = (signal.len() + 1) / 2;
         for i in 0..even_end {
-            unsafe {
-                *spectrum.get_unchecked_mut(i * 2) = (*self.fft_output.get_unchecked(i)).re;
-            }
+            spectrum[i * 2] = self.fft_output[i].re;
         }
 
         // copy the second half of the fft output into the odd elements, reversed
         let odd_end = signal.len() - 1 - signal.len() % 2;
         for i in 0..signal.len() / 2 {
-            unsafe {
-                *spectrum.get_unchecked_mut(odd_end - 2 * i) =
-                    (*self.fft_output.get_unchecked(i + even_end)).re;
-            }
+            spectrum[odd_end - 2 * i] = self.fft_output[i + even_end].re;
         }
     }
 }

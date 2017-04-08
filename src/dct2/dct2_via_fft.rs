@@ -42,18 +42,13 @@ impl<T: DCTnum> DCT2<T> for DCT2ViaFFT<T> {
         // the first half of the array will be the even elements, in order
         let even_end = (signal.len() + 1) / 2;
         for i in 0..even_end {
-            unsafe {
-                *self.fft_input.get_unchecked_mut(i) = Complex::from(*signal.get_unchecked(i * 2));
-            }
+            self.fft_input[i] = Complex{ re: signal[i*2], im: T::zero() };
         }
 
         // the second half is the odd elements in reverse order
         let odd_end = signal.len() - 1 - signal.len() % 2;
         for i in 0..signal.len() / 2 {
-            unsafe {
-                *self.fft_input.get_unchecked_mut(even_end + i) =
-                    Complex::from(*signal.get_unchecked(odd_end - 2 * i));
-            }
+            self.fft_input[even_end + i] = Complex{ re: signal[odd_end - 2 * i], im: T::zero() };
         }
 
         // run the fft
