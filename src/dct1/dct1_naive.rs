@@ -37,11 +37,12 @@ impl<T: DCTnum> DCT1<T> for DCT1Naive<T> {
 
         for k in 0..output.len() {
             let output_cell = output.get_mut(k).unwrap();
+            *output_cell = input[0];
             
             let twiddle_stride = k;
-            let mut twiddle_index = 0;
+            let mut twiddle_index = twiddle_stride;
 
-            for i in 0..input.len() {
+            for i in 1..input.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
                 *output_cell = *output_cell + input[i] * twiddle;
