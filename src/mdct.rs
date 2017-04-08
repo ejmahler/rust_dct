@@ -290,7 +290,7 @@ mod test {
 
             println!("expected: {:?}, actual: {:?}", expected, output);
 
-            compare_float_vectors(&expected.as_slice(), &output.as_slice());
+            assert!(compare_float_vectors(&expected.as_slice(), &output.as_slice()));
         }
     }
 
@@ -317,7 +317,7 @@ mod test {
 
             println!("input: {:?}, output: {:?}", input, output);
 
-            compare_float_vectors(&input.as_slice(), &output.as_slice());
+            assert!(compare_float_vectors(&input.as_slice(), &output.as_slice()));
         }
     }
 
@@ -336,7 +336,7 @@ mod test {
             let mut dct = MDCT::new(size / 2);
             let mut fast_output = vec![0f32; size / 2];
             dct.process(&input, fast_output.as_mut_slice());
-            compare_float_vectors(&slow_output, &fast_output);
+            assert!(compare_float_vectors(&slow_output, &fast_output));
 
             //now compute the inverse
             let mut slow_inverse = vec![0f32; size];
@@ -344,7 +344,7 @@ mod test {
 
             let mut fast_inverse = vec![0f32; size];
             dct.process_inverse(&mut slow_output, fast_inverse.as_mut_slice());
-            compare_float_vectors(&slow_inverse, &fast_inverse);
+            assert!(compare_float_vectors(&slow_inverse, &fast_inverse));
         }
     }
 
@@ -368,7 +368,7 @@ mod test {
             execute_slow(&slow_input, slow_output.as_mut_slice());
 
             println!("expected forward: {:?}, actual: {:?}", slow_output, fast_output);
-            compare_float_vectors(&slow_output, &fast_output);
+            assert!(compare_float_vectors(&slow_output, &fast_output));
 
 
 
@@ -384,7 +384,7 @@ mod test {
             dct.process_inverse(&mut slow_output, fast_inverse.as_mut_slice());
 
             println!("expected inverse: {:?}, actual: {:?}", slow_inverse, fast_inverse);
-            compare_float_vectors(&slow_inverse, &fast_inverse);
+            assert!(compare_float_vectors(&slow_inverse, &fast_inverse));
         }
     }
 
@@ -415,8 +415,8 @@ mod test {
         execute_slow(&final_segment_input, &mut slow_result[input.len() - segment_size..]);
         dct.process(&final_segment_input, &mut fast_result[input.len() - segment_size..]);
 
-        compare_float_vectors(&fast_overlapped_result, &slow_result);
-        compare_float_vectors(&fast_overlapped_result, &fast_result);
+        assert!(compare_float_vectors(&fast_overlapped_result, &slow_result));
+        assert!(compare_float_vectors(&fast_overlapped_result, &fast_result));
 
         //now verify that the inverse works as well
         let mut fast_overlapped_inverse = vec![0f32; input.len()];
@@ -437,8 +437,8 @@ mod test {
             slow_inverse[i] += slow_inverse[i+input.len()];
         }
 
-        compare_float_vectors(&fast_overlapped_inverse, &slow_inverse[..input.len()]);
-        compare_float_vectors(&fast_overlapped_inverse, &fast_inverse[..input.len()]);
+        assert!(compare_float_vectors(&fast_overlapped_inverse, &slow_inverse[..input.len()]));
+        assert!(compare_float_vectors(&fast_overlapped_inverse, &fast_inverse[..input.len()]));
     }
 
     /// Verify the TDAC property of the process_overalpped and process_inverse_overlapped functions
@@ -466,7 +466,7 @@ mod test {
 
                 println!("num_segments: {}, segment_size: {}, expected: {:?}, actual: {:?}", num_segments, segment_size, signal, output_buffer);
 
-                compare_float_vectors(&signal, &output_buffer);
+                assert!(compare_float_vectors(&signal, &output_buffer));
             }
         }
     }

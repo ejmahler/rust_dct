@@ -124,8 +124,8 @@ mod test {
             println!("slow:  {:?}", slow_output);
             println!("fast:  {:?}", actual_output);
 
-            compare_float_vectors(&expected, &slow_output);
-            compare_float_vectors(&expected, &actual_output);
+            assert!(compare_float_vectors(&expected, &slow_output));
+            assert!(compare_float_vectors(&expected, &actual_output));
         }
     }
 
@@ -148,7 +148,7 @@ mod test {
             println!("expected: {:?}", slow_output);
             println!("actual: {:?}", fast_output);
 
-            compare_float_vectors(&slow_output, &fast_output);
+            assert!(compare_float_vectors(&slow_output, &fast_output), "len = {}", size);
         }
     }
 }

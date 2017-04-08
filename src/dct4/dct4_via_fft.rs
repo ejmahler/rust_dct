@@ -87,7 +87,7 @@ mod test {
             let mut dct = DCT4ViaFFT::new(fft_planner.plan_fft(size * 8));
             dct.process(&mut actual_input, &mut actual_output);
 
-            compare_float_vectors(&expected_output, &actual_output);
+            assert!(compare_float_vectors(&expected_output, &actual_output), "len = {}", size);
         }
     }
 }

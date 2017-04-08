@@ -96,7 +96,7 @@ mod test {
             println!("expected: {:?}", actual_output);
             println!("actual: {:?}", actual_input);
 
-            compare_float_vectors(&expected_output, &actual_output);
+            assert!(compare_float_vectors(&actual_output, &expected_output), "len = {}", size);
         }
     }
 }
