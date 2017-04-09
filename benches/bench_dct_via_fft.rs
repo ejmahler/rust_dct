@@ -75,12 +75,20 @@ fn bench_dct3_fft(b: &mut Bencher, len: usize) {
 fn bench_dct4_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = Planner::new(false);
-    let mut dct = DCT4ViaFFT::new(planner.plan_fft(len * 8));
+    let mut dct = DCT4ViaFFT::new(planner.plan_fft(len * 4));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
     b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
 }
 
-#[bench] fn dct4_fft_0016(b: &mut Bencher) { bench_dct4_fft(b,   16); }
-#[bench] fn dct4_fft_0256(b: &mut Bencher) { bench_dct4_fft(b,  256); }
+#[bench] fn dct4_fft_0100(b: &mut Bencher) { bench_dct4_fft(b,  100); }
+#[bench] fn dct4_fft_0101(b: &mut Bencher) { bench_dct4_fft(b,  101); }
+#[bench] fn dct4_fft_0110(b: &mut Bencher) { bench_dct4_fft(b,  110); }
+#[bench] fn dct4_fft_0111(b: &mut Bencher) { bench_dct4_fft(b,  111); }
+#[bench] fn dct4_fft_0120(b: &mut Bencher) { bench_dct4_fft(b,  120); }
+#[bench] fn dct4_fft_0121(b: &mut Bencher) { bench_dct4_fft(b,  121); }
+#[bench] fn dct4_fft_0130(b: &mut Bencher) { bench_dct4_fft(b,  130); }
+#[bench] fn dct4_fft_0131(b: &mut Bencher) { bench_dct4_fft(b,  131); }
+#[bench] fn dct4_fft_0140(b: &mut Bencher) { bench_dct4_fft(b,  140); }
+#[bench] fn dct4_fft_0141(b: &mut Bencher) { bench_dct4_fft(b,  141); }

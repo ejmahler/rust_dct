@@ -46,11 +46,11 @@ impl<T: DCTnum> DCTPlanner<T> {
 	}
 
 	pub fn plan_dct4(&mut self, len: usize) -> Box<DCT4<T>> {
-		//benchmarking show that below about 200, it's faster to just use the naive DCT4 algorithm
-		if len < 200 {
+		//benchmarking shows that below about 100, it's faster to just use the naive DCT4 algorithm
+		if len < 100 {
 			Box::new(DCT4Naive::new(len))
 		} else {
-			let fft = self.fft_planner.plan_fft(len * 8);
+			let fft = self.fft_planner.plan_fft(len * 4);
 			Box::new(DCT4ViaFFT::new(fft))
 		}
 	}

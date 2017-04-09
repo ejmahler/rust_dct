@@ -1,8 +1,10 @@
 use std::rc::Rc;
+use std::f64;
 
-use num::{Complex, Zero, FromPrimitive};
+use num::{Complex, Zero};
 use rustfft::{FFT, Length};
 
+use twiddles;
 use DCTnum;
 use dct4::DCT4;
 
@@ -10,55 +12,61 @@ pub struct DCT4ViaFFT<T> {
     inner_fft: Rc<FFT<T>>,
     fft_input: Vec<Complex<T>>,
     fft_output: Vec<Complex<T>>,
+
+    twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: DCTnum> DCT4ViaFFT<T> {
-    /// Creates a new DCT4 context that will process signals of length `inner_fft.len() / 8`.
+    /// Creates a new DCT4 context that will process signals of length `inner_fft.len() / 4`.
     pub fn new(inner_fft: Rc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
-        assert_eq!(inner_len % 8, 0, "inner_fft.len() for DCT4ViaFFT must be a multiple of 8. The DCT4 length will be inner_fft.len() / 8. Got {}", inner_fft.len());
+        assert_eq!(inner_len % 4, 0, "inner_fft.len() for DCT4ViaFFT must be a multiple of 4. The DCT4 length will be inner_fft.len() / 4. Got {}", inner_fft.len());
+
+        let len = inner_fft.len() / 4;
+
+        let twiddle_scale = T::from_f64(0.25f64 / (f64::consts::PI / (inner_len as f64)).cos()).unwrap();
+
+        let twiddles: Vec<Complex<T>> = (0..len)
+            .map(|i| twiddles::single_twiddle(i, inner_len, false) * twiddle_scale)
+            .collect();
 
         Self {
             inner_fft: inner_fft,
             fft_input: vec![Zero::zero(); inner_len],
             fft_output: vec![Zero::zero(); inner_len],
+            twiddles: twiddles.into_boxed_slice(),
         }
     }
 }
 impl<T: DCTnum> DCT4<T> for DCT4ViaFFT<T> {
     fn process(&mut self, signal: &mut [T], spectrum: &mut [T]) {
-        assert_eq!(signal.len() * 8, self.fft_input.len());
-
-        //all even elements are zero
-        for i in 0..self.fft_input.len() / 2 {
-            self.fft_input[i * 2] = Zero::zero();
-        }
+        assert_eq!(signal.len(), self.len());
 
         //the odd elements are the DCT input, repeated and reversed and etc
-        for (index, element) in signal.iter().enumerate() {
-            self.fft_input[index * 2 + 1] = Complex::from(*element);
+        for (fft_element, input_element) in self.fft_input.iter_mut().zip(signal.iter()) {
+            *fft_element = Complex::from(*input_element);
         }
-        for (index, element) in signal.iter().rev().enumerate() {
-            self.fft_input[signal.len() * 2 + index * 2 + 1] = Complex::from(-*element);
+        for (fft_element, input_element) in self.fft_input.iter_mut().skip(signal.len()).zip(signal.iter().rev()) {
+            *fft_element = Complex::from(-*input_element);
         }
-        for (index, element) in signal.iter().enumerate() {
-            self.fft_input[signal.len() * 4 + index * 2 + 1] = Complex::from(-*element);
+        for (fft_element, input_element) in self.fft_input.iter_mut().skip(signal.len()*2).zip(signal.iter()) {
+            *fft_element = Complex::from(-*input_element);
         }
-        for (index, element) in signal.iter().rev().enumerate() {
-            self.fft_input[signal.len() * 6 + index * 2 + 1] = Complex::from(*element);
+        for (fft_element, input_element) in self.fft_input.iter_mut().skip(signal.len()*3).zip(signal.iter().rev()) {
+            *fft_element = Complex::from(*input_element);
         }
 
         // run the fft
         self.inner_fft.process(&mut self.fft_input, &mut self.fft_output);
 
-        for (index, element) in spectrum.iter_mut().enumerate() {
-            *element = self.fft_output[index * 2 + 1].re * FromPrimitive::from_f32(0.25).unwrap();
+        for (index, (element, twiddle)) in spectrum.iter_mut().zip(self.twiddles.iter()).enumerate() {
+            *element = (self.fft_output[index * 2 + 1] * twiddle).re;
         }
     }
 }
 impl<T> Length for DCT4ViaFFT<T> {
     fn len(&self) -> usize {
-        self.fft_input.len() / 8
+        self.fft_input.len() / 4
     }
 }
 
@@ -84,8 +92,15 @@ mod test {
             naive_dct.process(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = Planner::new(false);
-            let mut dct = DCT4ViaFFT::new(fft_planner.plan_fft(size * 8));
+            let mut dct = DCT4ViaFFT::new(fft_planner.plan_fft(size * 4));
             dct.process(&mut actual_input, &mut actual_output);
+
+            let divided: Vec<f32> = expected_output.iter().zip(actual_output.iter()).map(|(&a, b)| b / a).collect();
+
+            println!("");
+            println!("expected: {:?}", expected_output);
+            println!("actual:   {:?}", actual_output);
+            println!("divided:  {:?}", divided);
 
             assert!(compare_float_vectors(&expected_output, &actual_output), "len = {}", size);
         }

@@ -77,5 +77,13 @@ fn bench_dct4_naive(b: &mut Bencher, len: usize) {
     b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
 }
 
-#[bench] fn dct4_naive_0016(b: &mut Bencher) { bench_dct4_naive(b,   16); }
-#[bench] fn dct4_naive_0256(b: &mut Bencher) { bench_dct4_naive(b,  256); }
+#[bench] fn dct4_naive_0100(b: &mut Bencher) { bench_dct4_naive(b,  100); }
+#[bench] fn dct4_naive_0101(b: &mut Bencher) { bench_dct4_naive(b,  101); }
+#[bench] fn dct4_naive_0110(b: &mut Bencher) { bench_dct4_naive(b,  110); }
+#[bench] fn dct4_naive_0111(b: &mut Bencher) { bench_dct4_naive(b,  111); }
+#[bench] fn dct4_naive_0120(b: &mut Bencher) { bench_dct4_naive(b,  120); }
+#[bench] fn dct4_naive_0121(b: &mut Bencher) { bench_dct4_naive(b,  121); }
+#[bench] fn dct4_naive_0130(b: &mut Bencher) { bench_dct4_naive(b,  130); }
+#[bench] fn dct4_naive_0131(b: &mut Bencher) { bench_dct4_naive(b,  131); }
+#[bench] fn dct4_naive_0140(b: &mut Bencher) { bench_dct4_naive(b,  140); }
+#[bench] fn dct4_naive_0141(b: &mut Bencher) { bench_dct4_naive(b,  141); }
