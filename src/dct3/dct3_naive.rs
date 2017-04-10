@@ -1,6 +1,5 @@
 use std::f64;
 
-use num::FromPrimitive;
 use rustfft::Length;
 
 use dct3::DCT3;
@@ -18,7 +17,7 @@ impl<T: DCTnum> DCT3Naive<T> {
 
         let twiddles: Vec<T> = (0..len*4)
             .map(|i| (constant_factor * (i as f64)).cos())
-            .map(|c| FromPrimitive::from_f64(c).unwrap())
+            .map(|c| T::from_f64(c).unwrap())
             .collect();
 
         Self {

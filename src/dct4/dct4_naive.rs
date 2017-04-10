@@ -1,6 +1,5 @@
 use std::f64;
 
-use num::{Zero, FromPrimitive};
 use rustfft::Length;
 
 use dct4::DCT4;
@@ -18,7 +17,7 @@ impl<T: DCTnum> DCT4Naive<T> {
 
         let twiddles: Vec<T> = (0..len*4)
             .map(|i| (constant_factor * (i as f64 + 0.5_f64)).cos())
-            .map(|c| FromPrimitive::from_f64(c).unwrap())
+            .map(|c| T::from_f64(c).unwrap())
             .collect();
 
         Self {
@@ -33,7 +32,7 @@ impl<T: DCTnum> DCT4<T> for DCT4Naive<T> {
 
         for k in 0..output.len() {
             let output_cell = output.get_mut(k).unwrap();
-            *output_cell = Zero::zero();
+            *output_cell = T::zero();
 
             let mut twiddle_index = k;
             let twiddle_stride = k * 2 + 1;
@@ -108,7 +107,7 @@ mod test {
             let slow_output = slow_dct4(&input);
 
             let mut actual_input = input.to_vec();
-            let mut actual_output = vec![Zero::zero(); input.len()];
+            let mut actual_output = vec![0f32; input.len()];
 
             let mut dct = DCT4Naive::new(input.len());
 

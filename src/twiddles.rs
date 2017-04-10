@@ -1,6 +1,6 @@
 
 use std::f64;
-use num::{Complex, FromPrimitive, One};
+use num::Complex;
 use DCTnum;
 
 #[inline(always)]
@@ -11,11 +11,11 @@ pub fn single_twiddle<T: DCTnum>(i: usize, fft_len: usize, inverse: bool) -> Com
         -2f64 * f64::consts::PI
     };
 
-    let c = Complex::from_polar(&One::one(), &(constant * i as f64 / fft_len as f64));
+    let c = Complex::from_polar(&1f64, &(constant * i as f64 / fft_len as f64));
 
     Complex {
-        re: FromPrimitive::from_f64(c.re).unwrap(),
-        im: FromPrimitive::from_f64(c.im).unwrap(),
+        re: T::from_f64(c.re).unwrap(),
+        im: T::from_f64(c.im).unwrap(),
     }
 }
 
