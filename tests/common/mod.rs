@@ -141,6 +141,40 @@ pub mod test_mdct {
 
         assert!(compare_float_vectors(&naive_output, &actual_output), "len = {}", len);
     }
+
+    pub fn test_tdac<F>(len: usize, scale_factor: f32, window_fn: F)
+        where F: Fn(usize) -> Vec<f32>
+    {
+        let mut planner = DCTPlanner::new();
+        let mut forward_dct = planner.plan_mdct(len, &window_fn);
+        let mut inverse_dct = planner.plan_imdct(len, window_fn);
+
+        const NUM_SEGMENTS: usize = 5;
+
+        let input = random_signal(len * (NUM_SEGMENTS + 1));
+        let mut output = vec![0f32; len * NUM_SEGMENTS];
+        let mut inverse = vec![0f32; len * (NUM_SEGMENTS + 1)];
+
+        for i in 0..NUM_SEGMENTS {
+            let input_chunk = &input[len*i..(len*(i+2))];
+            let output_chunk = &mut output[len*i..(len*(i+1))];
+
+            forward_dct.process(input_chunk, output_chunk);
+        }
+        for i in 0..NUM_SEGMENTS {
+            let input_chunk = &output[len*i..(len*(i+1))];
+            let output_chunk = &mut inverse[len*i..(len*(i+2))];
+
+            inverse_dct.process(input_chunk, output_chunk);
+        }
+
+        //we have to scale the inverse by 1/len
+        for element in inverse.iter_mut() {
+            *element = *element * scale_factor;
+        }
+
+        assert!(compare_float_vectors(&input[len..input.len()-len], &inverse[len..inverse.len()-len]), "len = {}", len);
+    }
 }
 
 pub mod test_imdct {

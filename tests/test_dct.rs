@@ -104,6 +104,30 @@ fn test_mdct_accuracy() {
     }
 }
 
+#[test]
+fn test_mdct_tdac() {
+    for i in 1..10 {
+        let len = i * 2;
+        test_mdct::test_tdac(len, 1f32 / len as f32, window_fn::one);
+    }
+    for &i in &[50, 52] {
+        let len = i * 2;
+        test_mdct::test_tdac(len, 1f32 / len as f32, window_fn::one);
+    }
+
+
+    for curent_window_fn in &[window_fn::mp3, window_fn::vorbis] {
+        for i in 1..10 {
+            let len = i * 2;
+            test_mdct::test_tdac(len, 2f32 / len as f32, curent_window_fn);
+        }
+        for &i in &[50, 52] {
+            let len = i * 2;
+            test_mdct::test_tdac(len, 2f32 / len as f32, curent_window_fn);
+        }
+    }
+}
+
 
 #[test]
 fn test_imdct_accuracy() {
