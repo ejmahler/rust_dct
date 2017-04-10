@@ -11,7 +11,7 @@ pub mod dct1;
 pub mod dct2;
 pub mod dct3;
 pub mod dct4;
-mod mdct;
+pub mod mdct;
 mod plan;
 mod twiddles;
 

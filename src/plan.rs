@@ -4,6 +4,7 @@ use dct1::*;
 use dct2::*;
 use dct3::*;
 use dct4::*;
+use mdct::*;
 
 pub struct DCTPlanner<T> {
 	fft_planner: Planner<T>,
@@ -52,6 +53,30 @@ impl<T: DCTnum> DCTPlanner<T> {
 		} else {
 			let fft = self.fft_planner.plan_fft(len * 4);
 			Box::new(DCT4ViaFFT::new(fft))
+		}
+	}
+
+	pub fn plan_mdct<F>(&mut self, len: usize, window_fn: F) -> Box<MDCT<T>>
+		where F: Fn(usize) -> Vec<T>
+	{
+		//6 is a guess for when it becomes faster to use the DCT4 algorithm vs the naive
+		if len < 6 {
+			Box::new(MDCTNaive::new(len, window_fn))
+		} else {
+			let inner_dct4 = self.plan_dct4(len);
+			Box::new(MDCTViaDCT4::new(inner_dct4, window_fn))
+		}
+	}
+
+	pub fn plan_imdct<F>(&mut self, len: usize, window_fn: F) -> Box<IMDCT<T>>
+		where F: Fn(usize) -> Vec<T>
+	{
+		//6 is a guess for when it becomes faster to use the DCT4 algorithm vs the naive
+		if len < 6 {
+			Box::new(IMDCTNaive::new(len, window_fn))
+		} else {
+			let inner_dct4 = self.plan_dct4(len);
+			Box::new(IMDCTViaDCT4::new(inner_dct4, window_fn))
 		}
 	}
 }
