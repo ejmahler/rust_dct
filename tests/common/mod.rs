@@ -97,7 +97,7 @@ macro_rules! dct_test_fns {
                 naive_dct.process(&mut naive_input, &mut naive_output);
                 actual_dct.process(&mut actual_input, &mut actual_output);
 
-                println!("Naive output:   {:?}", naive_input);
+                println!("Naive output:   {:?}", naive_output);
                 println!("Planned output: {:?}", actual_output);
 
                 assert!(compare_float_vectors(&naive_output, &actual_output), "len = {}", len);
@@ -109,3 +109,68 @@ dct_test_fns!(test_dct1, DCT1Naive, plan_dct1);
 dct_test_fns!(test_dct2, DCT2Naive, plan_dct2);
 dct_test_fns!(test_dct3, DCT3Naive, plan_dct3);
 dct_test_fns!(test_dct4, DCT4Naive, plan_dct4);
+
+
+pub mod test_mdct {
+    use super::*;
+    use rust_dct::mdct::{MDCT, MDCTNaive};
+
+    pub fn planned_matches_naive<F>(len: usize, window_fn: F)
+        where F: Fn(usize) -> Vec<f32>
+    {
+        let mut naive_input = random_signal(len*2);
+        let mut actual_input = naive_input.clone();
+
+        println!("input:          {:?}", naive_input);
+
+        let mut naive_output = vec![0f32; len];
+        let mut actual_output = vec![0f32; len];
+
+        let mut naive_dct = MDCTNaive::new(len, &window_fn);
+
+        let mut planner = DCTPlanner::new();
+        let mut actual_dct = planner.plan_mdct(len, window_fn);
+
+        assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
+
+        naive_dct.process(&mut naive_input, &mut naive_output);
+        actual_dct.process(&mut actual_input, &mut actual_output);
+
+        println!("Naive output:   {:?}", naive_output);
+        println!("Planned output: {:?}", actual_output);
+
+        assert!(compare_float_vectors(&naive_output, &actual_output), "len = {}", len);
+    }
+}
+
+pub mod test_imdct {
+    use super::*;
+    use rust_dct::mdct::{IMDCT, IMDCTNaive};
+
+    pub fn planned_matches_naive<F>(len: usize, window_fn: F)
+        where F: Fn(usize) -> Vec<f32>
+    {
+        let mut naive_input = random_signal(len);
+        let mut actual_input = naive_input.clone();
+
+        println!("input:          {:?}", naive_input);
+
+        let mut naive_output = vec![0f32; len*2];
+        let mut actual_output = vec![0f32; len*2];
+
+        let mut naive_dct = IMDCTNaive::new(len, &window_fn);
+
+        let mut planner = DCTPlanner::new();
+        let mut actual_dct = planner.plan_imdct(len, window_fn);
+
+        assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
+
+        naive_dct.process(&mut naive_input, &mut naive_output);
+        actual_dct.process(&mut actual_input, &mut actual_output);
+
+        println!("Naive output:   {:?}", naive_output);
+        println!("Planned output: {:?}", actual_output);
+
+        assert!(compare_float_vectors(&naive_output, &actual_output), "len = {}", len);
+    }
+}
