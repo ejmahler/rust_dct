@@ -22,6 +22,7 @@ impl<T: DCTnum> DCT4ViaFFT<T> {
     pub fn new(inner_fft: Rc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
         assert_eq!(inner_len % 4, 0, "inner_fft.len() for DCT4ViaFFT must be a multiple of 4. The DCT4 length will be inner_fft.len() / 4. Got {}", inner_fft.len());
+        assert!(!inner_fft.is_inverse(), "The 'DCT type 4 via FFT' algorithm requires a forward FFT, but an inverse FFT was provided");
 
         let len = inner_fft.len() / 4;
 

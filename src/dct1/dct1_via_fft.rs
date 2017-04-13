@@ -14,11 +14,12 @@ pub struct DCT1ViaFFT<T> {
 }
 
 impl<T: DCTnum> DCT1ViaFFT<T> {
-    /// Creates a new DCT1 context that will process signals of length `len`.
+    /// Creates a new DCT1 context that will process signals of length `inner_fft.len() / 2 + 1`.
     pub fn new(inner_fft: Rc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
 
         assert!(inner_len % 2 == 0, "For DCT1 via FFT, the inner FFT size must be even. Got {}", inner_len);
+        assert!(!inner_fft.is_inverse(), "The 'DCT type 1 via FFT' algorithm requires a forward FFT, but an inverse FFT was provided");
 
         Self {
             fft: inner_fft,

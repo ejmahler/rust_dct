@@ -17,8 +17,9 @@ pub struct DCT3ViaFFT<T> {
 }
 
 impl<T: DCTnum> DCT3ViaFFT<T> {
-    /// Creates a new DCT3 context that will process signals of length `len`.
+    /// Creates a new DCT3 context that will process signals of length `inner_fft.len()`.
     pub fn new(inner_fft: Rc<FFT<T>>) -> Self {
+        assert!(!inner_fft.is_inverse(), "The 'DCT type 3 via FFT' algorithm requires a forward FFT, but an inverse FFT was provided");
 
         let len = inner_fft.len();
 
