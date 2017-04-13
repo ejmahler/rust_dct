@@ -6,7 +6,7 @@ use rust_dct::dct1::{DCT1, DCT1Naive};
 use rust_dct::dct2::{DCT2, DCT2Naive};
 use rust_dct::dct3::{DCT3, DCT3Naive};
 use rust_dct::dct4::{DCT4, DCT4Naive};
-use rust_dct::mdct::{MDCT, MDCTNaive, window_fn};
+use rust_dct::mdct::{MDCT, IMDCT, MDCTNaive, IMDCTNaive, window_fn};
 
 use test::Bencher;
 
@@ -107,3 +107,24 @@ fn bench_mdct_naive(b: &mut Bencher, len: usize) {
 #[bench] fn mdct_naive_08(b: &mut Bencher) { bench_mdct_naive(b,  8); }
 #[bench] fn mdct_naive_10(b: &mut Bencher) { bench_mdct_naive(b,  10); }
 #[bench] fn mdct_naive_12(b: &mut Bencher) { bench_mdct_naive(b,  12); }
+
+
+
+
+/// Times just the IMDCT execution (not allocation and pre-calculation)
+/// for a given length
+fn bench_imdct_naive(b: &mut Bencher, len: usize) {
+
+    let mut dct = IMDCTNaive::new(len, window_fn::mp3);
+
+    let signal = vec![0_f32; len];
+    let mut spectrum = vec![0_f32; len*2];
+    b.iter(|| {dct.process(&signal, &mut spectrum);} );
+}
+
+#[bench] fn imdct_naive_02(b: &mut Bencher) { bench_imdct_naive(b,  2); }
+#[bench] fn imdct_naive_04(b: &mut Bencher) { bench_imdct_naive(b,  4); }
+#[bench] fn imdct_naive_06(b: &mut Bencher) { bench_imdct_naive(b,  6); }
+#[bench] fn imdct_naive_08(b: &mut Bencher) { bench_imdct_naive(b,  8); }
+#[bench] fn imdct_naive_10(b: &mut Bencher) { bench_imdct_naive(b,  10); }
+#[bench] fn imdct_naive_12(b: &mut Bencher) { bench_imdct_naive(b,  12); }

@@ -8,7 +8,7 @@ use rust_dct::dct1::{DCT1, DCT1ViaFFT};
 use rust_dct::dct2::{DCT2, DCT2ViaFFT};
 use rust_dct::dct3::{DCT3, DCT3ViaFFT};
 use rust_dct::dct4::{DCT4, DCT4ViaFFT};
-use rust_dct::mdct::{MDCT, MDCTViaDCT4, window_fn};
+use rust_dct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
 
 use test::Bencher;
 
@@ -114,3 +114,24 @@ fn bench_mdct_fft(b: &mut Bencher, len: usize) {
 #[bench] fn mdct_fft_08(b: &mut Bencher) { bench_mdct_fft(b,  8); }
 #[bench] fn mdct_fft_10(b: &mut Bencher) { bench_mdct_fft(b,  10); }
 #[bench] fn mdct_fft_12(b: &mut Bencher) { bench_mdct_fft(b,  12); }
+
+
+
+
+/// Times just the IMDCT execution (not allocation and pre-calculation)
+/// for a given length
+fn bench_imdct_fft(b: &mut Bencher, len: usize) {
+
+    let mut planner = DCTPlanner::new();
+    let mut dct = IMDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
+
+    let signal = vec![0_f32; len];
+    let mut spectrum = vec![0_f32; len*2];
+    b.iter(|| {dct.process(&signal, &mut spectrum);} );
+}
+#[bench] fn imdct_fft_02(b: &mut Bencher) { bench_imdct_fft(b,  2); }
+#[bench] fn imdct_fft_04(b: &mut Bencher) { bench_imdct_fft(b,  4); }
+#[bench] fn imdct_fft_06(b: &mut Bencher) { bench_imdct_fft(b,  6); }
+#[bench] fn imdct_fft_08(b: &mut Bencher) { bench_imdct_fft(b,  8); }
+#[bench] fn imdct_fft_10(b: &mut Bencher) { bench_imdct_fft(b,  10); }
+#[bench] fn imdct_fft_12(b: &mut Bencher) { bench_imdct_fft(b,  12); }
