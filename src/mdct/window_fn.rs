@@ -1,32 +1,27 @@
+use std::f64;
 
 use DCTnum;
-use num::Float;
-use num::traits::FloatConst;
 
-pub fn mp3<T>(len: usize) -> Vec<T>
-    where T: Float + FloatConst + DCTnum
-{
-    let constant_term: T = T::PI() / T::from_usize(len).unwrap();
-    let half: T = T::from_f32(0.5f32).unwrap();
+pub fn mp3<T: DCTnum>(len: usize) -> Vec<T> {
+    let constant_term = f64::consts::PI / len as f64;
 
     (0..len).map(|n| {
-        let n_float: T = T::from_usize(n).unwrap();
-        (constant_term * (n_float + half)).sin()
-    }).collect()
+        (constant_term * (n as f64 + 0.5f64)).sin()
+    })
+        .map(|w| T::from_f64(w).unwrap())
+        .collect()
 }
 
-pub fn vorbis<T>(len: usize) -> Vec<T>
-    where T: Float + FloatConst + DCTnum
-{
-    let constant_term: T = T::PI() / T::from_usize(len).unwrap();
-    let half: T = T::from_f32(0.5f32).unwrap();
+pub fn vorbis<T: DCTnum>(len: usize) -> Vec<T> {
+    let constant_term = f64::consts::PI / len as f64;
 
     (0..len).map(|n| {
-        let n_float: T = T::from_usize(n).unwrap();
-        let inner_sin = (constant_term * (n_float + half)).sin();
+        let inner_sin = (constant_term * (n as f64 + 0.5f64)).sin();
 
-        (T::FRAC_PI_2() * inner_sin * inner_sin).sin()
-    }).collect()
+        (f64::consts::PI * 0.5f64 * inner_sin * inner_sin).sin()
+    })
+        .map(|w| T::from_f64(w).unwrap())
+        .collect()
 }
 
 pub fn one<T: DCTnum>(len: usize) -> Vec<T> {

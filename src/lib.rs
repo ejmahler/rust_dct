@@ -1,11 +1,12 @@
 
-extern crate num;
 pub extern crate rustfft;
 
 #[cfg(test)]
 extern crate rand;
 
 use std::fmt::Debug;
+
+pub use rustfft::{num_complex, num_traits};
 
 pub mod dct1;
 pub mod dct2;

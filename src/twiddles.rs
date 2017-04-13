@@ -1,6 +1,6 @@
 
 use std::f64;
-use num::Complex;
+use rustfft::num_complex::Complex;
 use DCTnum;
 
 #[inline(always)]

@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
-use num::{Complex, Zero};
+use rustfft::num_traits::Zero;
+use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
 use DCTnum;
@@ -82,7 +83,7 @@ mod test {
     use dct3::DCT3Naive;
 
     use ::test_utils::{compare_float_vectors, random_signal};
-    use rustfft::Planner;
+    use rustfft::FFTplanner;
 
     /// Verify that our fast implementation of the DCT3 gives the same output as the slow version, for many different inputs
     #[test]
@@ -97,7 +98,7 @@ mod test {
             let mut naive_dct = DCT3Naive::new(size);
             naive_dct.process(&mut expected_input, &mut expected_output);
 
-            let mut fft_planner = Planner::new(false);
+            let mut fft_planner = FFTplanner::new(false);
             let mut dct = DCT3ViaFFT::new(fft_planner.plan_fft(size));
             dct.process(&mut actual_input, &mut actual_output);
 

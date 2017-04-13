@@ -1,7 +1,8 @@
 use std::rc::Rc;
 use std::f64;
 
-use num::{Complex, Zero};
+use rustfft::num_traits::Zero;
+use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
 use twiddles;
@@ -76,7 +77,7 @@ mod test {
     use super::*;
     use test_utils::{compare_float_vectors, random_signal};
     use dct4::DCT4Naive;
-    use rustfft::Planner;
+    use rustfft::FFTplanner;
 
     /// Verify that our fast implementation of the DCT4 gives the same output as the slow version, for many different inputs
     #[test]
@@ -91,7 +92,7 @@ mod test {
             let mut naive_dct = DCT4Naive::new(size);
             naive_dct.process(&mut expected_input, &mut expected_output);
 
-            let mut fft_planner = Planner::new(false);
+            let mut fft_planner = FFTplanner::new(false);
             let mut dct = DCT4ViaFFT::new(fft_planner.plan_fft(size * 4));
             dct.process(&mut actual_input, &mut actual_output);
 

@@ -66,7 +66,6 @@ impl<T> Length for DCT1Naive<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use num::Zero;
     use test_utils::{compare_float_vectors, random_signal};
     use std::f32;
 
@@ -114,7 +113,7 @@ mod test {
             let slow_output = slow_dct1(&input);
 
             let mut actual_input = input.to_vec();
-            let mut actual_output = vec![Zero::zero(); input.len()];
+            let mut actual_output = vec![0f32; input.len()];
 
             let mut dct = DCT1Naive::new(input.len());
 

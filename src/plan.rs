@@ -1,4 +1,4 @@
-use rustfft::Planner;
+use rustfft::FFTplanner;
 use DCTnum;
 use dct1::*;
 use dct2::*;
@@ -7,12 +7,12 @@ use dct4::*;
 use mdct::*;
 
 pub struct DCTPlanner<T> {
-	fft_planner: Planner<T>,
+	fft_planner: FFTplanner<T>,
 }
 impl<T: DCTnum> DCTPlanner<T> {
 	pub fn new() -> Self {
 		Self {
-			fft_planner: Planner::new(false)
+			fft_planner: FFTplanner::new(false)
 		}
 	}
 

@@ -5,7 +5,6 @@ authors = ["Elliott Mahler <emahler@usc.edu>"]
 
 [dependencies]
 rustfft = { git = "https://github.com/awelkie/RustFFT.git" }
-num = "*"
 
 [dev-dependencies]
 rand = "*"
