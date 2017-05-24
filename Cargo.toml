@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Elliott Mahler <emahler@usc.edu>"]
 
 [dependencies]
-rustfft = { git = "https://github.com/awelkie/RustFFT.git" }
+rustfft = "^2.0"
 
 [dev-dependencies]
 rand = "*"

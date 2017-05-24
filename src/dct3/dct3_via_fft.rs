@@ -1,4 +1,4 @@
-use std::rc::Rc;
+use std::sync::Arc;
 
 use rustfft::num_traits::Zero;
 use rustfft::num_complex::Complex;
@@ -9,7 +9,7 @@ use twiddles;
 use dct3::DCT3;
 
 pub struct DCT3ViaFFT<T> {
-    fft: Rc<FFT<T>>,
+    fft: Arc<FFT<T>>,
     fft_input: Box<[Complex<T>]>,
     fft_output: Box<[Complex<T>]>,
 
@@ -18,7 +18,7 @@ pub struct DCT3ViaFFT<T> {
 
 impl<T: DCTnum> DCT3ViaFFT<T> {
     /// Creates a new DCT3 context that will process signals of length `inner_fft.len()`.
-    pub fn new(inner_fft: Rc<FFT<T>>) -> Self {
+    pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         assert!(!inner_fft.is_inverse(), "The 'DCT type 3 via FFT' algorithm requires a forward FFT, but an inverse FFT was provided");
 
         let len = inner_fft.len();
