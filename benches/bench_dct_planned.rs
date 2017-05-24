@@ -8,7 +8,7 @@ use test::Bencher;
 /// for a given length
 fn bench_dct1_planned(b: &mut Bencher, len: usize) {
 
-    let mut planner = rust_dct::DCTPlanner::new();
+    let mut planner = rust_dct::DCTplanner::new();
     let mut dct = planner.plan_dct1(len);
 
     let mut signal = vec![0_f32; len];
@@ -26,7 +26,7 @@ fn bench_dct1_planned(b: &mut Bencher, len: usize) {
 /// for a given length
 fn bench_dct2_planned(b: &mut Bencher, len: usize) {
 
-    let mut planner = rust_dct::DCTPlanner::new();
+    let mut planner = rust_dct::DCTplanner::new();
     let mut dct = planner.plan_dct2(len);
 
     let mut signal = vec![0_f32; len];
@@ -45,7 +45,7 @@ fn bench_dct2_planned(b: &mut Bencher, len: usize) {
 /// for a given length
 fn bench_dct3_planned(b: &mut Bencher, len: usize) {
 
-    let mut planner = rust_dct::DCTPlanner::new();
+    let mut planner = rust_dct::DCTplanner::new();
     let mut dct = planner.plan_dct3(len);
 
     let mut signal = vec![0_f32; len];
@@ -64,7 +64,7 @@ fn bench_dct3_planned(b: &mut Bencher, len: usize) {
 /// for a given length
 fn bench_dct4_planned(b: &mut Bencher, len: usize) {
 
-    let mut planner = rust_dct::DCTPlanner::new();
+    let mut planner = rust_dct::DCTplanner::new();
     let mut dct = planner.plan_dct4(len);
 
     let mut signal = vec![0_f32; len];

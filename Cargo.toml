@@ -1,7 +1,13 @@
 [package]
-name = "rust_dct"
+name = "rustdct"
 version = "0.1.0"
-authors = ["Elliott Mahler <emahler@usc.edu>"]
+authors = ["Elliott Mahler <join.together@gmail.com>"]
+
+description = "RustDCT is a pure-Rust signal processing library that computes the most common Discrete Cosine Transforms: DCT Type 1, DCT Type 2, DCT Type 3, DCT Type 4, and the MDCT. Check the repository's readme for examples."
+
+keywords = ["dct", "mdct", "discrete cosine transform", "jpeg", "fft"]
+categories = ["algorithms", "compression", "multimedia::encoding", "science", "visualization"]
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 rustfft = "^2.0"

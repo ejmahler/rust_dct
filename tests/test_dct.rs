@@ -1,9 +1,9 @@
-extern crate rust_dct;
+extern crate rustdct;
 extern crate rand;
 
 mod common;
 
-use rust_dct::mdct::window_fn;
+use rustdct::mdct::window_fn;
 use common::{test_dct1, test_dct2, test_dct3, test_dct4, test_mdct, test_imdct};
 
 #[test]

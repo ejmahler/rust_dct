@@ -6,10 +6,10 @@ use dct3::*;
 use dct4::*;
 use mdct::*;
 
-pub struct DCTPlanner<T> {
+pub struct DCTplanner<T> {
 	fft_planner: FFTplanner<T>,
 }
-impl<T: DCTnum> DCTPlanner<T> {
+impl<T: DCTnum> DCTplanner<T> {
 	pub fn new() -> Self {
 		Self {
 			fft_planner: FFTplanner::new(false)

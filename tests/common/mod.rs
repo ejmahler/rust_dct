@@ -2,15 +2,15 @@ use rand::{StdRng, SeedableRng};
 use rand::distributions::{Normal, IndependentSample};
 
 #[allow(unused_imports)]
-use rust_dct::DCTPlanner;
+use rustdct::DCTplanner;
 #[allow(unused_imports)]
-use rust_dct::dct1::{DCT1, DCT1Naive};
+use rustdct::dct1::{DCT1, DCT1Naive};
 #[allow(unused_imports)]
-use rust_dct::dct2::{DCT2, DCT2Naive};
+use rustdct::dct2::{DCT2, DCT2Naive};
 #[allow(unused_imports)]
-use rust_dct::dct3::{DCT3, DCT3Naive};
+use rustdct::dct3::{DCT3, DCT3Naive};
 #[allow(unused_imports)]
-use rust_dct::dct4::{DCT4, DCT4Naive};
+use rustdct::dct4::{DCT4, DCT4Naive};
 
 pub fn fuzzy_cmp(a: f32, b: f32, tolerance: f32) -> bool {
     a >= b - tolerance && a <= b + tolerance
@@ -60,7 +60,7 @@ macro_rules! dct_test_fns {
 
                 let mut naive_dct = $naive_struct::new(len);
 
-                let mut planner = DCTPlanner::new();
+                let mut planner = DCTplanner::new();
                 let mut actual_dct = planner.$planner_fn(len);
 
                 assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
@@ -89,7 +89,7 @@ macro_rules! dct_test_fns {
 
                 let mut naive_dct = $naive_struct::new(len);
 
-                let mut planner = DCTPlanner::new();
+                let mut planner = DCTplanner::new();
                 let mut actual_dct = planner.$planner_fn(len);
 
                 assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
@@ -113,7 +113,7 @@ dct_test_fns!(test_dct4, DCT4Naive, plan_dct4);
 
 pub mod test_mdct {
     use super::*;
-    use rust_dct::mdct::{MDCT, MDCTNaive};
+    use rustdct::mdct::{MDCT, MDCTNaive};
 
     pub fn planned_matches_naive<F>(len: usize, window_fn: F)
         where F: Fn(usize) -> Vec<f32>
@@ -128,7 +128,7 @@ pub mod test_mdct {
 
         let mut naive_dct = MDCTNaive::new(len, &window_fn);
 
-        let mut planner = DCTPlanner::new();
+        let mut planner = DCTplanner::new();
         let mut actual_dct = planner.plan_mdct(len, window_fn);
 
         assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
@@ -145,7 +145,7 @@ pub mod test_mdct {
     pub fn test_tdac<F>(len: usize, scale_factor: f32, window_fn: F)
         where F: Fn(usize) -> Vec<f32>
     {
-        let mut planner = DCTPlanner::new();
+        let mut planner = DCTplanner::new();
         let mut forward_dct = planner.plan_mdct(len, &window_fn);
         let mut inverse_dct = planner.plan_imdct(len, window_fn);
 
@@ -179,7 +179,7 @@ pub mod test_mdct {
 
 pub mod test_imdct {
     use super::*;
-    use rust_dct::mdct::{IMDCT, IMDCTNaive};
+    use rustdct::mdct::{IMDCT, IMDCTNaive};
 
     pub fn planned_matches_naive<F>(len: usize, window_fn: F)
         where F: Fn(usize) -> Vec<f32>
@@ -194,7 +194,7 @@ pub mod test_imdct {
 
         let mut naive_dct = IMDCTNaive::new(len, &window_fn);
 
-        let mut planner = DCTPlanner::new();
+        let mut planner = DCTplanner::new();
         let mut actual_dct = planner.plan_imdct(len, window_fn);
 
         assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");

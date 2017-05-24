@@ -3,7 +3,7 @@ extern crate test;
 extern crate rust_dct;
 
 use rust_dct::rustfft::FFTplanner;
-use rust_dct::DCTPlanner;
+use rust_dct::DCTplanner;
 use rust_dct::dct1::{DCT1, DCT1ViaFFT};
 use rust_dct::dct2::{DCT2, DCT2ViaFFT};
 use rust_dct::dct3::{DCT3, DCT3ViaFFT};
@@ -101,7 +101,7 @@ fn bench_dct4_fft(b: &mut Bencher, len: usize) {
 /// for a given length
 fn bench_mdct_fft(b: &mut Bencher, len: usize) {
 
-    let mut planner = DCTPlanner::new();
+    let mut planner = DCTplanner::new();
     let mut dct = MDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
 
     let signal = vec![0_f32; len*2];
@@ -122,7 +122,7 @@ fn bench_mdct_fft(b: &mut Bencher, len: usize) {
 /// for a given length
 fn bench_imdct_fft(b: &mut Bencher, len: usize) {
 
-    let mut planner = DCTPlanner::new();
+    let mut planner = DCTplanner::new();
     let mut dct = IMDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
 
     let signal = vec![0_f32; len];
