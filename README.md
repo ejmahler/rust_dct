@@ -1,4 +1,8 @@
 # RustDCT
+[![](https://img.shields.io/crates/v/rustdct.svg)](https://crates.io/crates/rustdct)
+[![](https://img.shields.io/crates/l/rustdct.svg)](https://crates.io/crates/rustdct)
+[![](https://docs.rs/rustdct/badge.svg)](https://docs.rs/rustdct/)
+
 RustDCT is a pure-Rust signal processing library that computes the most common Discrete Cosine Transforms: 
 
 * DCT Type 1
