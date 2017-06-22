@@ -34,11 +34,14 @@ impl<T: DCTnum> IMDCTNaive<T> {
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     pub fn new<F>(input_len: usize, window_fn: F) -> Self
-        where F: Fn(usize) -> Vec<T>
+    where
+        F: Fn(usize) -> Vec<T>,
     {
-        assert!(input_len % 2 == 0,
-                "The IMDCT input_len must be even. Got {}",
-                input_len);
+        assert!(
+            input_len % 2 == 0,
+            "The IMDCT input_len must be even. Got {}",
+            input_len
+        );
 
         let constant_factor = 0.5f64 * f64::consts::PI / (input_len as f64);
         let twiddles: Vec<T> = (0..input_len * 8)
@@ -47,9 +50,11 @@ impl<T: DCTnum> IMDCTNaive<T> {
             .collect();
 
         let window = window_fn(input_len * 2);
-        assert_eq!(window.len(),
-                   input_len * 2,
-                   "Window function returned incorrect number of values");
+        assert_eq!(
+            window.len(),
+            input_len * 2,
+            "Window function returned incorrect number of values"
+        );
 
         Self {
             twiddles: twiddles.into_boxed_slice(),
@@ -94,7 +99,7 @@ impl<T: DCTnum> IMDCT<T> for IMDCTNaive<T> {
             };
 
             let mut twiddle_index = self.twiddles.len() - input_len * 2 + half_input - twiddle_k -
-                                    1;
+                1;
             let twiddle_stride = input_len - 1 - twiddle_k * 2;
 
             for i in 0..input.len() {
@@ -128,26 +133,40 @@ mod unit_tests {
     /// Verify our naive implementation against some known values
     #[test]
     fn test_known_values() {
-        let input_list = vec![vec![0f32, 0f32],
-                              vec![1f32, 5f32],
-                              vec![7f32, 3f32, 8f32, 4f32],
-                              vec![7f32, 3f32, 8f32, 4f32, -1f32, 3f32]];
-        let expected_list = vec![vec![0f32, 0f32, 0f32, 0f32],
-                                 vec![-4.2367144, 4.2367153, -2.837299, -2.8372989],
-                                 vec![5.833236, 2.4275358, -2.4275393, -5.833232, 4.8335495,
-                                      -14.584825, -14.584811, 4.8335423],
-                                 vec![2.4138875,
-                                      8.921771,
-                                      -2.4359043,
-                                      2.4359055,
-                                      -8.921769,
-                                      -2.4138737,
-                                      3.1458342,
-                                      -0.63405657,
-                                      -18.502512,
-                                      -18.502502,
-                                      -0.6340414,
-                                      3.1458292]];
+        let input_list = vec![
+            vec![0f32, 0f32],
+            vec![1f32, 5f32],
+            vec![7f32, 3f32, 8f32, 4f32],
+            vec![7f32, 3f32, 8f32, 4f32, -1f32, 3f32],
+        ];
+        let expected_list = vec![
+            vec![0f32, 0f32, 0f32, 0f32],
+            vec![-4.2367144, 4.2367153, -2.837299, -2.8372989],
+            vec![
+                5.833236,
+                2.4275358,
+                -2.4275393,
+                -5.833232,
+                4.8335495,
+                -14.584825,
+                -14.584811,
+                4.8335423,
+            ],
+            vec![
+                2.4138875,
+                8.921771,
+                -2.4359043,
+                2.4359055,
+                -8.921769,
+                -2.4138737,
+                3.1458342,
+                -0.63405657,
+                -18.502512,
+                -18.502502,
+                -0.6340414,
+                3.1458292,
+            ],
+        ];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
             let slow_output = slow_imdct(&input, window_fn::one);
@@ -165,35 +184,45 @@ mod unit_tests {
     /// Verify our naive windowed implementation against some known values
     #[test]
     fn test_known_values_windowed() {
-        let input_list = vec![vec![0f32, 0f32],
-                              vec![1_f32, 5_f32],
-                              vec![7_f32, 3_f32, 8_f32, 4_f32],
-                              vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32]];
-        let expected_list = vec![vec![0f32, 0f32, 0f32, 0f32],
-                                 vec![-1.6213203435596431,
-                                      3.9142135623730936,
-                                      -2.6213203435596433,
-                                      -1.0857864376269069],
-                                 vec![1.1380080486867217,
-                                      1.3486674811260955,
-                                      -2.0184235241728627,
-                                      -5.7211528055198331,
-                                      4.7406716077536428,
-                                      -12.126842074178105,
-                                      -8.1028968193867765,
-                                      0.94297821246780911],
-                                 vec![0.3150751815802082,
-                                      3.4142135623730949,
-                                      -1.4828837895525038,
-                                      1.9325317795197492,
-                                      -8.2426406871192732,
-                                      -2.3932336063055089,
-                                      3.1189227588735786,
-                                      -0.58578643762689731,
-                                      -14.679036212259122,
-                                      -11.263620643186901,
-                                      -0.24264068711929426,
-                                      0.41061397098787894]];
+        let input_list = vec![
+            vec![0f32, 0f32],
+            vec![1_f32, 5_f32],
+            vec![7_f32, 3_f32, 8_f32, 4_f32],
+            vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32],
+        ];
+        let expected_list = vec![
+            vec![0f32, 0f32, 0f32, 0f32],
+            vec![
+                -1.6213203435596431,
+                3.9142135623730936,
+                -2.6213203435596433,
+                -1.0857864376269069,
+            ],
+            vec![
+                1.1380080486867217,
+                1.3486674811260955,
+                -2.0184235241728627,
+                -5.7211528055198331,
+                4.7406716077536428,
+                -12.126842074178105,
+                -8.1028968193867765,
+                0.94297821246780911,
+            ],
+            vec![
+                0.3150751815802082,
+                3.4142135623730949,
+                -1.4828837895525038,
+                1.9325317795197492,
+                -8.2426406871192732,
+                -2.3932336063055089,
+                3.1189227588735786,
+                -0.58578643762689731,
+                -14.679036212259122,
+                -11.263620643186901,
+                -0.24264068711929426,
+                0.41061397098787894,
+            ],
+        ];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
 
@@ -225,16 +254,19 @@ mod unit_tests {
                 let mut dct = IMDCTNaive::new(input_len, current_window_fn);
                 dct.process(&mut input, &mut fast_output);
 
-                assert!(compare_float_vectors(&slow_output, &fast_output),
-                        "i = {}",
-                        i);
+                assert!(
+                    compare_float_vectors(&slow_output, &fast_output),
+                    "i = {}",
+                    i
+                );
             }
         }
     }
 
 
     fn slow_imdct<F>(input: &[f32], window_fn: F) -> Vec<f32>
-        where F: Fn(usize) -> Vec<f32>
+    where
+        F: Fn(usize) -> Vec<f32>,
     {
         let mut output = vec![0f32; input.len() * 2];
 
@@ -249,7 +281,7 @@ mod unit_tests {
                 let k_float = k as f32;
 
                 let twiddle = (f32::consts::PI * (n_float + 0.5_f32 + size_float * 0.5) *
-                               (k_float + 0.5_f32) / size_float)
+                                   (k_float + 0.5_f32) / size_float)
                     .cos();
 
                 current_value += input[k] * twiddle;

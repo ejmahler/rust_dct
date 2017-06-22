@@ -36,16 +36,19 @@ impl<T: DCTnum> MDCTViaDCT4<T> {
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     pub fn new<F>(inner_dct: Box<DCT4<T>>, window_fn: F) -> Self
-        where F: Fn(usize) -> Vec<T>
+    where
+        F: Fn(usize) -> Vec<T>,
     {
         let len = inner_dct.len();
 
         assert!(len % 2 == 0, "The MDCT length must be even");
 
         let window = window_fn(len * 2);
-        assert_eq!(window.len(),
-                   len * 2,
-                   "Window function returned incorrect number of values");
+        assert_eq!(
+            window.len(),
+            len * 2,
+            "Window function returned incorrect number of values"
+        );
 
         Self {
             dct: inner_dct,
@@ -62,34 +65,46 @@ impl<T: DCTnum> MDCT<T> for MDCTViaDCT4<T> {
 
         //we're going to divide input_a into two subgroups, (a,b), and input_b into two subgroups: (c,d)
         //then scale them by the window function, then combine them into two subgroups: (-D-Cr, A-Br) where R means reversed
-        let group_a_iter = input_a.iter()
+        let group_a_iter = input_a
+            .iter()
             .zip(self.window.iter())
             .map(|(a, window_val)| *a * *window_val)
             .take(group_size);
-        let group_b_rev_iter = input_a.iter()
+        let group_b_rev_iter = input_a
+            .iter()
             .zip(self.window.iter())
             .map(|(b, window_val)| *b * *window_val)
             .rev()
             .take(group_size);
-        let group_c_rev_iter = input_b.iter()
+        let group_c_rev_iter = input_b
+            .iter()
             .zip(&self.window[self.len()..])
             .map(|(c, window_val)| *c * *window_val)
             .rev()
             .skip(group_size);
-        let group_d_iter = input_b.iter()
+        let group_d_iter = input_b
+            .iter()
             .zip(&self.window[self.len()..])
             .map(|(d, window_val)| *d * *window_val)
             .skip(group_size);
 
         //the first half of the dct input is -Cr - D
         for (element, (cr_val, d_val)) in
-            self.dct_buffer.iter_mut().zip(group_c_rev_iter.zip(group_d_iter)) {
+            self.dct_buffer.iter_mut().zip(
+                group_c_rev_iter.zip(group_d_iter),
+            )
+        {
             *element = -cr_val - d_val;
         }
 
         //the second half of the dct input is is A - Br
         for (element, (a_val, br_val)) in
-            self.dct_buffer[group_size..].iter_mut().zip(group_a_iter.zip(group_b_rev_iter)) {
+            self.dct_buffer[group_size..].iter_mut().zip(
+                group_a_iter.zip(
+                    group_b_rev_iter,
+                ),
+            )
+        {
             *element = a_val - br_val;
         }
 
@@ -138,9 +153,11 @@ mod unit_tests {
                 naive_mdct.process(&input, &mut naive_output);
                 fast_mdct.process(&input, &mut fast_output);
 
-                assert!(compare_float_vectors(&naive_output, &fast_output),
-                        "i = {}",
-                        i);
+                assert!(
+                    compare_float_vectors(&naive_output, &fast_output),
+                    "i = {}",
+                    i
+                );
 
             }
         }

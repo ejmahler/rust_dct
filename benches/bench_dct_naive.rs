@@ -159,7 +159,7 @@ fn bench_mdct_naive(b: &mut Bencher, len: usize) {
 
     let mut dct = MDCTNaive::new(len, window_fn::mp3);
 
-    let signal = vec![0_f32; len*2];
+    let signal = vec![0_f32; len * 2];
     let mut spectrum = vec![0_f32; len];
     b.iter(|| { dct.process(&signal, &mut spectrum); });
 }
@@ -199,7 +199,7 @@ fn bench_imdct_naive(b: &mut Bencher, len: usize) {
     let mut dct = IMDCTNaive::new(len, window_fn::mp3);
 
     let signal = vec![0_f32; len];
-    let mut spectrum = vec![0_f32; len*2];
+    let mut spectrum = vec![0_f32; len * 2];
     b.iter(|| { dct.process(&signal, &mut spectrum); });
 }
 

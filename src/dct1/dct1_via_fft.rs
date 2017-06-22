@@ -34,17 +34,22 @@ impl<T: DCTnum> DCT1ViaFFT<T> {
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
 
-        assert!(inner_len % 2 == 0,
-                "For DCT1 via FFT, the inner FFT size must be even. Got {}",
-                inner_len);
-        assert!(!inner_fft.is_inverse(),
-                "The 'DCT type 1 via FFT' algorithm requires a forward FFT, but an inverse FFT \
-                 was provided");
+        assert!(
+            inner_len % 2 == 0,
+            "For DCT1 via FFT, the inner FFT size must be even. Got {}",
+            inner_len
+        );
+        assert!(
+            !inner_fft.is_inverse(),
+            "The 'DCT type 1 via FFT' algorithm requires a forward FFT, but an inverse FFT \
+                 was provided"
+        );
 
         Self {
             fft: inner_fft,
-            fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); inner_len].into_boxed_slice(),
-            fft_output: vec![Complex::new(Zero::zero(),Zero::zero()); inner_len].into_boxed_slice(),
+            fft_input: vec![Complex::new(Zero::zero(), Zero::zero()); inner_len].into_boxed_slice(),
+            fft_output: vec![Complex::new(Zero::zero(), Zero::zero()); inner_len]
+                .into_boxed_slice(),
         }
     }
 }
@@ -60,7 +65,10 @@ impl<T: DCTnum> DCT1<T> for DCT1ViaFFT<T> {
             };
         }
         for (&input_val, fft_cell) in
-            input.iter().rev().skip(1).zip(&mut self.fft_input[input.len()..]) {
+            input.iter().rev().skip(1).zip(
+                &mut self.fft_input[input.len()..],
+            )
+        {
             *fft_cell = Complex {
                 re: input_val,
                 im: T::zero(),
@@ -110,9 +118,11 @@ mod test {
             let mut dct = DCT1ViaFFT::new(fft_planner.plan_fft((size - 1) * 2));
             dct.process(&mut actual_input, &mut actual_output);
 
-            assert!(compare_float_vectors(&actual_output, &expected_output),
-                    "len = {}",
-                    size);
+            assert!(
+                compare_float_vectors(&actual_output, &expected_output),
+                "len = {}",
+                size
+            );
         }
     }
 }

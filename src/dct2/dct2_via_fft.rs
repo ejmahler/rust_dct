@@ -35,9 +35,11 @@ pub struct DCT2ViaFFT<T> {
 impl<T: DCTnum> DCT2ViaFFT<T> {
     /// Creates a new DCT2 context that will process signals of length `inner_fft.len()`.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
-        assert!(!inner_fft.is_inverse(),
-                "The 'DCT type 2 via FFT' algorithm requires a forward FFT, but an inverse FFT \
-                 was provided");
+        assert!(
+            !inner_fft.is_inverse(),
+            "The 'DCT type 2 via FFT' algorithm requires a forward FFT, but an inverse FFT \
+                 was provided"
+        );
 
         let len = inner_fft.len();
 
@@ -47,8 +49,8 @@ impl<T: DCTnum> DCT2ViaFFT<T> {
 
         Self {
             fft: inner_fft,
-            fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len].into_boxed_slice(),
-            fft_output: vec![Complex::new(Zero::zero(),Zero::zero()); len].into_boxed_slice(),
+            fft_input: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
+            fft_output: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
             twiddles: twiddles.into_boxed_slice(),
         }
     }
@@ -82,7 +84,10 @@ impl<T: DCTnum> DCT2<T> for DCT2ViaFFT<T> {
 
         // apply a correction factor to the result
         for ((fft_entry, correction_entry), spectrum_entry) in
-            self.fft_output.iter().zip(self.twiddles.iter()).zip(spectrum.iter_mut()) {
+            self.fft_output.iter().zip(self.twiddles.iter()).zip(
+                spectrum.iter_mut(),
+            )
+        {
             *spectrum_entry = (fft_entry * correction_entry).re;
         }
     }
@@ -123,9 +128,11 @@ mod test {
             println!("expected: {:?}", actual_output);
             println!("actual: {:?}", actual_input);
 
-            assert!(compare_float_vectors(&actual_output, &expected_output),
-                    "len = {}",
-                    size);
+            assert!(
+                compare_float_vectors(&actual_output, &expected_output),
+                "len = {}",
+                size
+            );
         }
     }
 }

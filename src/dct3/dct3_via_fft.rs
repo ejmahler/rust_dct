@@ -35,9 +35,11 @@ pub struct DCT3ViaFFT<T> {
 impl<T: DCTnum> DCT3ViaFFT<T> {
     /// Creates a new DCT3 context that will process signals of length `inner_fft.len()`.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
-        assert!(!inner_fft.is_inverse(),
-                "The 'DCT type 3 via FFT' algorithm requires a forward FFT, but an inverse FFT \
-                 was provided");
+        assert!(
+            !inner_fft.is_inverse(),
+            "The 'DCT type 3 via FFT' algorithm requires a forward FFT, but an inverse FFT \
+                 was provided"
+        );
 
         let len = inner_fft.len();
 
@@ -49,8 +51,8 @@ impl<T: DCTnum> DCT3ViaFFT<T> {
 
         Self {
             fft: inner_fft,
-            fft_input: vec![Complex::new(Zero::zero(),Zero::zero()); len].into_boxed_slice(),
-            fft_output: vec![Complex::new(Zero::zero(),Zero::zero()); len].into_boxed_slice(),
+            fft_input: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
+            fft_output: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
             twiddles: twiddles.into_boxed_slice(),
         }
     }
@@ -124,9 +126,11 @@ mod test {
             let mut dct = DCT3ViaFFT::new(fft_planner.plan_fft(size));
             dct.process(&mut actual_input, &mut actual_output);
 
-            assert!(compare_float_vectors(&actual_output, &expected_output),
-                    "len = {}",
-                    size);
+            assert!(
+                compare_float_vectors(&actual_output, &expected_output),
+                "len = {}",
+                size
+            );
         }
     }
 }

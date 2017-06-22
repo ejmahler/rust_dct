@@ -34,23 +34,31 @@ mod unit_tests {
             let single: Complex<f32> = single_twiddle(i, len, false);
             let single_inverse: Complex<f32> = single_twiddle(i, len, true);
 
-            let expected = Complex::from_polar(&1f32,
-                                               &(-2f32 * f32::consts::PI * i as f32 / len as f32));
+            let expected =
+                Complex::from_polar(&1f32, &(-2f32 * f32::consts::PI * i as f32 / len as f32));
             let expected_inverse =
                 Complex::from_polar(&1f32, &(2f32 * f32::consts::PI * i as f32 / len as f32));
 
-            assert!(fuzzy_cmp(single.re, expected.re, 0.001f32),
-                    "forwards, i = {}",
-                    i);
-            assert!(fuzzy_cmp(single.im, expected.im, 0.001f32),
-                    "forwards, i = {}",
-                    i);
-            assert!(fuzzy_cmp(single_inverse.re, expected_inverse.re, 0.001f32),
-                    "inverse, i = {}",
-                    i);
-            assert!(fuzzy_cmp(single_inverse.im, expected_inverse.im, 0.001f32),
-                    "inverse, i = {}",
-                    i);
+            assert!(
+                fuzzy_cmp(single.re, expected.re, 0.001f32),
+                "forwards, i = {}",
+                i
+            );
+            assert!(
+                fuzzy_cmp(single.im, expected.im, 0.001f32),
+                "forwards, i = {}",
+                i
+            );
+            assert!(
+                fuzzy_cmp(single_inverse.re, expected_inverse.re, 0.001f32),
+                "inverse, i = {}",
+                i
+            );
+            assert!(
+                fuzzy_cmp(single_inverse.im, expected_inverse.im, 0.001f32),
+                "inverse, i = {}",
+                i
+            );
         }
     }
 }

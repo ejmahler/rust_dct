@@ -35,18 +35,23 @@ impl<T: DCTnum> IMDCTViaDCT4<T> {
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     pub fn new<F>(inner_dct: Box<DCT4<T>>, window_fn: F) -> Self
-        where F: Fn(usize) -> Vec<T>
+    where
+        F: Fn(usize) -> Vec<T>,
     {
         let len = inner_dct.len();
 
-        assert!(len % 2 == 0,
-                "The IMDCT inner_dct.len() must be even. Got {}",
-                len);
+        assert!(
+            len % 2 == 0,
+            "The IMDCT inner_dct.len() must be even. Got {}",
+            len
+        );
 
         let window = window_fn(len * 2);
-        assert_eq!(window.len(),
-                   len * 2,
-                   "Window function returned incorrect number of values");
+        assert_eq!(
+            window.len(),
+            len * 2,
+            "Window function returned incorrect number of values"
+        );
 
         Self {
             dct: inner_dct,
@@ -68,33 +73,43 @@ impl<T: DCTnum> IMDCT<T> for IMDCTViaDCT4<T> {
 
         //copy the second half of the DCT output into the result
         for ((output, window_val), val) in
-            output_a.iter_mut().zip(&self.window[..]).zip(self.dct_output[group_size..].iter()) {
+            output_a.iter_mut().zip(&self.window[..]).zip(
+                self.dct_output
+                    [group_size..]
+                    .iter(),
+            )
+        {
             *output = *output + *val * *window_val;
         }
 
         //copy the second half of the DCT output again, but this time reversed and negated
         for ((output, window_val), val) in
-            output_a.iter_mut()
+            output_a
+                .iter_mut()
                 .zip(&self.window[..])
                 .skip(group_size)
-                .zip(self.dct_output[group_size..].iter().rev()) {
+                .zip(self.dct_output[group_size..].iter().rev())
+        {
             *output = *output - *val * *window_val;
         }
 
         //copy the first half of the DCT output into the result, reversde+negated
         for ((output, window_val), val) in
-            output_b.iter_mut()
-                .zip(&self.window[self.len()..])
-                .zip(self.dct_output[..group_size].iter().rev()) {
+            output_b.iter_mut().zip(&self.window[self.len()..]).zip(
+                self.dct_output[..group_size].iter().rev(),
+            )
+        {
             *output = *output - *val * *window_val;
         }
 
         //copy the first half of the DCT output again, but this time not reversed
         for ((output, window_val), val) in
-            output_b.iter_mut()
+            output_b
+                .iter_mut()
                 .zip(&self.window[self.len()..])
                 .skip(group_size)
-                .zip(self.dct_output[..group_size].iter()) {
+                .zip(self.dct_output[..group_size].iter())
+        {
             *output = *output - *val * *window_val;
         }
     }
@@ -141,9 +156,11 @@ mod unit_tests {
                 naive_mdct.process(&input, &mut naive_output);
                 fast_mdct.process(&input, &mut fast_output);
 
-                assert!(compare_float_vectors(&naive_output, &fast_output),
-                        "i = {}",
-                        i);
+                assert!(
+                    compare_float_vectors(&naive_output, &fast_output),
+                    "i = {}",
+                    i
+                );
 
             }
         }

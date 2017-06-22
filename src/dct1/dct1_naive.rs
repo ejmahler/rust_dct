@@ -112,17 +112,23 @@ mod test {
     // Compare our slow and fast versions of naive DCT1 against some known values
     #[test]
     fn test_known_lengths() {
-        let input_list = vec![vec![1_f32, 1_f32],
-                              vec![1_f32, 2_f32, 3_f32, 5_f32],
-                              vec![1_f32, 2_f32, 3_f32, 5_f32, 1_f32, -3_f32]];
-        let expected_list = vec![vec![1_f32, 0_f32],
-                                 vec![8_f32, -2.5_f32, 0.5_f32, -1_f32],
-                                 vec![10.0_f32,
-                                      2.1909830056250525_f32,
-                                      -6.5450849718747373_f32,
-                                      3.3090169943749475_f32,
-                                      -0.95491502812526274_f32,
-                                      -1.0_f32]];
+        let input_list = vec![
+            vec![1_f32, 1_f32],
+            vec![1_f32, 2_f32, 3_f32, 5_f32],
+            vec![1_f32, 2_f32, 3_f32, 5_f32, 1_f32, -3_f32],
+        ];
+        let expected_list = vec![
+            vec![1_f32, 0_f32],
+            vec![8_f32, -2.5_f32, 0.5_f32, -1_f32],
+            vec![
+                10.0_f32,
+                2.1909830056250525_f32,
+                -6.5450849718747373_f32,
+                3.3090169943749475_f32,
+                -0.95491502812526274_f32,
+                -1.0_f32,
+            ],
+        ];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
             let slow_output = slow_dct1(&input);
@@ -162,9 +168,11 @@ mod test {
             println!("expected: {:?}", slow_output);
             println!("actual: {:?}", fast_output);
 
-            assert!(compare_float_vectors(&slow_output, &fast_output),
-                    "len = {}",
-                    size);
+            assert!(
+                compare_float_vectors(&slow_output, &fast_output),
+                "len = {}",
+                size
+            );
         }
     }
 }

@@ -37,14 +37,18 @@ impl<T: DCTnum> DCT4ViaFFT<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_fft.len() / 4`.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
-        assert_eq!(inner_len % 4,
-                   0,
-                   "inner_fft.len() for DCT4ViaFFT must be a multiple of 4. The DCT4 length will \
+        assert_eq!(
+            inner_len % 4,
+            0,
+            "inner_fft.len() for DCT4ViaFFT must be a multiple of 4. The DCT4 length will \
                     be inner_fft.len() / 4. Got {}",
-                   inner_fft.len());
-        assert!(!inner_fft.is_inverse(),
-                "The 'DCT type 4 via FFT' algorithm requires a forward FFT, but an inverse FFT \
-                 was provided");
+            inner_fft.len()
+        );
+        assert!(
+            !inner_fft.is_inverse(),
+            "The 'DCT type 4 via FFT' algorithm requires a forward FFT, but an inverse FFT \
+                 was provided"
+        );
 
         let len = inner_fft.len() / 4;
 
@@ -52,7 +56,9 @@ impl<T: DCTnum> DCT4ViaFFT<T> {
             .unwrap();
 
         let twiddles: Vec<Complex<T>> = (0..len)
-            .map(|i| twiddles::single_twiddle(i, inner_len, false) * twiddle_scale)
+            .map(|i| {
+                twiddles::single_twiddle(i, inner_len, false) * twiddle_scale
+            })
             .collect();
 
         Self {
@@ -72,23 +78,41 @@ impl<T: DCTnum> DCT4<T> for DCT4ViaFFT<T> {
             *fft_element = Complex::from(*input_element);
         }
         for (fft_element, input_element) in
-            self.fft_input.iter_mut().skip(signal.len()).zip(signal.iter().rev()) {
+            self.fft_input.iter_mut().skip(signal.len()).zip(
+                signal
+                    .iter()
+                    .rev(),
+            )
+        {
             *fft_element = Complex::from(-*input_element);
         }
         for (fft_element, input_element) in
-            self.fft_input.iter_mut().skip(signal.len() * 2).zip(signal.iter()) {
+            self.fft_input.iter_mut().skip(signal.len() * 2).zip(
+                signal
+                    .iter(),
+            )
+        {
             *fft_element = Complex::from(-*input_element);
         }
         for (fft_element, input_element) in
-            self.fft_input.iter_mut().skip(signal.len() * 3).zip(signal.iter().rev()) {
+            self.fft_input.iter_mut().skip(signal.len() * 3).zip(
+                signal
+                    .iter()
+                    .rev(),
+            )
+        {
             *fft_element = Complex::from(*input_element);
         }
 
         // run the fft
-        self.inner_fft.process(&mut self.fft_input, &mut self.fft_output);
+        self.inner_fft.process(
+            &mut self.fft_input,
+            &mut self.fft_output,
+        );
 
         for (index, (element, twiddle)) in
-            spectrum.iter_mut().zip(self.twiddles.iter()).enumerate() {
+            spectrum.iter_mut().zip(self.twiddles.iter()).enumerate()
+        {
             *element = (self.fft_output[index * 2 + 1] * twiddle).re;
         }
     }
@@ -124,17 +148,22 @@ mod test {
             let mut dct = DCT4ViaFFT::new(fft_planner.plan_fft(size * 4));
             dct.process(&mut actual_input, &mut actual_output);
 
-            let divided: Vec<f32> =
-                expected_output.iter().zip(actual_output.iter()).map(|(&a, b)| b / a).collect();
+            let divided: Vec<f32> = expected_output
+                .iter()
+                .zip(actual_output.iter())
+                .map(|(&a, b)| b / a)
+                .collect();
 
             println!("");
             println!("expected: {:?}", expected_output);
             println!("actual:   {:?}", actual_output);
             println!("divided:  {:?}", divided);
 
-            assert!(compare_float_vectors(&expected_output, &actual_output),
-                    "len = {}",
-                    size);
+            assert!(
+                compare_float_vectors(&expected_output, &actual_output),
+                "len = {}",
+                size
+            );
         }
     }
 }

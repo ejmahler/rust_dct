@@ -33,11 +33,14 @@ impl<T: DCTnum> MDCTNaive<T> {
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     pub fn new<F>(output_len: usize, window_fn: F) -> Self
-        where F: Fn(usize) -> Vec<T>
+    where
+        F: Fn(usize) -> Vec<T>,
     {
-        assert!(output_len % 2 == 0,
-                "The MDCT output_len must be even. Got {}",
-                output_len);
+        assert!(
+            output_len % 2 == 0,
+            "The MDCT output_len must be even. Got {}",
+            output_len
+        );
 
         let constant_factor = 0.5f64 * f64::consts::PI / (output_len as f64);
         let twiddles: Vec<T> = (0..output_len * 4)
@@ -46,9 +49,11 @@ impl<T: DCTnum> MDCTNaive<T> {
             .collect();
 
         let window = window_fn(output_len * 2);
-        assert_eq!(window.len(),
-                   output_len * 2,
-                   "Window function returned incorrect number of values");
+        assert_eq!(
+            window.len(),
+            output_len * 2,
+            "Window function returned incorrect number of values"
+        );
 
         Self {
             twiddles: twiddles.into_boxed_slice(),
@@ -112,16 +117,38 @@ mod unit_tests {
     /// Verify our naive implementation against some known values
     #[test]
     fn test_known_values() {
-        let input_list = vec![vec![0_f32, 0_f32, 0_f32, 0_f32],
-                              vec![1_f32, 1_f32, -5_f32, 5_f32],
-                              vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32],
-                              vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32, 1f32,
-                                   1f32, 1f32, 1f32]];
-        let expected_list =
-            vec![vec![0_f32, 0_f32],
-                 vec![0_f32, 0_f32],
-                 vec![-4.7455063, -2.073643, -2.2964284, 8.479767],
-                 vec![-2.90775651, -12.30026278, 6.92661442, 2.79403335, 3.56420194, -2.40007133]];
+        let input_list = vec![
+            vec![0_f32, 0_f32, 0_f32, 0_f32],
+            vec![1_f32, 1_f32, -5_f32, 5_f32],
+            vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32],
+            vec![
+                7_f32,
+                3_f32,
+                8_f32,
+                4_f32,
+                -1_f32,
+                3_f32,
+                0_f32,
+                4_f32,
+                1f32,
+                1f32,
+                1f32,
+                1f32,
+            ],
+        ];
+        let expected_list = vec![
+            vec![0_f32, 0_f32],
+            vec![0_f32, 0_f32],
+            vec![-4.7455063, -2.073643, -2.2964284, 8.479767],
+            vec![
+                -2.90775651,
+                -12.30026278,
+                6.92661442,
+                2.79403335,
+                3.56420194,
+                -2.40007133,
+            ],
+        ];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
             let output = slow_mdct(&input, window_fn::one);
@@ -133,16 +160,38 @@ mod unit_tests {
     /// Verify our naive windowed implementation against some known values
     #[test]
     fn test_known_values_windowed() {
-        let input_list = vec![vec![0_f32, 0_f32, 0_f32, 0_f32],
-                              vec![1_f32, 1_f32, -5_f32, 5_f32],
-                              vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32],
-                              vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32, 1f32,
-                                   1f32, 1f32, 1f32]];
-        let expected_list =
-            vec![vec![0_f32, 0_f32],
-                 vec![2.29289322, 1.53553391],
-                 vec![-4.67324308, 3.1647844, -6.22625186, 2.1647844],
-                 vec![-5.50153067, -3.46580575, 3.79375195, -1.25072987, 4.6738204, 3.16506351]];
+        let input_list = vec![
+            vec![0_f32, 0_f32, 0_f32, 0_f32],
+            vec![1_f32, 1_f32, -5_f32, 5_f32],
+            vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32],
+            vec![
+                7_f32,
+                3_f32,
+                8_f32,
+                4_f32,
+                -1_f32,
+                3_f32,
+                0_f32,
+                4_f32,
+                1f32,
+                1f32,
+                1f32,
+                1f32,
+            ],
+        ];
+        let expected_list = vec![
+            vec![0_f32, 0_f32],
+            vec![2.29289322, 1.53553391],
+            vec![-4.67324308, 3.1647844, -6.22625186, 2.1647844],
+            vec![
+                -5.50153067,
+                -3.46580575,
+                3.79375195,
+                -1.25072987,
+                4.6738204,
+                3.16506351,
+            ],
+        ];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
 
@@ -174,16 +223,19 @@ mod unit_tests {
                 println!("expected: {:?}", slow_output);
                 println!("actual: {:?}", fast_output);
 
-                assert!(compare_float_vectors(&slow_output, &fast_output),
-                        "i = {}",
-                        i);
+                assert!(
+                    compare_float_vectors(&slow_output, &fast_output),
+                    "i = {}",
+                    i
+                );
             }
         }
     }
 
 
     fn slow_mdct<F>(input: &[f32], window_fn: F) -> Vec<f32>
-        where F: Fn(usize) -> Vec<f32>
+    where
+        F: Fn(usize) -> Vec<f32>,
     {
         let mut output = vec![0f32; input.len() / 2];
 
@@ -201,7 +253,7 @@ mod unit_tests {
                 let n_float = n as f32;
 
                 let twiddle = (f32::consts::PI * (n_float + 0.5_f32 + size_float * 0.5) *
-                               (k_float + 0.5_f32) / size_float)
+                                   (k_float + 0.5_f32) / size_float)
                     .cos();
 
                 current_value += windowed_input[n] * twiddle;

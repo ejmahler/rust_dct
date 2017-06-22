@@ -91,9 +91,8 @@ mod test {
                 let i_float = i as f32;
 
                 current_value += input[i] *
-                                 (f32::consts::PI * (i_float + 0.5_f32) * (k_float + 0.5_f32) /
-                                  size_float)
-                    .cos();
+                    (f32::consts::PI * (i_float + 0.5_f32) * (k_float + 0.5_f32) / size_float)
+                        .cos();
             }
             result.push(current_value);
 
@@ -105,22 +104,33 @@ mod test {
 
     #[test]
     fn test_known_lengths() {
-        let input_list = vec![vec![0_f32, 0_f32, 0_f32, 0_f32, 0_f32],
-                              vec![1_f32, 1_f32, 1_f32, 1_f32, 1_f32],
-                              vec![4.7015433_f32, -11.926178_f32, 27.098675_f32, -1.9793236_f32],
-                              vec![6_f32, 9_f32, 1_f32, 5_f32, 2_f32, 6_f32, 2_f32, -1_f32]];
-        let expected_list =
-            vec![vec![0_f32, 0_f32, 0_f32, 0_f32, 0_f32],
-                 vec![3.19623_f32, -1.10134_f32, 0.707107_f32, -0.561163_f32, 0.506233_f32],
-                 vec![9.36402_f32, -19.242455_f32, 17.949997_f32, 32.01607_f32],
-                 vec![23.9103_f32,
-                      0.201528_f32,
-                      5.36073_f32,
-                      2.53127_f32,
-                      -5.21319_f32,
-                      -0.240328_f32,
-                      -9.32464_f32,
-                      -5.56147_f32]];
+        let input_list = vec![
+            vec![0_f32, 0_f32, 0_f32, 0_f32, 0_f32],
+            vec![1_f32, 1_f32, 1_f32, 1_f32, 1_f32],
+            vec![4.7015433_f32, -11.926178_f32, 27.098675_f32, -1.9793236_f32],
+            vec![6_f32, 9_f32, 1_f32, 5_f32, 2_f32, 6_f32, 2_f32, -1_f32],
+        ];
+        let expected_list = vec![
+            vec![0_f32, 0_f32, 0_f32, 0_f32, 0_f32],
+            vec![
+                3.19623_f32,
+                -1.10134_f32,
+                0.707107_f32,
+                -0.561163_f32,
+                0.506233_f32,
+            ],
+            vec![9.36402_f32, -19.242455_f32, 17.949997_f32, 32.01607_f32],
+            vec![
+                23.9103_f32,
+                0.201528_f32,
+                5.36073_f32,
+                2.53127_f32,
+                -5.21319_f32,
+                -0.240328_f32,
+                -9.32464_f32,
+                -5.56147_f32,
+            ],
+        ];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
             let slow_output = slow_dct4(&input);
@@ -156,9 +166,11 @@ mod test {
             println!("expected: {:?}", slow_output);
             println!("actual: {:?}", fast_output);
 
-            assert!(compare_float_vectors(&slow_output, &fast_output),
-                    "len = {}",
-                    size);
+            assert!(
+                compare_float_vectors(&slow_output, &fast_output),
+                "len = {}",
+                size
+            );
         }
     }
 }

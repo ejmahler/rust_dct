@@ -116,7 +116,8 @@ pub mod test_mdct {
     use rustdct::mdct::{MDCT, MDCTNaive};
 
     pub fn planned_matches_naive<F>(len: usize, window_fn: F)
-        where F: Fn(usize) -> Vec<f32>
+    where
+        F: Fn(usize) -> Vec<f32>,
     {
         let mut naive_input = random_signal(len * 2);
         let mut actual_input = naive_input.clone();
@@ -131,9 +132,11 @@ pub mod test_mdct {
         let mut planner = DCTplanner::new();
         let mut actual_dct = planner.plan_mdct(len, window_fn);
 
-        assert_eq!(actual_dct.len(),
-                   len,
-                   "Planner created a DCT of incorrect length");
+        assert_eq!(
+            actual_dct.len(),
+            len,
+            "Planner created a DCT of incorrect length"
+        );
 
         naive_dct.process(&mut naive_input, &mut naive_output);
         actual_dct.process(&mut actual_input, &mut actual_output);
@@ -141,13 +144,16 @@ pub mod test_mdct {
         println!("Naive output:   {:?}", naive_output);
         println!("Planned output: {:?}", actual_output);
 
-        assert!(compare_float_vectors(&naive_output, &actual_output),
-                "len = {}",
-                len);
+        assert!(
+            compare_float_vectors(&naive_output, &actual_output),
+            "len = {}",
+            len
+        );
     }
 
     pub fn test_tdac<F>(len: usize, scale_factor: f32, window_fn: F)
-        where F: Fn(usize) -> Vec<f32>
+    where
+        F: Fn(usize) -> Vec<f32>,
     {
         let mut planner = DCTplanner::new();
         let mut forward_dct = planner.plan_mdct(len, &window_fn);
@@ -177,10 +183,14 @@ pub mod test_mdct {
             *element = *element * scale_factor;
         }
 
-        assert!(compare_float_vectors(&input[len..input.len() - len],
-                                      &inverse[len..inverse.len() - len]),
-                "len = {}",
-                len);
+        assert!(
+            compare_float_vectors(
+                &input[len..input.len() - len],
+                &inverse[len..inverse.len() - len],
+            ),
+            "len = {}",
+            len
+        );
     }
 }
 
@@ -189,24 +199,27 @@ pub mod test_imdct {
     use rustdct::mdct::{IMDCT, IMDCTNaive};
 
     pub fn planned_matches_naive<F>(len: usize, window_fn: F)
-        where F: Fn(usize) -> Vec<f32>
+    where
+        F: Fn(usize) -> Vec<f32>,
     {
         let mut naive_input = random_signal(len);
         let mut actual_input = naive_input.clone();
 
         println!("input:          {:?}", naive_input);
 
-        let mut naive_output = vec![0f32; len*2];
-        let mut actual_output = vec![0f32; len*2];
+        let mut naive_output = vec![0f32; len * 2];
+        let mut actual_output = vec![0f32; len * 2];
 
         let mut naive_dct = IMDCTNaive::new(len, &window_fn);
 
         let mut planner = DCTplanner::new();
         let mut actual_dct = planner.plan_imdct(len, window_fn);
 
-        assert_eq!(actual_dct.len(),
-                   len,
-                   "Planner created a DCT of incorrect length");
+        assert_eq!(
+            actual_dct.len(),
+            len,
+            "Planner created a DCT of incorrect length"
+        );
 
         naive_dct.process(&mut naive_input, &mut naive_output);
         actual_dct.process(&mut actual_input, &mut actual_output);
@@ -214,8 +227,10 @@ pub mod test_imdct {
         println!("Naive output:   {:?}", naive_output);
         println!("Planned output: {:?}", actual_output);
 
-        assert!(compare_float_vectors(&naive_output, &actual_output),
-                "len = {}",
-                len);
+        assert!(
+            compare_float_vectors(&naive_output, &actual_output),
+            "len = {}",
+            len
+        );
     }
 }

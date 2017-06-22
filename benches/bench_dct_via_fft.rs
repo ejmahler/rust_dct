@@ -167,7 +167,7 @@ fn bench_mdct_fft(b: &mut Bencher, len: usize) {
     let mut planner = DCTplanner::new();
     let mut dct = MDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
 
-    let signal = vec![0_f32; len*2];
+    let signal = vec![0_f32; len * 2];
     let mut spectrum = vec![0_f32; len];
     b.iter(|| { dct.process(&signal, &mut spectrum); });
 }
@@ -207,7 +207,7 @@ fn bench_imdct_fft(b: &mut Bencher, len: usize) {
     let mut dct = IMDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
 
     let signal = vec![0_f32; len];
-    let mut spectrum = vec![0_f32; len*2];
+    let mut spectrum = vec![0_f32; len * 2];
     b.iter(|| { dct.process(&signal, &mut spectrum); });
 }
 #[bench]
