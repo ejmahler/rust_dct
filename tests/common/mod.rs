@@ -16,7 +16,7 @@ pub fn fuzzy_cmp(a: f32, b: f32, tolerance: f32) -> bool {
     a >= b - tolerance && a <= b + tolerance
 }
 
-pub fn compare_float_vectors(expected: &[f32], observed: &[f32])-> bool {
+pub fn compare_float_vectors(expected: &[f32], observed: &[f32]) -> bool {
     assert_eq!(expected.len(), observed.len());
 
     let tolerance: f32 = 0.001;
@@ -33,7 +33,7 @@ pub fn random_signal(length: usize) -> Vec<f32> {
     let mut sig = Vec::with_capacity(length);
     let normal_dist = Normal::new(0.0, 10.0);
 
-    let seed : [usize; 5] = [1910, 11431, 4984, 14828, length];
+    let seed: [usize; 5] = [1910, 11431, 4984, 14828, length];
     let mut rng: StdRng = SeedableRng::from_seed(&seed[..]);
 
     for _ in 0..length {
@@ -118,7 +118,7 @@ pub mod test_mdct {
     pub fn planned_matches_naive<F>(len: usize, window_fn: F)
         where F: Fn(usize) -> Vec<f32>
     {
-        let mut naive_input = random_signal(len*2);
+        let mut naive_input = random_signal(len * 2);
         let mut actual_input = naive_input.clone();
 
         println!("input:          {:?}", naive_input);
@@ -131,7 +131,9 @@ pub mod test_mdct {
         let mut planner = DCTplanner::new();
         let mut actual_dct = planner.plan_mdct(len, window_fn);
 
-        assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
+        assert_eq!(actual_dct.len(),
+                   len,
+                   "Planner created a DCT of incorrect length");
 
         naive_dct.process(&mut naive_input, &mut naive_output);
         actual_dct.process(&mut actual_input, &mut actual_output);
@@ -139,7 +141,9 @@ pub mod test_mdct {
         println!("Naive output:   {:?}", naive_output);
         println!("Planned output: {:?}", actual_output);
 
-        assert!(compare_float_vectors(&naive_output, &actual_output), "len = {}", len);
+        assert!(compare_float_vectors(&naive_output, &actual_output),
+                "len = {}",
+                len);
     }
 
     pub fn test_tdac<F>(len: usize, scale_factor: f32, window_fn: F)
@@ -156,14 +160,14 @@ pub mod test_mdct {
         let mut inverse = vec![0f32; len * (NUM_SEGMENTS + 1)];
 
         for i in 0..NUM_SEGMENTS {
-            let input_chunk = &input[len*i..(len*(i+2))];
-            let output_chunk = &mut output[len*i..(len*(i+1))];
+            let input_chunk = &input[len * i..(len * (i + 2))];
+            let output_chunk = &mut output[len * i..(len * (i + 1))];
 
             forward_dct.process(input_chunk, output_chunk);
         }
         for i in 0..NUM_SEGMENTS {
-            let input_chunk = &output[len*i..(len*(i+1))];
-            let output_chunk = &mut inverse[len*i..(len*(i+2))];
+            let input_chunk = &output[len * i..(len * (i + 1))];
+            let output_chunk = &mut inverse[len * i..(len * (i + 2))];
 
             inverse_dct.process(input_chunk, output_chunk);
         }
@@ -173,7 +177,10 @@ pub mod test_mdct {
             *element = *element * scale_factor;
         }
 
-        assert!(compare_float_vectors(&input[len..input.len()-len], &inverse[len..inverse.len()-len]), "len = {}", len);
+        assert!(compare_float_vectors(&input[len..input.len() - len],
+                                      &inverse[len..inverse.len() - len]),
+                "len = {}",
+                len);
     }
 }
 
@@ -197,7 +204,9 @@ pub mod test_imdct {
         let mut planner = DCTplanner::new();
         let mut actual_dct = planner.plan_imdct(len, window_fn);
 
-        assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
+        assert_eq!(actual_dct.len(),
+                   len,
+                   "Planner created a DCT of incorrect length");
 
         naive_dct.process(&mut naive_input, &mut naive_output);
         actual_dct.process(&mut actual_input, &mut actual_output);
@@ -205,6 +214,8 @@ pub mod test_imdct {
         println!("Naive output:   {:?}", naive_output);
         println!("Planned output: {:?}", actual_output);
 
-        assert!(compare_float_vectors(&naive_output, &actual_output), "len = {}", len);
+        assert!(compare_float_vectors(&naive_output, &actual_output),
+                "len = {}",
+                len);
     }
 }

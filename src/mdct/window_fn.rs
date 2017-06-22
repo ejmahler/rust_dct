@@ -2,38 +2,41 @@ use std::f64;
 
 use DCTnum;
 
+/// MP3 window function for MDCT
 pub fn mp3<T: DCTnum>(len: usize) -> Vec<T> {
     let constant_term = f64::consts::PI / len as f64;
 
-    (0..len).map(|n| {
-        (constant_term * (n as f64 + 0.5f64)).sin()
-    })
+    (0..len)
+        .map(|n| (constant_term * (n as f64 + 0.5f64)).sin())
         .map(|w| T::from_f64(w).unwrap())
         .collect()
 }
 
+/// Ogg Vorbis window function for MDCT
 pub fn vorbis<T: DCTnum>(len: usize) -> Vec<T> {
     let constant_term = f64::consts::PI / len as f64;
 
-    (0..len).map(|n| {
-        let inner_sin = (constant_term * (n as f64 + 0.5f64)).sin();
+    (0..len)
+        .map(|n| {
+            let inner_sin = (constant_term * (n as f64 + 0.5f64)).sin();
 
-        (f64::consts::PI * 0.5f64 * inner_sin * inner_sin).sin()
-    })
+            (f64::consts::PI * 0.5f64 * inner_sin * inner_sin).sin()
+        })
         .map(|w| T::from_f64(w).unwrap())
         .collect()
 }
 
+/// MDCT window function which is all ones (IE, no windowing will be applied)
 pub fn one<T: DCTnum>(len: usize) -> Vec<T> {
     (0..len).map(|_| T::one()).collect()
 }
 
 #[cfg(test)]
 mod unit_tests {
-	use super::*;
-	use test_utils::fuzzy_cmp;
+    use super::*;
+    use test_utils::fuzzy_cmp;
 
-	/// Verify that each of the built-in window functions does what we expect
+    /// Verify that each of the built-in window functions does what we expect
     #[test]
     fn test_window_fns() {
         for test_fn in &[mp3, vorbis] {
@@ -45,7 +48,7 @@ mod unit_tests {
                 for i in 0..half_size {
                     let first = evaluated_window[i];
                     let second = evaluated_window[i + half_size];
-                    assert!(fuzzy_cmp(first*first + second*second, 1f32, 0.001f32));
+                    assert!(fuzzy_cmp(first * first + second * second, 1f32, 0.001f32));
                 }
             }
         }

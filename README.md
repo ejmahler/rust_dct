@@ -11,7 +11,7 @@ RustDCT is a pure-Rust signal processing library that computes the most common D
 * DCT Type 4
 * MDCT (Used in audio and video compression such as Ogg and MP3)
 
-The recommended way to use RustDCT is to create a `DCTplanner` instance, then call its `plan_dct1` or `plan_dct2` or etc method. Each DCT type has its own method which will choose the best algorithm for the given size.
+The recommended way to use RustDCT is to create a `[DCTplanner](https://docs.rs/rustdct/0.1.1/rustdct/struct.DCTplanner.html)` instance, then call its `plan_dct1` or `plan_dct2` or etc method. Each DCT type has its own method which will choose the best algorithm for the given size.
 
 ```rust
 // Compute a DCT Type 2 of size 1234

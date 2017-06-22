@@ -1,4 +1,3 @@
-use super::*;
 use std::f32;
 
 use rand::{StdRng, SeedableRng};
@@ -25,7 +24,7 @@ pub fn random_signal(length: usize) -> Vec<f32> {
     let mut sig = Vec::with_capacity(length);
     let normal_dist = Normal::new(0.0, 10.0);
 
-    let seed : [usize; 5] = [1910, 11431, 4984, 14828, length];
+    let seed: [usize; 5] = [1910, 11431, 4984, 14828, length];
     let mut rng: StdRng = SeedableRng::from_seed(&seed[..]);
 
     for _ in 0..length {

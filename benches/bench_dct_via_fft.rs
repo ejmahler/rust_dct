@@ -21,12 +21,21 @@ fn bench_dct1_fft(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
+    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
-#[bench] fn dct1_fft_0024(b: &mut Bencher) { bench_dct1_fft(b,   24); }
-#[bench] fn dct1_fft_0025(b: &mut Bencher) { bench_dct1_fft(b,   25); }
-#[bench] fn dct1_fft_0026(b: &mut Bencher) { bench_dct1_fft(b,   26); }
+#[bench]
+fn dct1_fft_0024(b: &mut Bencher) {
+    bench_dct1_fft(b, 24);
+}
+#[bench]
+fn dct1_fft_0025(b: &mut Bencher) {
+    bench_dct1_fft(b, 25);
+}
+#[bench]
+fn dct1_fft_0026(b: &mut Bencher) {
+    bench_dct1_fft(b, 26);
+}
 
 
 
@@ -39,13 +48,25 @@ fn bench_dct2_fft(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
+    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
-#[bench] fn dct2_fft_003(b: &mut Bencher) { bench_dct2_fft(b,   3); }
-#[bench] fn dct2_fft_004(b: &mut Bencher) { bench_dct2_fft(b,   4); }
-#[bench] fn dct2_fft_005(b: &mut Bencher) { bench_dct2_fft(b,   5); }
-#[bench] fn dct2_fft_006(b: &mut Bencher) { bench_dct2_fft(b,   6); }
+#[bench]
+fn dct2_fft_003(b: &mut Bencher) {
+    bench_dct2_fft(b, 3);
+}
+#[bench]
+fn dct2_fft_004(b: &mut Bencher) {
+    bench_dct2_fft(b, 4);
+}
+#[bench]
+fn dct2_fft_005(b: &mut Bencher) {
+    bench_dct2_fft(b, 5);
+}
+#[bench]
+fn dct2_fft_006(b: &mut Bencher) {
+    bench_dct2_fft(b, 6);
+}
 
 
 
@@ -60,13 +81,25 @@ fn bench_dct3_fft(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
+    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
-#[bench] fn dct3_fft_003(b: &mut Bencher) { bench_dct3_fft(b,   3); }
-#[bench] fn dct3_fft_004(b: &mut Bencher) { bench_dct3_fft(b,   4); }
-#[bench] fn dct3_fft_005(b: &mut Bencher) { bench_dct3_fft(b,   5); }
-#[bench] fn dct3_fft_006(b: &mut Bencher) { bench_dct3_fft(b,   6); }
+#[bench]
+fn dct3_fft_003(b: &mut Bencher) {
+    bench_dct3_fft(b, 3);
+}
+#[bench]
+fn dct3_fft_004(b: &mut Bencher) {
+    bench_dct3_fft(b, 4);
+}
+#[bench]
+fn dct3_fft_005(b: &mut Bencher) {
+    bench_dct3_fft(b, 5);
+}
+#[bench]
+fn dct3_fft_006(b: &mut Bencher) {
+    bench_dct3_fft(b, 6);
+}
 
 
 
@@ -80,19 +113,49 @@ fn bench_dct4_fft(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| {dct.process(&mut signal, &mut spectrum);} );
+    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
-#[bench] fn dct4_fft_0100(b: &mut Bencher) { bench_dct4_fft(b,  100); }
-#[bench] fn dct4_fft_0101(b: &mut Bencher) { bench_dct4_fft(b,  101); }
-#[bench] fn dct4_fft_0110(b: &mut Bencher) { bench_dct4_fft(b,  110); }
-#[bench] fn dct4_fft_0111(b: &mut Bencher) { bench_dct4_fft(b,  111); }
-#[bench] fn dct4_fft_0120(b: &mut Bencher) { bench_dct4_fft(b,  120); }
-#[bench] fn dct4_fft_0121(b: &mut Bencher) { bench_dct4_fft(b,  121); }
-#[bench] fn dct4_fft_0130(b: &mut Bencher) { bench_dct4_fft(b,  130); }
-#[bench] fn dct4_fft_0131(b: &mut Bencher) { bench_dct4_fft(b,  131); }
-#[bench] fn dct4_fft_0140(b: &mut Bencher) { bench_dct4_fft(b,  140); }
-#[bench] fn dct4_fft_0141(b: &mut Bencher) { bench_dct4_fft(b,  141); }
+#[bench]
+fn dct4_fft_0100(b: &mut Bencher) {
+    bench_dct4_fft(b, 100);
+}
+#[bench]
+fn dct4_fft_0101(b: &mut Bencher) {
+    bench_dct4_fft(b, 101);
+}
+#[bench]
+fn dct4_fft_0110(b: &mut Bencher) {
+    bench_dct4_fft(b, 110);
+}
+#[bench]
+fn dct4_fft_0111(b: &mut Bencher) {
+    bench_dct4_fft(b, 111);
+}
+#[bench]
+fn dct4_fft_0120(b: &mut Bencher) {
+    bench_dct4_fft(b, 120);
+}
+#[bench]
+fn dct4_fft_0121(b: &mut Bencher) {
+    bench_dct4_fft(b, 121);
+}
+#[bench]
+fn dct4_fft_0130(b: &mut Bencher) {
+    bench_dct4_fft(b, 130);
+}
+#[bench]
+fn dct4_fft_0131(b: &mut Bencher) {
+    bench_dct4_fft(b, 131);
+}
+#[bench]
+fn dct4_fft_0140(b: &mut Bencher) {
+    bench_dct4_fft(b, 140);
+}
+#[bench]
+fn dct4_fft_0141(b: &mut Bencher) {
+    bench_dct4_fft(b, 141);
+}
 
 
 
@@ -106,14 +169,32 @@ fn bench_mdct_fft(b: &mut Bencher, len: usize) {
 
     let signal = vec![0_f32; len*2];
     let mut spectrum = vec![0_f32; len];
-    b.iter(|| {dct.process(&signal, &mut spectrum);} );
+    b.iter(|| { dct.process(&signal, &mut spectrum); });
 }
-#[bench] fn mdct_fft_02(b: &mut Bencher) { bench_mdct_fft(b,  2); }
-#[bench] fn mdct_fft_04(b: &mut Bencher) { bench_mdct_fft(b,  4); }
-#[bench] fn mdct_fft_06(b: &mut Bencher) { bench_mdct_fft(b,  6); }
-#[bench] fn mdct_fft_08(b: &mut Bencher) { bench_mdct_fft(b,  8); }
-#[bench] fn mdct_fft_10(b: &mut Bencher) { bench_mdct_fft(b,  10); }
-#[bench] fn mdct_fft_12(b: &mut Bencher) { bench_mdct_fft(b,  12); }
+#[bench]
+fn mdct_fft_02(b: &mut Bencher) {
+    bench_mdct_fft(b, 2);
+}
+#[bench]
+fn mdct_fft_04(b: &mut Bencher) {
+    bench_mdct_fft(b, 4);
+}
+#[bench]
+fn mdct_fft_06(b: &mut Bencher) {
+    bench_mdct_fft(b, 6);
+}
+#[bench]
+fn mdct_fft_08(b: &mut Bencher) {
+    bench_mdct_fft(b, 8);
+}
+#[bench]
+fn mdct_fft_10(b: &mut Bencher) {
+    bench_mdct_fft(b, 10);
+}
+#[bench]
+fn mdct_fft_12(b: &mut Bencher) {
+    bench_mdct_fft(b, 12);
+}
 
 
 
@@ -127,11 +208,29 @@ fn bench_imdct_fft(b: &mut Bencher, len: usize) {
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len*2];
-    b.iter(|| {dct.process(&signal, &mut spectrum);} );
+    b.iter(|| { dct.process(&signal, &mut spectrum); });
 }
-#[bench] fn imdct_fft_02(b: &mut Bencher) { bench_imdct_fft(b,  2); }
-#[bench] fn imdct_fft_04(b: &mut Bencher) { bench_imdct_fft(b,  4); }
-#[bench] fn imdct_fft_06(b: &mut Bencher) { bench_imdct_fft(b,  6); }
-#[bench] fn imdct_fft_08(b: &mut Bencher) { bench_imdct_fft(b,  8); }
-#[bench] fn imdct_fft_10(b: &mut Bencher) { bench_imdct_fft(b,  10); }
-#[bench] fn imdct_fft_12(b: &mut Bencher) { bench_imdct_fft(b,  12); }
+#[bench]
+fn imdct_fft_02(b: &mut Bencher) {
+    bench_imdct_fft(b, 2);
+}
+#[bench]
+fn imdct_fft_04(b: &mut Bencher) {
+    bench_imdct_fft(b, 4);
+}
+#[bench]
+fn imdct_fft_06(b: &mut Bencher) {
+    bench_imdct_fft(b, 6);
+}
+#[bench]
+fn imdct_fft_08(b: &mut Bencher) {
+    bench_imdct_fft(b, 8);
+}
+#[bench]
+fn imdct_fft_10(b: &mut Bencher) {
+    bench_imdct_fft(b, 10);
+}
+#[bench]
+fn imdct_fft_12(b: &mut Bencher) {
+    bench_imdct_fft(b, 12);
+}

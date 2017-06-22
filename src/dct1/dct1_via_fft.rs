@@ -7,6 +7,22 @@ use rustfft::{FFT, Length};
 use DCTnum;
 use dct1::DCT1;
 
+/// DCT Type 1 implementation that converts the problem into an O(nlogn) FFT of size 2 * (n - 1)
+///
+/// ~~~
+/// // Computes a DCT Type 1 of size 1234
+/// use rustdct::dct1::{DCT1, DCT1ViaFFT};
+/// use rustdct::rustfft::FFTplanner;
+///
+/// let mut input:  Vec<f32> = vec![0f32; 1234];
+/// let mut output: Vec<f32> = vec![0f32; 1234];
+///
+/// let mut planner = FFTplanner::new(false);
+/// let fft = planner.plan_fft(2 * (1234 - 1));
+///
+/// let mut dct = DCT1ViaFFT::new(fft);
+/// dct.process(&mut input, &mut output);
+/// ~~~
 pub struct DCT1ViaFFT<T> {
     fft: Arc<FFT<T>>,
     fft_input: Box<[Complex<T>]>,
@@ -18,8 +34,12 @@ impl<T: DCTnum> DCT1ViaFFT<T> {
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
 
-        assert!(inner_len % 2 == 0, "For DCT1 via FFT, the inner FFT size must be even. Got {}", inner_len);
-        assert!(!inner_fft.is_inverse(), "The 'DCT type 1 via FFT' algorithm requires a forward FFT, but an inverse FFT was provided");
+        assert!(inner_len % 2 == 0,
+                "For DCT1 via FFT, the inner FFT size must be even. Got {}",
+                inner_len);
+        assert!(!inner_fft.is_inverse(),
+                "The 'DCT type 1 via FFT' algorithm requires a forward FFT, but an inverse FFT \
+                 was provided");
 
         Self {
             fft: inner_fft,
@@ -30,14 +50,21 @@ impl<T: DCTnum> DCT1ViaFFT<T> {
 }
 
 impl<T: DCTnum> DCT1<T> for DCT1ViaFFT<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {   
+    fn process(&mut self, input: &mut [T], output: &mut [T]) {
         assert!(input.len() == self.len());
 
         for (&input_val, fft_cell) in input.iter().zip(&mut self.fft_input[..input.len()]) {
-            *fft_cell = Complex { re: input_val, im: T::zero() };
+            *fft_cell = Complex {
+                re: input_val,
+                im: T::zero(),
+            };
         }
-        for (&input_val, fft_cell) in input.iter().rev().skip(1).zip(&mut self.fft_input[input.len()..]) {
-            *fft_cell = Complex { re: input_val, im: T::zero() };
+        for (&input_val, fft_cell) in
+            input.iter().rev().skip(1).zip(&mut self.fft_input[input.len()..]) {
+            *fft_cell = Complex {
+                re: input_val,
+                im: T::zero(),
+            };
         }
 
         // run the fft
@@ -62,10 +89,10 @@ mod test {
     use super::*;
     use dct1::DCT1Naive;
 
-    use ::test_utils::{compare_float_vectors, random_signal};
+    use test_utils::{compare_float_vectors, random_signal};
     use rustfft::FFTplanner;
 
-    /// Verify that our fast implementation of the DCT3 gives the same output as the slow version, for many different inputs
+    /// Verify that our fast implementation of the DCT1 gives the same output as the slow version, for many different inputs
     #[test]
     fn test_dct1_via_fft() {
         for size in 2..20 {
@@ -83,7 +110,9 @@ mod test {
             let mut dct = DCT1ViaFFT::new(fft_planner.plan_fft((size - 1) * 2));
             dct.process(&mut actual_input, &mut actual_output);
 
-            assert!(compare_float_vectors(&actual_output, &expected_output), "len = {}", size);
+            assert!(compare_float_vectors(&actual_output, &expected_output),
+                    "len = {}",
+                    size);
         }
     }
 }

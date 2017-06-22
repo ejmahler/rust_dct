@@ -5,25 +5,37 @@ use rustfft::Length;
 use dct1::DCT1;
 use DCTnum;
 
+/// Naive O(n^2 ) DCT Type 1 implementation
+///
+/// This implementation is primarily used to test other DCT1 algorithms. For small input sizes, this is actually
+/// faster than `DCT1ViaFFT` because we don't have to pay the cost associated with converting the problem to a FFT.
+///
+/// ~~~
+/// // Computes a naive DCT1 of size 123
+/// use rustdct::dct1::{DCT1, DCT1Naive};
+///
+/// let mut input:  Vec<f32> = vec![0f32; 123];
+/// let mut output: Vec<f32> = vec![0f32; 123];
+///
+/// let mut dct = DCT1Naive::new(123);
+/// dct.process(&mut input, &mut output);
+/// ~~~
 pub struct DCT1Naive<T> {
     twiddles: Box<[T]>,
 }
 
 impl<T: DCTnum> DCT1Naive<T> {
-    /// Creates a new DCT4 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         assert_ne!(len, 1, "DCT Type 1 is undefined for len == 1");
 
         let constant_factor = f64::consts::PI / ((len - 1) as f64);
 
-        let twiddles: Vec<T> = (0..(len - 1)*2)
+        let twiddles: Vec<T> = (0..(len - 1) * 2)
             .map(|i| (constant_factor * (i as f64)).cos())
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        Self {
-            twiddles: twiddles.into_boxed_slice()
-        }
+        Self { twiddles: twiddles.into_boxed_slice() }
     }
 }
 
@@ -38,7 +50,7 @@ impl<T: DCTnum> DCT1<T> for DCT1Naive<T> {
         for k in 0..output.len() {
             let output_cell = output.get_mut(k).unwrap();
             *output_cell = input[0];
-            
+
             let twiddle_stride = k;
             let mut twiddle_index = twiddle_stride;
 
@@ -53,7 +65,7 @@ impl<T: DCTnum> DCT1<T> for DCT1Naive<T> {
                 }
             }
         }
-        
+
     }
 }
 impl<T> Length for DCT1Naive<T> {
@@ -69,12 +81,13 @@ mod test {
     use test_utils::{compare_float_vectors, random_signal};
     use std::f32;
 
+    /// Simplified version of DCT1 that doesn't precompute twiddles. slower but much easier to debug
     fn slow_dct1(input: &[f32]) -> Vec<f32> {
         let mut result = Vec::with_capacity(input.len());
         let twiddle_constant = f32::consts::PI / ((input.len() - 1) as f32);
 
         for k in 0..input.len() {
-            let mut current_value = if k %2 == 0 {
+            let mut current_value = if k % 2 == 0 {
                 (input[0] + input[input.len() - 1]) * 0.5f32
             } else {
                 (input[0] - input[input.len() - 1]) * 0.5f32
@@ -96,18 +109,20 @@ mod test {
     }
 
 
+    // Compare our slow and fast versions of naive DCT1 against some known values
     #[test]
     fn test_known_lengths() {
-        let input_list = vec![
-            vec![1_f32, 1_f32],
-            vec![1_f32, 2_f32, 3_f32, 5_f32],
-            vec![1_f32, 2_f32, 3_f32, 5_f32, 1_f32, -3_f32],
-        ]; 
-        let expected_list = vec![
-            vec![1_f32, 0_f32],
-            vec![8_f32, -2.5_f32, 0.5_f32, -1_f32],
-            vec![10.0_f32, 2.1909830056250525_f32, -6.5450849718747373_f32, 3.3090169943749475_f32, -0.95491502812526274_f32, -1.0_f32],
-        ];
+        let input_list = vec![vec![1_f32, 1_f32],
+                              vec![1_f32, 2_f32, 3_f32, 5_f32],
+                              vec![1_f32, 2_f32, 3_f32, 5_f32, 1_f32, -3_f32]];
+        let expected_list = vec![vec![1_f32, 0_f32],
+                                 vec![8_f32, -2.5_f32, 0.5_f32, -1_f32],
+                                 vec![10.0_f32,
+                                      2.1909830056250525_f32,
+                                      -6.5450849718747373_f32,
+                                      3.3090169943749475_f32,
+                                      -0.95491502812526274_f32,
+                                      -1.0_f32]];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
             let slow_output = slow_dct1(&input);
@@ -129,14 +144,14 @@ mod test {
     }
 
 
-    /// Verify that our fast implementation of the DCT4 gives the same output as the slow version, for many different inputs
+    /// Compare our slow and fast versions of naive DCT1 against random inputs
     #[test]
     fn test_matches_dct1() {
         for size in 2..20 {
             let mut input = random_signal(size);
             let slow_output = slow_dct1(&input);
 
-            
+
             let mut fast_output = vec![0f32; size];
 
             let mut dct = DCT1Naive::new(size);
@@ -147,7 +162,9 @@ mod test {
             println!("expected: {:?}", slow_output);
             println!("actual: {:?}", fast_output);
 
-            assert!(compare_float_vectors(&slow_output, &fast_output), "len = {}", size);
+            assert!(compare_float_vectors(&slow_output, &fast_output),
+                    "len = {}",
+                    size);
         }
     }
 }
