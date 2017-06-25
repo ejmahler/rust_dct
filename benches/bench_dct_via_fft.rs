@@ -1,14 +1,14 @@
 #![feature(test)]
 extern crate test;
-extern crate rust_dct;
+extern crate rustdct;
 
-use rust_dct::rustfft::FFTplanner;
-use rust_dct::DCTplanner;
-use rust_dct::dct1::{DCT1, DCT1ViaFFT};
-use rust_dct::dct2::{DCT2, DCT2ViaFFT};
-use rust_dct::dct3::{DCT3, DCT3ViaFFT};
-use rust_dct::dct4::{DCT4, DCT4ViaFFT};
-use rust_dct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
+use rustdct::rustfft::FFTplanner;
+use rustdct::DCTplanner;
+use rustdct::dct1::{DCT1, DCT1ViaFFT};
+use rustdct::dct2::{DCT2, DCT2ViaFFT};
+use rustdct::dct3::{DCT3, DCT3ViaFFT};
+use rustdct::dct4::{DCT4, DCT4ViaFFT, DCT4ViaDCT3};
+use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
 
 use test::Bencher;
 
@@ -117,44 +117,84 @@ fn bench_dct4_fft(b: &mut Bencher, len: usize) {
 }
 
 #[bench]
-fn dct4_fft_0100(b: &mut Bencher) {
-    bench_dct4_fft(b, 100);
+fn dct4_even_fft_02(b: &mut Bencher) {
+    bench_dct4_fft(b, 2);
 }
 #[bench]
-fn dct4_fft_0101(b: &mut Bencher) {
-    bench_dct4_fft(b, 101);
+fn dct4_even_fft_04(b: &mut Bencher) {
+    bench_dct4_fft(b, 4);
 }
 #[bench]
-fn dct4_fft_0110(b: &mut Bencher) {
-    bench_dct4_fft(b, 110);
+fn dct4_even_fft_06(b: &mut Bencher) {
+    bench_dct4_fft(b, 6);
 }
 #[bench]
-fn dct4_fft_0111(b: &mut Bencher) {
-    bench_dct4_fft(b, 111);
+fn dct4_even_fft_08(b: &mut Bencher) {
+    bench_dct4_fft(b, 8);
 }
 #[bench]
-fn dct4_fft_0120(b: &mut Bencher) {
-    bench_dct4_fft(b, 120);
+fn dct4_even_fft_10(b: &mut Bencher) {
+    bench_dct4_fft(b, 10);
+}
+
+
+#[bench]
+fn dct4_odd_fft_0135(b: &mut Bencher) {
+    bench_dct4_fft(b, 135);
 }
 #[bench]
-fn dct4_fft_0121(b: &mut Bencher) {
-    bench_dct4_fft(b, 121);
-}
-#[bench]
-fn dct4_fft_0130(b: &mut Bencher) {
-    bench_dct4_fft(b, 130);
-}
-#[bench]
-fn dct4_fft_0131(b: &mut Bencher) {
-    bench_dct4_fft(b, 131);
-}
-#[bench]
-fn dct4_fft_0140(b: &mut Bencher) {
-    bench_dct4_fft(b, 140);
-}
-#[bench]
-fn dct4_fft_0141(b: &mut Bencher) {
+fn dct4_odd_fft_0141(b: &mut Bencher) {
     bench_dct4_fft(b, 141);
+}
+#[bench]
+fn dct4_odd_fft_0145(b: &mut Bencher) {
+    bench_dct4_fft(b, 145);
+}
+#[bench]
+fn dct4_odd_fft_0151(b: &mut Bencher) {
+    bench_dct4_fft(b, 151);
+}
+#[bench]
+fn dct4_odd_fft_0155(b: &mut Bencher) {
+    bench_dct4_fft(b, 155);
+}
+
+
+
+
+
+/// Times just the DCT4 execution (not allocation and pre-calculation)
+/// for a given length
+fn bench_dct4_via_dct3(b: &mut Bencher, len: usize) {
+
+    let mut planner = DCTplanner::new();
+    let inner_dct3 = planner.plan_dct3(len / 2);
+    let mut dct = DCT4ViaDCT3::new(inner_dct3);
+
+    let mut signal = vec![0_f32; len];
+    let mut spectrum = signal.clone();
+    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+}
+
+#[bench]
+fn dct4_even_via_dct3_02(b: &mut Bencher) {
+    bench_dct4_via_dct3(b, 2);
+}
+#[bench]
+fn dct4_even_via_dct3_03(b: &mut Bencher) {
+    bench_dct4_via_dct3(b, 4);
+}
+#[bench]
+fn dct4_even_via_dct3_06(b: &mut Bencher) {
+    bench_dct4_via_dct3(b, 6);
+}
+#[bench]
+fn dct4_even_via_dct3_08(b: &mut Bencher) {
+    bench_dct4_via_dct3(b, 8);
+}
+#[bench]
+fn dct4_even_via_dct3_10(b: &mut Bencher) {
+    bench_dct4_via_dct3(b, 10);
 }
 
 

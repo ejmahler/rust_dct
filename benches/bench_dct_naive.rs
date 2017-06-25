@@ -1,12 +1,12 @@
 #![feature(test)]
 extern crate test;
-extern crate rust_dct;
+extern crate rustdct;
 
-use rust_dct::dct1::{DCT1, DCT1Naive};
-use rust_dct::dct2::{DCT2, DCT2Naive};
-use rust_dct::dct3::{DCT3, DCT3Naive};
-use rust_dct::dct4::{DCT4, DCT4Naive};
-use rust_dct::mdct::{MDCT, IMDCT, MDCTNaive, IMDCTNaive, window_fn};
+use rustdct::dct1::{DCT1, DCT1Naive};
+use rustdct::dct2::{DCT2, DCT2Naive};
+use rustdct::dct3::{DCT3, DCT3Naive};
+use rustdct::dct4::{DCT4, DCT4Naive};
+use rustdct::mdct::{MDCT, IMDCT, MDCTNaive, IMDCTNaive, window_fn};
 
 use test::Bencher;
 
@@ -111,46 +111,47 @@ fn bench_dct4_naive(b: &mut Bencher, len: usize) {
 }
 
 #[bench]
-fn dct4_naive_0100(b: &mut Bencher) {
-    bench_dct4_naive(b, 100);
+fn dct4_even_naive_02(b: &mut Bencher) {
+    bench_dct4_naive(b, 2);
 }
 #[bench]
-fn dct4_naive_0101(b: &mut Bencher) {
-    bench_dct4_naive(b, 101);
+fn dct4_even_naive_04(b: &mut Bencher) {
+    bench_dct4_naive(b, 4);
 }
 #[bench]
-fn dct4_naive_0110(b: &mut Bencher) {
-    bench_dct4_naive(b, 110);
+fn dct4_even_naive_06(b: &mut Bencher) {
+    bench_dct4_naive(b, 6);
 }
 #[bench]
-fn dct4_naive_0111(b: &mut Bencher) {
-    bench_dct4_naive(b, 111);
+fn dct4_even_naive_08(b: &mut Bencher) {
+    bench_dct4_naive(b, 8);
 }
 #[bench]
-fn dct4_naive_0120(b: &mut Bencher) {
-    bench_dct4_naive(b, 120);
-}
-#[bench]
-fn dct4_naive_0121(b: &mut Bencher) {
-    bench_dct4_naive(b, 121);
-}
-#[bench]
-fn dct4_naive_0130(b: &mut Bencher) {
-    bench_dct4_naive(b, 130);
-}
-#[bench]
-fn dct4_naive_0131(b: &mut Bencher) {
-    bench_dct4_naive(b, 131);
-}
-#[bench]
-fn dct4_naive_0140(b: &mut Bencher) {
-    bench_dct4_naive(b, 140);
-}
-#[bench]
-fn dct4_naive_0141(b: &mut Bencher) {
-    bench_dct4_naive(b, 141);
+fn dct4_even_naive_10(b: &mut Bencher) {
+    bench_dct4_naive(b, 10);
 }
 
+
+#[bench]
+fn dct4_odd_naive_0135(b: &mut Bencher) {
+    bench_dct4_naive(b, 135);
+}
+#[bench]
+fn dct4_odd_naive_0141(b: &mut Bencher) {
+    bench_dct4_naive(b, 141);
+}
+#[bench]
+fn dct4_odd_naive_0145(b: &mut Bencher) {
+    bench_dct4_naive(b, 145);
+}
+#[bench]
+fn dct4_odd_naive_0151(b: &mut Bencher) {
+    bench_dct4_naive(b, 151);
+}
+#[bench]
+fn dct4_odd_naive_0155(b: &mut Bencher) {
+    bench_dct4_naive(b, 155);
+}
 
 
 /// Times just the MDCT execution (not allocation and pre-calculation)
