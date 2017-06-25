@@ -3,6 +3,7 @@ use rustfft::Length;
 use DCTnum;
 
 mod dct4_via_fft;
+mod dct4_via_dct3;
 mod dct4_naive;
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 4 (DCT4)
@@ -15,4 +16,5 @@ pub trait DCT4<T: DCTnum>: Length {
 }
 
 pub use self::dct4_via_fft::DCT4ViaFFT;
+pub use self::dct4_via_dct3::DCT4ViaDCT3;
 pub use self::dct4_naive::DCT4Naive;
