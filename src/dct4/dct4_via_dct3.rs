@@ -34,7 +34,7 @@ pub struct DCT4ViaDCT3<T> {
 }
 
 impl<T: DCTnum> DCT4ViaDCT3<T> {
-    /// Creates a new DCT4 context that will process signals of length `inner_fft.len() / 4`.
+    /// Creates a new DCT4 context that will process signals of length `inner_dct.len() * 2`.
     pub fn new(inner_dct: Box<DCT3<T>>) -> Self {
         let inner_len = inner_dct.len();
         let len = inner_len * 2;
