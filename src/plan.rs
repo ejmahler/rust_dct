@@ -79,7 +79,7 @@ impl<T: DCTnum> DCTplanner<T> {
     pub fn plan_dct4(&mut self, len: usize) -> Box<DCT4<T>> {
 
         //if we have an even size, we can use the DCT4 Via DCT3 algorithm, which is much, much faster
-        if len & 2 == 0 {
+        if len % 2 == 0 {
             //benchmarking shows that below 6, it's faster to just use the naive DCT4 algorithm
             if len < 6 {
                 Box::new(DCT4Naive::new(len))

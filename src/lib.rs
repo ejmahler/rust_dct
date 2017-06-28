@@ -55,7 +55,7 @@ mod twiddles;
 mod test_utils;
 
 /// Generic floating point number, implemented for f32 and f64
-pub trait DCTnum: rustfft::FFTnum + Debug {}
+pub trait DCTnum: rustfft::FFTnum + num_traits::FloatConst + Debug {}
 impl DCTnum for f32 {}
 impl DCTnum for f64 {}
 

@@ -9,7 +9,7 @@ use dct3::DCT3;
 /// DCT Type 4 implementation that converts the problem into two DCT type 3 of half size. If the inner DCT3 is 
 /// O(nlogn), then so is this.
 ///
-/// This algorithm can only be used if the input/output size is even.
+/// This algorithm can only be used if the problem size is even.
 ///
 /// ~~~
 /// // Computes a DCT Type 4 of size 1234
