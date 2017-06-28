@@ -155,7 +155,7 @@ mod test {
     /// Verify that our fast implementation of the DCT4 gives the same output as the slow version, for many different inputs
     #[test]
     fn test_dct4_via_fft_odd() {
-        for n in 8..50 {
+        for n in 0..50 {
             let size = 2 * n + 1;
             println!("{}", size);
 

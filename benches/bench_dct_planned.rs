@@ -92,10 +92,14 @@ fn bench_dct4_planned(b: &mut Bencher, len: usize) {
 
 // small mixed composites times a large prime
 #[bench]
-fn dct4_planned_00256(b: &mut Bencher) {
+fn dct4_planned_0000256(b: &mut Bencher) {
     bench_dct4_planned(b, 256);
 }
 #[bench]
-fn dct4_planned_65536(b: &mut Bencher) {
-    bench_dct4_planned(b, 65536);
+fn dct4_planned_0999999(b: &mut Bencher) {
+    bench_dct4_planned(b, 999999);
+}
+#[bench]
+fn dct4_planned_1000000(b: &mut Bencher) {
+    bench_dct4_planned(b, 1000000);
 }

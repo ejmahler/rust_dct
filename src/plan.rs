@@ -78,7 +78,7 @@ impl<T: DCTnum> DCTplanner<T> {
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct4(&mut self, len: usize) -> Box<DCT4<T>> {
 
-        //if we have an even size, we can use the DCT4 Via DCT3 algorithm, which is much, much faster
+        //if we have an even size, we can use the DCT4 Via DCT3 algorithm
         if len % 2 == 0 {
             //benchmarking shows that below 6, it's faster to just use the naive DCT4 algorithm
             if len < 6 {
@@ -90,12 +90,13 @@ impl<T: DCTnum> DCTplanner<T> {
 
         }
         else {
-            //benchmarking shows that below about 150, it's faster to just use the naive DCT4 algorithm
-            if len < 150 {
+            //odd size, so we can use the "DCT4 via FFT odd" algorithm
+            //benchmarking shows that below about 7, it's faster to just use the naive DCT4 algorithm
+            if len < 7 {
                 Box::new(DCT4Naive::new(len))
             } else {
-                let fft = self.fft_planner.plan_fft(len * 4);
-                Box::new(DCT4ViaFFT::new(fft))
+                let fft = self.fft_planner.plan_fft(len);
+                Box::new(DCT4ViaFFTOdd::new(fft))
             }
         }
     }

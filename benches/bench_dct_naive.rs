@@ -133,24 +133,24 @@ fn dct4_even_naive_10(b: &mut Bencher) {
 
 
 #[bench]
-fn dct4_odd_naive_0135(b: &mut Bencher) {
-    bench_dct4_naive(b, 135);
+fn dct4_odd_naive_01(b: &mut Bencher) {
+    bench_dct4_naive(b, 1);
 }
 #[bench]
-fn dct4_odd_naive_0141(b: &mut Bencher) {
-    bench_dct4_naive(b, 141);
+fn dct4_odd_naive_03(b: &mut Bencher) {
+    bench_dct4_naive(b, 3);
 }
 #[bench]
-fn dct4_odd_naive_0145(b: &mut Bencher) {
-    bench_dct4_naive(b, 145);
+fn dct4_odd_naive_05(b: &mut Bencher) {
+    bench_dct4_naive(b, 5);
 }
 #[bench]
-fn dct4_odd_naive_0151(b: &mut Bencher) {
-    bench_dct4_naive(b, 151);
+fn dct4_odd_naive_07(b: &mut Bencher) {
+    bench_dct4_naive(b, 7);
 }
 #[bench]
-fn dct4_odd_naive_0155(b: &mut Bencher) {
-    bench_dct4_naive(b, 155);
+fn dct4_odd_naive_09(b: &mut Bencher) {
+    bench_dct4_naive(b, 9);
 }
 
 
