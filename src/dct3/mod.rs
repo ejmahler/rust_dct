@@ -2,6 +2,7 @@ use rustfft::Length;
 
 use DCTnum;
 
+mod dct3_splitradix;
 mod dct3_via_fft;
 mod dct3_naive;
 
@@ -15,4 +16,5 @@ pub trait DCT3<T: DCTnum>: Length {
 }
 
 pub use self::dct3_via_fft::DCT3ViaFFT;
+pub use self::dct3_splitradix::DCT3SplitRadix;
 pub use self::dct3_naive::DCT3Naive;
