@@ -76,9 +76,6 @@ fn test_dct3_accuracy() {
     for len in 1..20 {
         test_dct3::planned_matches_naive(len);
     }
-    for &len in &[50, 51, 100, 101] {
-        test_dct3::planned_matches_naive(len);
-    }
 }
 
 

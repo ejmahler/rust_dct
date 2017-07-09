@@ -8,17 +8,13 @@ use dct3::DCT3;
 /// DCT Type 3 implemention that recursively divides the problem in half. The problem size must be a power of two.
 ///
 /// ~~~
-/// // Computes a DCT Type 3 of size 1234
-/// use rustdct::dct3::{DCT3, DCT3ViaFFT};
-/// use rustdct::rustfft::FFTplanner;
+/// // Computes a DCT Type 3 of size 1024
+/// use rustdct::dct3::{DCT3, DCT3SplitRadix};
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 1234];
-/// let mut output: Vec<f32> = vec![0f32; 1234];
+/// let mut input:  Vec<f32> = vec![0f32; 1024];
+/// let mut output: Vec<f32> = vec![0f32; 1024];
 ///
-/// let mut planner = FFTplanner::new(false);
-/// let fft = planner.plan_fft(1234);
-///
-/// let mut dct = DCT3ViaFFT::new(fft);
+/// let mut dct = DCT3SplitRadix::new(1024);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT3SplitRadix<T> {
@@ -73,16 +69,16 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
             recursive_input_n3[0] = input[len - 1] * T::from_usize(2).unwrap();
 
             // populate the recursive input arrays
-            for i in 1..(len / 4) {
+            for i in 1..quarter_len {
                 let k = 4 * i;
 
                 // the evens are the easy ones - just copy straight over
-                recursive_input_evens[i * 2] =     input[k];
-                recursive_input_evens[i * 2 + 1] = input[k + 2];
+                unsafe { *recursive_input_evens.get_unchecked_mut(i * 2) =     *input.get_unchecked(k) };
+                unsafe { *recursive_input_evens.get_unchecked_mut(i * 2 + 1) = *input.get_unchecked(k + 2) };
 
                 // for the odd ones we're going to do the same addition/subtraction we do in the setup for DCT4ViaDCT3
-                recursive_input_n1[i] =               input[k - 1] + input[k + 1];
-                recursive_input_n3[quarter_len - i] = input[k - 1] - input[k + 1];
+                unsafe { *recursive_input_n1.get_unchecked_mut(i) =               *input.get_unchecked(k - 1) + *input.get_unchecked(k + 1) };
+                unsafe { *recursive_input_n3.get_unchecked_mut(quarter_len - i) = *input.get_unchecked(k - 1) - *input.get_unchecked(k + 1) };
             }
 
             //now that we're done with the input, divide it up the same way we did the output
@@ -103,7 +99,7 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
         // - merging the two smaller DCT3 outputs into a DCT4 output
         // - marging the DCT4 outputand the larger DCT3 output into the final output
         for i in 0..quarter_len {
-            let twiddle = self.twiddles[(i * 2 + 1) * twiddle_stride];
+            let twiddle = unsafe { *self.twiddles.get_unchecked((i * 2 + 1) * twiddle_stride) };
             let cosine_value = recursive_output_n1[i];
 
             // flip the sign of every other sine value to finish the job of using a DCT3 to compute a DST3
@@ -116,14 +112,14 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
             let lower_dct4 = cosine_value * twiddle.re + sine_value * twiddle.im;
             let upper_dct4 = cosine_value * twiddle.im - sine_value * twiddle.re;
 
-            let lower_dct3 = recursive_output_evens[i];
-            let upper_dct3 = recursive_output_evens[half_len - i - 1];
+            let lower_dct3 = unsafe { *recursive_output_evens.get_unchecked(i) };
+            let upper_dct3 = unsafe { *recursive_output_evens.get_unchecked(half_len - i - 1) };
 
-            output[i] =             lower_dct3 + lower_dct4;
-            output[len - i - 1] =   lower_dct3 - lower_dct4;
+            *unsafe { output.get_unchecked_mut(i) } =                lower_dct3 + lower_dct4;
+            *unsafe { output.get_unchecked_mut(len - i - 1) } =      lower_dct3 - lower_dct4;
 
-            output[half_len - i - 1] = upper_dct3 + upper_dct4;
-            output[half_len + i] =    upper_dct3 - upper_dct4;
+            *unsafe { output.get_unchecked_mut(half_len - i - 1) } = upper_dct3 + upper_dct4;
+            *unsafe { output.get_unchecked_mut(half_len + i) } =     upper_dct3 - upper_dct4;
         }
     }
 }
