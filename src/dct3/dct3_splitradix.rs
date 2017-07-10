@@ -22,7 +22,7 @@ pub struct DCT3SplitRadix<T> {
 }
 
 impl<T: DCTnum> DCT3SplitRadix<T> {
-    /// Creates a new DCT3 context that will process signals of length `inner_fft.len()`.
+    /// Creates a new DCT3 context that will process signals of length `len`.
     pub fn new(len: usize) -> Self {
         assert!(
             len.is_power_of_two() && len > 2,
@@ -72,13 +72,15 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
             for i in 1..quarter_len {
                 let k = 4 * i;
 
-                // the evens are the easy ones - just copy straight over
-                unsafe { *recursive_input_evens.get_unchecked_mut(i * 2) =     *input.get_unchecked(k) };
-                unsafe { *recursive_input_evens.get_unchecked_mut(i * 2 + 1) = *input.get_unchecked(k + 2) };
+                unsafe {
+                    // the evens are the easy ones - just copy straight over
+                    *recursive_input_evens.get_unchecked_mut(i * 2) =     *input.get_unchecked(k);
+                    *recursive_input_evens.get_unchecked_mut(i * 2 + 1) = *input.get_unchecked(k + 2);
 
-                // for the odd ones we're going to do the same addition/subtraction we do in the setup for DCT4ViaDCT3
-                unsafe { *recursive_input_n1.get_unchecked_mut(i) =               *input.get_unchecked(k - 1) + *input.get_unchecked(k + 1) };
-                unsafe { *recursive_input_n3.get_unchecked_mut(quarter_len - i) = *input.get_unchecked(k - 1) - *input.get_unchecked(k + 1) };
+                    // for the odd ones we're going to do the same addition/subtraction we do in the setup for DCT4ViaDCT3
+                    *recursive_input_n1.get_unchecked_mut(i) =               *input.get_unchecked(k - 1) + *input.get_unchecked(k + 1);
+                    *recursive_input_n3.get_unchecked_mut(quarter_len - i) = *input.get_unchecked(k - 1) - *input.get_unchecked(k + 1);
+                }
             }
 
             //now that we're done with the input, divide it up the same way we did the output
@@ -112,14 +114,16 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
             let lower_dct4 = cosine_value * twiddle.re + sine_value * twiddle.im;
             let upper_dct4 = cosine_value * twiddle.im - sine_value * twiddle.re;
 
-            let lower_dct3 = unsafe { *recursive_output_evens.get_unchecked(i) };
-            let upper_dct3 = unsafe { *recursive_output_evens.get_unchecked(half_len - i - 1) };
+            unsafe {
+                let lower_dct3 = *recursive_output_evens.get_unchecked(i);
+                let upper_dct3 = *recursive_output_evens.get_unchecked(half_len - i - 1);
 
-            *unsafe { output.get_unchecked_mut(i) } =                lower_dct3 + lower_dct4;
-            *unsafe { output.get_unchecked_mut(len - i - 1) } =      lower_dct3 - lower_dct4;
+                *output.get_unchecked_mut(i) =                lower_dct3 + lower_dct4;
+                *output.get_unchecked_mut(len - i - 1) =      lower_dct3 - lower_dct4;
 
-            *unsafe { output.get_unchecked_mut(half_len - i - 1) } = upper_dct3 + upper_dct4;
-            *unsafe { output.get_unchecked_mut(half_len + i) } =     upper_dct3 - upper_dct4;
+                *output.get_unchecked_mut(half_len - i - 1) = upper_dct3 + upper_dct4;
+                *output.get_unchecked_mut(half_len + i) =     upper_dct3 - upper_dct4;
+            }
         }
     }
 }
