@@ -3,6 +3,7 @@ use rustfft::Length;
 use DCTnum;
 
 mod dct2_via_fft;
+mod dct2_splitradix;
 mod dct2_naive;
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 2 (DCT2)
@@ -15,4 +16,5 @@ pub trait DCT2<T: DCTnum>: Length {
 }
 
 pub use self::dct2_via_fft::DCT2ViaFFT;
+pub use self::dct2_splitradix::DCT2SplitRadix;
 pub use self::dct2_naive::DCT2Naive;
