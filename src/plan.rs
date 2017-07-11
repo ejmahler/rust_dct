@@ -53,8 +53,10 @@ impl<T: DCTnum> DCTplanner<T> {
     /// Returns a DCT Type 2 instance which processes signals of size `len`.
     ///If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct2(&mut self, len: usize) -> Box<DCT2<T>> {
-        //benchmarking shows that below about 5, it's faster to just use the naive DCT1 algorithm
-        if len < 5 {
+        if len.is_power_of_two() && len > 2 {
+            Box::new(DCT2SplitRadix::new(len))
+        } else if len < 5 {
+            //benchmarking shows that below about 5, it's faster to just use the naive DCT2 algorithm
             Box::new(DCT2Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);

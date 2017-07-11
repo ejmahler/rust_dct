@@ -5,8 +5,6 @@ use DCTnum;
 use twiddles;
 use dct2::DCT2;
 
-use dct2::DCT2Naive;
-
 /// DCT Type 2 implemention that recursively divides the problem in half. The problem size must be a power of two.
 ///
 /// ~~~
@@ -40,7 +38,12 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
         }
     }
 
-    fn process_recursive(&self, input: &mut [T], output: &mut [T], twiddle_stride: usize) {
+    // UNSAFE: Assumes that
+    // - input.len() and output.len() are equal,
+    // - input.len() and output.len() are a power of two,
+    // - input.len() and output.len() are less than or equal to self.len()
+    // - twiddle_stride is equal to self.len() / input.len()
+    unsafe fn process_recursive(&self, input: &mut [T], output: &mut [T], twiddle_stride: usize) {
         match input.len() {
             1 => output[0] = input[0],
             2 => {
@@ -51,9 +54,14 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
         }
     }
 
-    fn process_step(&self, input: &mut [T], output: &mut [T], twiddle_stride: usize) {
+    // UNSAFE: Assumes that
+    // - input.len() and output.len() are equal,
+    // - input.len() and output.len() are a power of two >= 4,
+    // - input.len() and output.len() are less than or equal to self.len()
+    // - twiddle_stride is equal to self.len() / input.len()
+    unsafe fn process_step(&self, input: &mut [T], output: &mut [T], twiddle_stride: usize) {
         let len = input.len();
-        let half_len = input.len() / 2;
+        let half_len = len / 2;
         let quarter_len = len / 4;
 
         //preprocess the data by splitting it up into vectors of size n/2, n/4, and n/4
@@ -62,19 +70,26 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
             let (mut input_dct4_even, mut input_dct4_odd) = input_dct4.split_at_mut(quarter_len);
 
             for i in 0..quarter_len {
-                input_dct2[i] =                 input[len - i - 1] + input[i];
-                input_dct2[half_len - i - 1] =  input[half_len - i - 1] + input[half_len + i];
+                let input_bottom = *input.get_unchecked(i);
+                let input_top =    *input.get_unchecked(len - i - 1);
 
+                let input_half_bottom = *input.get_unchecked(half_len - i - 1);
+                let input_half_top =    *input.get_unchecked(half_len + i);
 
-                let lower_dct4 = input[i] - input[len - i - 1];
-                let upper_dct4 = input[half_len - i - 1] - input[half_len + i];
+                //prepare the inner DCT2
+                *input_dct2.get_unchecked_mut(i) =                input_top + input_bottom;
+                *input_dct2.get_unchecked_mut(half_len - i - 1) = input_half_bottom + input_half_top;
 
-                let twiddle = self.twiddles[(2 * i + 1) * twiddle_stride];
+                //prepare the inner DCT4 - which consists of two DCT2s of half size
+                let lower_dct4 = input_bottom - input_top;
+                let upper_dct4 = input_half_bottom - input_half_top;
+                let twiddle = *self.twiddles.get_unchecked((2 * i + 1) * twiddle_stride);
 
-                input_dct4_even[i] = lower_dct4 * twiddle.re + upper_dct4 * twiddle.im;
-                let sin_input =      upper_dct4 * twiddle.re - lower_dct4 * twiddle.im;
+                let cos_input = lower_dct4 * twiddle.re + upper_dct4 * twiddle.im;
+                let sin_input = upper_dct4 * twiddle.re - lower_dct4 * twiddle.im;
 
-                input_dct4_odd[quarter_len - i - 1] = if i % 2 == 0 {
+                *input_dct4_even.get_unchecked_mut(i) = cos_input;
+                *input_dct4_odd.get_unchecked_mut(quarter_len - i - 1) = if i % 2 == 0 {
                     sin_input
                 } else {
                     -sin_input
@@ -95,26 +110,26 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
 
 
         //post process the 3 DCT3 outputs/ the first few and the last will be done outside of the loop
-        output[0] = output_dct2[0];
-        output[1] = output_dct4_even[0];
-        output[2] = output_dct2[1];
+        *output.get_unchecked_mut(0) = *output_dct2.get_unchecked(0);
+        *output.get_unchecked_mut(1) = *output_dct4_even.get_unchecked(0);
+        *output.get_unchecked_mut(2) = *output_dct2.get_unchecked(1);
 
         for i in 1..quarter_len {
-            let dct4_cos_output = output_dct4_even[i];
+            let dct4_cos_output = *output_dct4_even.get_unchecked(i);
             let dct4_sin_output = if (i + quarter_len) % 2 == 0 {
-                -output_dct4_odd[quarter_len - i]
+                -*output_dct4_odd.get_unchecked(quarter_len - i)
             } else {
-                output_dct4_odd[quarter_len - i]
+                *output_dct4_odd.get_unchecked(quarter_len - i)
             };
 
-            output[i * 4 - 1] = dct4_cos_output + dct4_sin_output;
-            output[i * 4] = output_dct2[i * 2];
+            *output.get_unchecked_mut(i * 4 - 1) = dct4_cos_output + dct4_sin_output;
+            *output.get_unchecked_mut(i * 4) = *output_dct2.get_unchecked(i * 2);
 
-            output[i * 4 + 1] =  dct4_cos_output - dct4_sin_output;
-            output[i * 4 + 2] = output_dct2[i * 2 + 1];
+            *output.get_unchecked_mut(i * 4 + 1) =  dct4_cos_output - dct4_sin_output;
+            *output.get_unchecked_mut(i * 4 + 2) = *output_dct2.get_unchecked(i * 2 + 1);
         }
 
-        output[len - 1] = -output_dct4_odd[0];
+        *output.get_unchecked_mut(len - 1) = -*output_dct4_odd.get_unchecked(0);
     }
 }
 
@@ -122,7 +137,9 @@ impl<T: DCTnum> DCT2<T> for DCT2SplitRadix<T> {
     fn process(&mut self, input: &mut [T], output: &mut [T]) {
         assert!(input.len() == self.len());
 
-        self.process_step(input, output, 1);
+        unsafe {
+            self.process_step(input, output, 1);
+        }
     }
 }
 impl<T> Length for DCT2SplitRadix<T> {

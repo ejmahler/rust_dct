@@ -5,7 +5,7 @@ extern crate rustdct;
 use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
 use rustdct::dct1::{DCT1, DCT1ViaFFT};
-use rustdct::dct2::{DCT2, DCT2ViaFFT};
+use rustdct::dct2::{DCT2, DCT2ViaFFT, DCT2SplitRadix};
 use rustdct::dct3::{DCT3, DCT3ViaFFT, DCT3SplitRadix};
 use rustdct::dct4::{DCT4, DCT4ViaDCT3, DCT4ViaFFTOdd};
 use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
@@ -67,6 +67,76 @@ fn dct2_fft_005(b: &mut Bencher) {
 fn dct2_fft_006(b: &mut Bencher) {
     bench_dct2_fft(b, 6);
 }
+#[bench]
+fn dct2_power2_fft_004(b: &mut Bencher) {
+    bench_dct2_fft(b, 4);
+}
+#[bench]
+fn dct2_power2_fft_008(b: &mut Bencher) {
+    bench_dct2_fft(b, 8);
+}
+#[bench]
+fn dct2_power2_fft_016(b: &mut Bencher) {
+    bench_dct2_fft(b, 16);
+}
+#[bench]
+fn dct2_power2_fft_032(b: &mut Bencher) {
+    bench_dct2_fft(b, 32);
+}
+#[bench]
+fn dct2_power2_fft_064(b: &mut Bencher) {
+    bench_dct2_fft(b, 64);
+}
+#[bench]
+fn dct2_power2_fft_256(b: &mut Bencher) {
+    bench_dct2_fft(b, 256);
+}
+#[bench]
+fn dct2_power2_fft_65536(b: &mut Bencher) {
+    bench_dct2_fft(b, 65536);
+}
+
+
+/// Times just the DCT3 execution (not allocation and pre-calculation)
+/// for a given length
+fn bench_dct2_p2(b: &mut Bencher, len: usize) {
+
+    let mut dct = DCT2SplitRadix::new(len);
+
+    let mut signal = vec![0_f32; len];
+    let mut spectrum = signal.clone();
+    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+}
+
+#[bench]
+fn dct2_power2_004(b: &mut Bencher) {
+    bench_dct2_p2(b, 4);
+}
+#[bench]
+fn dct2_power2_008(b: &mut Bencher) {
+    bench_dct2_p2(b, 8);
+}
+#[bench]
+fn dct2_power2_016(b: &mut Bencher) {
+    bench_dct2_p2(b, 16);
+}
+#[bench]
+fn dct2_power2_032(b: &mut Bencher) {
+    bench_dct2_p2(b, 32);
+}
+#[bench]
+fn dct2_power2_064(b: &mut Bencher) {
+    bench_dct2_p2(b, 64);
+}
+#[bench]
+fn dct2_power2_256(b: &mut Bencher) {
+    bench_dct2_p2(b, 256);
+}
+#[bench]
+fn dct2_power2_65536(b: &mut Bencher) {
+    bench_dct2_p2(b, 65536);
+}
+
 
 
 
