@@ -1,10 +1,16 @@
+use std::collections::HashMap;
+use std::sync::Arc;
+
 use rustfft::FFTplanner;
 use DCTnum;
 use dct1::*;
 use dct2::*;
+use dct2::dct2_butterflies::*;
 use dct3::*;
 use dct4::*;
 use mdct::*;
+
+const DCT2_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 
 /// The DCT planner is used to make new DCT algorithm instances.
 ///
@@ -32,10 +38,14 @@ use mdct::*;
 /// perfectly safe to drop the planner after creating DCT instances.
 pub struct DCTplanner<T> {
     fft_planner: FFTplanner<T>,
+    dct2_cache: HashMap<usize, Arc<DCT2<T>>>,
 }
 impl<T: DCTnum> DCTplanner<T> {
     pub fn new() -> Self {
-        Self { fft_planner: FFTplanner::new(false) }
+        Self {
+            fft_planner: FFTplanner::new(false),
+            dct2_cache: HashMap::new(),
+        }
     }
 
     /// Returns a DCT Type 1 instance which processes signals of size `len`.
@@ -50,19 +60,49 @@ impl<T: DCTnum> DCTplanner<T> {
         }
     }
 
+
+
+
     /// Returns a DCT Type 2 instance which processes signals of size `len`.
-    ///If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct2(&mut self, len: usize) -> Box<DCT2<T>> {
-        if len.is_power_of_two() && len > 2 {
-            Box::new(DCT2SplitRadix::new(len))
-        } else if len < 5 {
-            //benchmarking shows that below about 5, it's faster to just use the naive DCT2 algorithm
-            Box::new(DCT2Naive::new(len))
+    /// If this is called multiple times, it will attempt to re-use internal data between instances
+    pub fn plan_dct2(&mut self, len: usize) -> Arc<DCT2<T>> {
+        if self.dct2_cache.contains_key(&len) {
+            self.dct2_cache.get(&len).unwrap().clone()
         } else {
-            let fft = self.fft_planner.plan_fft(len);
-            Box::new(DCT2ViaFFT::new(fft))
+            let result = self.plan_new_dct2(len);
+            self.dct2_cache.insert(len, result.clone());
+            result
         }
     }
+
+    fn plan_new_dct2(&mut self, len: usize) -> Arc<DCT2<T>> {
+        if DCT2_BUTTERFLIES.contains(&len) {
+            self.plan_dct2_butterfly(len)
+        } else if len.is_power_of_two() && len > 2 {
+            let half_dct = self.plan_dct2(len / 2);
+            let quarter_dct = self.plan_dct2(len / 4);
+            Arc::new(DCT2SplitRadix::new(half_dct, quarter_dct)) as Arc<DCT2<T>>
+        } else if len < 16 {
+            //benchmarking shows that below about 16, it's faster to just use the naive DCT2 algorithm
+            Arc::new(DCT2Naive::new(len))
+        } else {
+            let fft = self.fft_planner.plan_fft(len);
+            Arc::new(DCT2ViaFFT::new(fft))
+        }
+    }
+
+    fn plan_dct2_butterfly(&mut self, len: usize) -> Arc<DCT2<T>> {
+        match len {
+            2 => Arc::new(DCT2Butterfly2::new()),
+            4 => Arc::new(DCT2Butterfly4::new()),
+            8 => Arc::new(DCT2Butterfly8::new()),
+            16 => Arc::new(DCT2Butterfly16::new()),
+            _ => panic!("Invalid butterfly size for DCT2: {}", len)
+        }
+    }
+
+
+
 
     /// Returns a DCT Type 3 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
@@ -70,7 +110,7 @@ impl<T: DCTnum> DCTplanner<T> {
         if len.is_power_of_two() && len > 2 {
             Box::new(DCT3SplitRadix::new(len))
         } else if len < 5 {
-            //benchmarking shows that below about 5, it's faster to just use the naive DCT1 algorithm
+            //benchmarking shows that below about 5, it's faster to just use the naive DCT3 algorithm
             Box::new(DCT3Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);

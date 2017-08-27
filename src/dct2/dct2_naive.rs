@@ -40,7 +40,7 @@ impl<T: DCTnum> DCT2Naive<T> {
 }
 
 impl<T: DCTnum> DCT2<T> for DCT2Naive<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
         assert_eq!(input.len(), self.len());
 
         for k in 0..output.len() {
@@ -124,7 +124,7 @@ mod test {
             let mut actual_input = input.to_vec();
             let mut actual_output = vec![0f32; input.len()];
 
-            let mut dct = DCT2Naive::new(input.len());
+            let dct = DCT2Naive::new(input.len());
 
             dct.process(&mut actual_input, &mut actual_output);
 
@@ -144,7 +144,7 @@ mod test {
 
             let mut fast_output = vec![0f32; size];
 
-            let mut dct = DCT2Naive::new(size);
+            let dct = DCT2Naive::new(size);
 
             dct.process(&mut input, &mut fast_output);
 

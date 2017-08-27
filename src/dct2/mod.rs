@@ -5,6 +5,7 @@ use DCTnum;
 mod dct2_via_fft;
 mod dct2_splitradix;
 mod dct2_naive;
+pub mod dct2_butterflies;
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 2 (DCT2)
 pub trait DCT2<T: DCTnum>: Length {
@@ -12,7 +13,7 @@ pub trait DCT2<T: DCTnum>: Length {
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
     /// after calling
-    fn process(&mut self, input: &mut [T], output: &mut [T]);
+    fn process(&self, input: &mut [T], output: &mut [T]);
 }
 
 pub use self::dct2_via_fft::DCT2ViaFFT;

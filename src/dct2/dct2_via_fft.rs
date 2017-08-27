@@ -26,9 +26,6 @@ use dct2::DCT2;
 /// ~~~
 pub struct DCT2ViaFFT<T> {
     fft: Arc<FFT<T>>,
-    fft_input: Box<[Complex<T>]>,
-    fft_output: Box<[Complex<T>]>,
-
     twiddles: Box<[Complex<T>]>,
 }
 
@@ -49,22 +46,23 @@ impl<T: DCTnum> DCT2ViaFFT<T> {
 
         Self {
             fft: inner_fft,
-            fft_input: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
-            fft_output: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
             twiddles: twiddles.into_boxed_slice(),
         }
     }
 }
 
 impl<T: DCTnum> DCT2<T> for DCT2ViaFFT<T> {
-    fn process(&mut self, signal: &mut [T], spectrum: &mut [T]) {
+    fn process(&self, signal: &mut [T], spectrum: &mut [T]) {
 
-        assert!(signal.len() == self.fft_input.len());
+        assert!(signal.len() == self.len());
+
+        let mut buffer = vec![Complex::zero(); self.len() * 2];
+        let (mut fft_input, mut fft_output) = buffer.split_at_mut(self.len());
 
         // the first half of the array will be the even elements, in order
         let even_end = (signal.len() + 1) / 2;
         for i in 0..even_end {
-            self.fft_input[i] = Complex {
+            fft_input[i] = Complex {
                 re: signal[i * 2],
                 im: T::zero(),
             };
@@ -73,18 +71,18 @@ impl<T: DCTnum> DCT2<T> for DCT2ViaFFT<T> {
         // the second half is the odd elements in reverse order
         let odd_end = signal.len() - 1 - signal.len() % 2;
         for i in 0..signal.len() / 2 {
-            self.fft_input[even_end + i] = Complex {
+            fft_input[even_end + i] = Complex {
                 re: signal[odd_end - 2 * i],
                 im: T::zero(),
             };
         }
 
         // run the fft
-        self.fft.process(&mut self.fft_input, &mut self.fft_output);
+        self.fft.process(fft_input, fft_output);
 
         // apply a correction factor to the result
         for ((fft_entry, correction_entry), spectrum_entry) in
-            self.fft_output.iter().zip(self.twiddles.iter()).zip(
+            fft_output.iter().zip(self.twiddles.iter()).zip(
                 spectrum.iter_mut(),
             )
         {
@@ -94,7 +92,7 @@ impl<T: DCTnum> DCT2<T> for DCT2ViaFFT<T> {
 }
 impl<T> Length for DCT2ViaFFT<T> {
     fn len(&self) -> usize {
-        self.fft_input.len()
+        self.twiddles.len()
     }
 }
 
@@ -117,11 +115,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = DCT2Naive::new(size);
+            let naive_dct = DCT2Naive::new(size);
             naive_dct.process(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
-            let mut dct = DCT2ViaFFT::new(fft_planner.plan_fft(size));
+            let dct = DCT2ViaFFT::new(fft_planner.plan_fft(size));
             dct.process(&mut actual_input, &mut actual_output);
 
             println!("{}", size);

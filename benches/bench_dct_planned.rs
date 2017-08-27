@@ -16,7 +16,6 @@ fn bench_dct1_planned(b: &mut Bencher, len: usize) {
     b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
-// small mixed composites times a large prime
 #[bench]
 fn dct1_planned_00256(b: &mut Bencher) {
     bench_dct1_planned(b, 256);
@@ -40,7 +39,6 @@ fn bench_dct2_planned(b: &mut Bencher, len: usize) {
     b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
-// small mixed composites times a large prime
 #[bench]
 fn dct2_planned_00256(b: &mut Bencher) {
     bench_dct2_planned(b, 256);
@@ -65,7 +63,6 @@ fn bench_dct3_planned(b: &mut Bencher, len: usize) {
     b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
-// small mixed composites times a large prime
 #[bench]
 fn dct3_planned_00256(b: &mut Bencher) {
     bench_dct3_planned(b, 256);
@@ -90,7 +87,6 @@ fn bench_dct4_planned(b: &mut Bencher, len: usize) {
     b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
-// small mixed composites times a large prime
 #[bench]
 fn dct4_planned_0000256(b: &mut Bencher) {
     bench_dct4_planned(b, 256);

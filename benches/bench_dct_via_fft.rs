@@ -2,10 +2,13 @@
 extern crate test;
 extern crate rustdct;
 
+use std::sync::Arc;
+
 use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
 use rustdct::dct1::{DCT1, DCT1ViaFFT};
-use rustdct::dct2::{DCT2, DCT2ViaFFT, DCT2SplitRadix};
+use rustdct::dct2::{DCT2, DCT2ViaFFT, DCT2SplitRadix, DCT2Naive};
+use rustdct::dct2::dct2_butterflies::*;
 use rustdct::dct3::{DCT3, DCT3ViaFFT, DCT3SplitRadix};
 use rustdct::dct4::{DCT4, DCT4ViaDCT3, DCT4ViaFFTOdd};
 use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
@@ -44,97 +47,83 @@ fn dct1_fft_0026(b: &mut Bencher) {
 fn bench_dct2_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let mut dct = DCT2ViaFFT::new(planner.plan_fft(len));
+    let dct = DCT2ViaFFT::new(planner.plan_fft(len));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
     b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
+
 #[bench]
-fn dct2_fft_003(b: &mut Bencher) {
-    bench_dct2_fft(b, 3);
+fn dct2_fft_017(b: &mut Bencher) {
+    bench_dct2_fft(b, 17);
 }
 #[bench]
-fn dct2_fft_004(b: &mut Bencher) {
-    bench_dct2_fft(b, 4);
+fn dct2_fft_018(b: &mut Bencher) {
+    bench_dct2_fft(b, 18);
 }
 #[bench]
-fn dct2_fft_005(b: &mut Bencher) {
-    bench_dct2_fft(b, 5);
+fn dct2_fft_019(b: &mut Bencher) {
+    bench_dct2_fft(b, 19);
 }
 #[bench]
-fn dct2_fft_006(b: &mut Bencher) {
-    bench_dct2_fft(b, 6);
+fn dct2_fft_020(b: &mut Bencher) {
+    bench_dct2_fft(b, 20);
 }
 #[bench]
-fn dct2_power2_fft_004(b: &mut Bencher) {
-    bench_dct2_fft(b, 4);
+fn dct2_fft_021(b: &mut Bencher) {
+    bench_dct2_fft(b, 21);
 }
 #[bench]
-fn dct2_power2_fft_008(b: &mut Bencher) {
-    bench_dct2_fft(b, 8);
-}
-#[bench]
-fn dct2_power2_fft_016(b: &mut Bencher) {
-    bench_dct2_fft(b, 16);
-}
-#[bench]
-fn dct2_power2_fft_032(b: &mut Bencher) {
-    bench_dct2_fft(b, 32);
-}
-#[bench]
-fn dct2_power2_fft_064(b: &mut Bencher) {
-    bench_dct2_fft(b, 64);
-}
-#[bench]
-fn dct2_power2_fft_256(b: &mut Bencher) {
-    bench_dct2_fft(b, 256);
-}
-#[bench]
-fn dct2_power2_fft_65536(b: &mut Bencher) {
-    bench_dct2_fft(b, 65536);
+fn dct2_fft_022(b: &mut Bencher) {
+    bench_dct2_fft(b, 22);
 }
 
 
 /// Times just the DCT3 execution (not allocation and pre-calculation)
 /// for a given length
-fn bench_dct2_p2(b: &mut Bencher, len: usize) {
+fn bench_dct2_split(b: &mut Bencher, len: usize) {
 
-    let mut dct = DCT2SplitRadix::new(len);
+    let power = len.trailing_zeros() as usize;
+    let mut instances = vec![
+        Arc::new(DCT2Naive::new(1)) as Arc<DCT2<f32>>,
+        Arc::new(DCT2Butterfly2::new()) as Arc<DCT2<f32>>,
+        Arc::new(DCT2Butterfly4::new()) as Arc<DCT2<f32>>,
+        Arc::new(DCT2Butterfly8::new()) as Arc<DCT2<f32>>,
+        Arc::new(DCT2Butterfly16::new()) as Arc<DCT2<f32>>,
+    ];
+    for i in instances.len()..(power + 1) {
+        let dct = Arc::new(DCT2SplitRadix::new(instances[i - 1].clone(), instances[i - 2].clone()));
+        instances.push(dct);
+    }
+
+    let dct = instances[power].clone();
+    assert_eq!(dct.len(), len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
     b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
-
 #[bench]
-fn dct2_power2_004(b: &mut Bencher) {
-    bench_dct2_p2(b, 4);
+fn dct2_power2_split_0032(b: &mut Bencher) {
+    bench_dct2_split(b, 32);
 }
 #[bench]
-fn dct2_power2_008(b: &mut Bencher) {
-    bench_dct2_p2(b, 8);
+fn dct2_power2_split_0064(b: &mut Bencher) {
+    bench_dct2_split(b, 64);
 }
 #[bench]
-fn dct2_power2_016(b: &mut Bencher) {
-    bench_dct2_p2(b, 16);
+fn dct2_power2_split_0256(b: &mut Bencher) {
+    bench_dct2_split(b, 256);
 }
 #[bench]
-fn dct2_power2_032(b: &mut Bencher) {
-    bench_dct2_p2(b, 32);
+fn dct2_power2_split_065536(b: &mut Bencher) {
+    bench_dct2_split(b, 65536);
 }
 #[bench]
-fn dct2_power2_064(b: &mut Bencher) {
-    bench_dct2_p2(b, 64);
-}
-#[bench]
-fn dct2_power2_256(b: &mut Bencher) {
-    bench_dct2_p2(b, 256);
-}
-#[bench]
-fn dct2_power2_65536(b: &mut Bencher) {
-    bench_dct2_p2(b, 65536);
+fn dct2_power2_split_16777216(b: &mut Bencher) {
+    bench_dct2_split(b, 16777216);
 }
 
 

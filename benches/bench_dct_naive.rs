@@ -40,28 +40,38 @@ fn dct1_naive_0026(b: &mut Bencher) {
 /// for a given length
 fn bench_dct2_naive(b: &mut Bencher, len: usize) {
 
-    let mut dct = DCT2Naive::new(len);
+    let dct = DCT2Naive::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
     b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 
+
+
 #[bench]
-fn dct2_naive_0003(b: &mut Bencher) {
-    bench_dct2_naive(b, 3);
+fn dct2_naive_017(b: &mut Bencher) {
+    bench_dct2_naive(b, 17);
 }
 #[bench]
-fn dct2_naive_0004(b: &mut Bencher) {
-    bench_dct2_naive(b, 4);
+fn dct2_naive_018(b: &mut Bencher) {
+    bench_dct2_naive(b, 18);
 }
 #[bench]
-fn dct2_naive_0005(b: &mut Bencher) {
-    bench_dct2_naive(b, 5);
+fn dct2_naive_019(b: &mut Bencher) {
+    bench_dct2_naive(b, 19);
 }
 #[bench]
-fn dct2_naive_0006(b: &mut Bencher) {
-    bench_dct2_naive(b, 6);
+fn dct2_naive_020(b: &mut Bencher) {
+    bench_dct2_naive(b, 20);
+}
+#[bench]
+fn dct2_naive_021(b: &mut Bencher) {
+    bench_dct2_naive(b, 21);
+}
+#[bench]
+fn dct2_naive_022(b: &mut Bencher) {
+    bench_dct2_naive(b, 22);
 }
 
 

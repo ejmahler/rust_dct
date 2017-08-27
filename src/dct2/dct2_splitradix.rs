@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
@@ -9,48 +11,41 @@ use dct2::DCT2;
 ///
 /// ~~~
 /// // Computes a DCT Type 2 of size 1024
-/// use rustdct::dct2::{DCT2, DCT2SplitRadix};
+/// use std::sync::Arc;
+/// use rustdct::dct2::{DCT2, DCT2Naive, DCT2SplitRadix};
 ///
 /// let mut input:  Vec<f32> = vec![0f32; 1024];
 /// let mut output: Vec<f32> = vec![0f32; 1024];
 ///
-/// let mut dct = DCT2SplitRadix::new(1024);
+/// let quarter_dct = Arc::new(DCT2Naive::new(256));
+/// let half_dct = Arc::new(DCT2Naive::new(512));
+///
+/// let mut dct = DCT2SplitRadix::new(half_dct, quarter_dct);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT2SplitRadix<T> {
+    half_dct: Arc<DCT2<T>>,
+    quarter_dct: Arc<DCT2<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: DCTnum> DCT2SplitRadix<T> {
     /// Creates a new DCT2 context that will process signals of length `len`
-    pub fn new(len: usize) -> Self {
+    pub fn new(half_dct: Arc<DCT2<T>>, quarter_dct: Arc<DCT2<T>>) -> Self {
+        let len = half_dct.len() * 2;
         assert!(
             len.is_power_of_two() && len > 2,
             "The DCT2SplitRadix algorithm requires a power-of-two input size greater than two. Got {}", len 
         );
 
-        let twiddles: Vec<Complex<T>> = (0..(len/2))
-            .map(|i| twiddles::single_twiddle(i, len * 4, true))
+        let twiddles: Vec<Complex<T>> = (0..(len/4))
+            .map(|i| twiddles::single_twiddle(2 * i + 1, len * 4, true))
             .collect();
 
         Self {
+            half_dct: half_dct,
+            quarter_dct: quarter_dct,
             twiddles: twiddles.into_boxed_slice(),
-        }
-    }
-
-    // UNSAFE: Assumes that
-    // - input.len() and output.len() are equal,
-    // - input.len() and output.len() are a power of two,
-    // - input.len() and output.len() are less than or equal to self.len()
-    // - twiddle_stride is equal to self.len() / input.len()
-    unsafe fn process_recursive(&self, input: &mut [T], output: &mut [T], twiddle_stride: usize) {
-        match input.len() {
-            1 => output[0] = input[0],
-            2 => {
-                output[0] = input[0] + input[1];
-                output[1] = (input[0] - input[1]) * T::FRAC_1_SQRT_2();
-            },
-            _ => self.process_step(input, output, twiddle_stride),
         }
     }
 
@@ -59,7 +54,7 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
     // - input.len() and output.len() are a power of two >= 4,
     // - input.len() and output.len() are less than or equal to self.len()
     // - twiddle_stride is equal to self.len() / input.len()
-    unsafe fn process_step(&self, input: &mut [T], output: &mut [T], twiddle_stride: usize) {
+    unsafe fn process_step(&self, input: &mut [T], output: &mut [T]) {
         let len = input.len();
         let half_len = len / 2;
         let quarter_len = len / 4;
@@ -83,7 +78,7 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
                 //prepare the inner DCT4 - which consists of two DCT2s of half size
                 let lower_dct4 = input_bottom - input_top;
                 let upper_dct4 = input_half_bottom - input_half_top;
-                let twiddle = *self.twiddles.get_unchecked((2 * i + 1) * twiddle_stride);
+                let twiddle = *self.twiddles.get_unchecked(i);
 
                 let cos_input = lower_dct4 * twiddle.re + upper_dct4 * twiddle.im;
                 let sin_input = upper_dct4 * twiddle.re - lower_dct4 * twiddle.im;
@@ -100,10 +95,12 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
             let (mut output_dct2, mut output_dct4) = input.split_at_mut(half_len);
             let (mut output_dct4_even, mut output_dct4_odd) = output_dct4.split_at_mut(quarter_len);
 
-            self.process_recursive(&mut input_dct2, &mut output_dct2, twiddle_stride * 2);
-            self.process_recursive(&mut input_dct4_even, &mut output_dct4_even, twiddle_stride * 4);
-            self.process_recursive(&mut input_dct4_odd, &mut output_dct4_odd, twiddle_stride * 4);
+            self.half_dct.process(input_dct2, output_dct2);
+            self.quarter_dct.process(input_dct4_even, output_dct4_even);
+            self.quarter_dct.process(input_dct4_odd, output_dct4_odd);
         }
+
+
 
         let (output_dct2, output_dct4) = input.split_at(half_len);
         let (output_dct4_even, output_dct4_odd) = output_dct4.split_at(quarter_len);
@@ -134,17 +131,17 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
 }
 
 impl<T: DCTnum> DCT2<T> for DCT2SplitRadix<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
         assert!(input.len() == self.len());
 
         unsafe {
-            self.process_step(input, output, 1);
+            self.process_step(input, output);
         }
     }
 }
 impl<T> Length for DCT2SplitRadix<T> {
     fn len(&self) -> usize {
-        self.twiddles.len() * 2
+        self.twiddles.len() * 4
     }
 }
 
@@ -162,7 +159,7 @@ mod test {
     #[test]
     fn test_dct2_splitradix() {
 
-        for i in 2..6 {
+        for i in 2..8 {
             let size = 1 << i;
             println!("len: {}", size);
 
@@ -172,10 +169,13 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = DCT2Naive::new(size);
+            let naive_dct = DCT2Naive::new(size);
             naive_dct.process(&mut expected_input, &mut expected_output);
 
-            let mut dct = DCT2SplitRadix::new(size);
+            let quarter_dct = Arc::new(DCT2Naive::new(size/4));
+            let half_dct = Arc::new(DCT2Naive::new(size/2));
+
+            let dct = DCT2SplitRadix::new(half_dct, quarter_dct);
             dct.process(&mut actual_input, &mut actual_output);
 
             println!("input:       {:?}", expected_input);
