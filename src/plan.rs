@@ -7,10 +7,12 @@ use dct1::*;
 use dct2::*;
 use dct2::dct2_butterflies::*;
 use dct3::*;
+use dct3::dct3_butterflies::*;
 use dct4::*;
 use mdct::*;
 
 const DCT2_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
+const DCT3_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 
 /// The DCT planner is used to make new DCT algorithm instances.
 ///
@@ -106,7 +108,7 @@ impl<T: DCTnum> DCTplanner<T> {
 
 
 
-   /// Returns a DCT Type 3 instance which processes signals of size `len`.
+    /// Returns a DCT Type 3 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct3(&mut self, len: usize) -> Arc<DCT3<T>> {
         if self.dct3_cache.contains_key(&len) {
@@ -119,7 +121,9 @@ impl<T: DCTnum> DCTplanner<T> {
     }
 
     fn plan_new_dct3(&mut self, len: usize) -> Arc<DCT3<T>> {
-        if len.is_power_of_two() && len > 2 {
+        if DCT3_BUTTERFLIES.contains(&len) {
+            self.plan_dct3_butterfly(len)
+        } else if len.is_power_of_two() && len > 2 {
             let half_dct = self.plan_dct3(len / 2);
             let quarter_dct = self.plan_dct3(len / 4);
             Arc::new(DCT3SplitRadix::new(half_dct, quarter_dct)) as Arc<DCT3<T>>
@@ -129,6 +133,16 @@ impl<T: DCTnum> DCTplanner<T> {
         } else {
             let fft = self.fft_planner.plan_fft(len);
             Arc::new(DCT3ViaFFT::new(fft))
+        }
+    }
+
+    fn plan_dct3_butterfly(&mut self, len: usize) -> Arc<DCT3<T>> {
+        match len {
+            2 => Arc::new(DCT3Butterfly2::new()),
+            4 => Arc::new(DCT3Butterfly4::new()),
+            8 => Arc::new(DCT3Butterfly8::new()),
+            16 => Arc::new(DCT3Butterfly16::new()),
+            _ => panic!("Invalid butterfly size for DCT3: {}", len)
         }
     }
 

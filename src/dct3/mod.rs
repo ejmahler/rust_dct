@@ -5,6 +5,7 @@ use DCTnum;
 mod dct3_splitradix;
 mod dct3_via_fft;
 mod dct3_naive;
+pub mod dct3_butterflies;
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 3 (DCT3)
 pub trait DCT3<T: DCTnum>: Length {

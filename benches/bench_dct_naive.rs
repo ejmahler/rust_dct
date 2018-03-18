@@ -90,6 +90,10 @@ fn bench_dct3_naive(b: &mut Bencher, len: usize) {
 }
 
 #[bench]
+fn dct3_naive_0002(b: &mut Bencher) {
+    bench_dct3_naive(b, 2);
+}
+#[bench]
 fn dct3_naive_0003(b: &mut Bencher) {
     bench_dct3_naive(b, 3);
 }
