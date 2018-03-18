@@ -39,12 +39,14 @@ const DCT2_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 pub struct DCTplanner<T> {
     fft_planner: FFTplanner<T>,
     dct2_cache: HashMap<usize, Arc<DCT2<T>>>,
+    dct3_cache: HashMap<usize, Arc<DCT3<T>>>,
 }
 impl<T: DCTnum> DCTplanner<T> {
     pub fn new() -> Self {
         Self {
             fft_planner: FFTplanner::new(false),
             dct2_cache: HashMap::new(),
+            dct3_cache: HashMap::new(),
         }
     }
 
@@ -67,10 +69,10 @@ impl<T: DCTnum> DCTplanner<T> {
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct2(&mut self, len: usize) -> Arc<DCT2<T>> {
         if self.dct2_cache.contains_key(&len) {
-            self.dct2_cache.get(&len).unwrap().clone()
+            Arc::clone(self.dct2_cache.get(&len).unwrap())
         } else {
             let result = self.plan_new_dct2(len);
-            self.dct2_cache.insert(len, result.clone());
+            self.dct2_cache.insert(len, Arc::clone(&result));
             result
         }
     }
@@ -104,13 +106,25 @@ impl<T: DCTnum> DCTplanner<T> {
 
 
 
-    /// Returns a DCT Type 3 instance which processes signals of size `len`.
+   /// Returns a DCT Type 3 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct3(&mut self, len: usize) -> Arc<DCT3<T>> {
+        if self.dct3_cache.contains_key(&len) {
+            Arc::clone(self.dct3_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_dct3(len);
+            self.dct3_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
+
+    fn plan_new_dct3(&mut self, len: usize) -> Arc<DCT3<T>> {
         if len.is_power_of_two() && len > 2 {
-            Arc::new(DCT3SplitRadix::new(len))
-        } else if len < 5 {
-            //benchmarking shows that below about 5, it's faster to just use the naive DCT3 algorithm
+            let half_dct = self.plan_dct3(len / 2);
+            let quarter_dct = self.plan_dct3(len / 4);
+            Arc::new(DCT3SplitRadix::new(half_dct, quarter_dct)) as Arc<DCT3<T>>
+        } else if len < 16 {
+            //benchmarking shows that below about 16, it's faster to just use the naive DCT2 algorithm
             Arc::new(DCT3Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);

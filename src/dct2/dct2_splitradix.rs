@@ -51,9 +51,7 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
 
     // UNSAFE: Assumes that
     // - input.len() and output.len() are equal,
-    // - input.len() and output.len() are a power of two >= 4,
-    // - input.len() and output.len() are less than or equal to self.len()
-    // - twiddle_stride is equal to self.len() / input.len()
+    // - input.len() and output.len() are equal to self.len()
     unsafe fn process_step(&self, input: &mut [T], output: &mut [T]) {
         let len = input.len();
         let half_len = len / 2;
@@ -78,7 +76,7 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
                 //prepare the inner DCT4 - which consists of two DCT2s of half size
                 let lower_dct4 = input_bottom - input_top;
                 let upper_dct4 = input_half_bottom - input_half_top;
-                let twiddle = *self.twiddles.get_unchecked(i);
+                let twiddle = self.twiddles.get_unchecked(i);
 
                 let cos_input = lower_dct4 * twiddle.re + upper_dct4 * twiddle.im;
                 let sin_input = upper_dct4 * twiddle.re - lower_dct4 * twiddle.im;
