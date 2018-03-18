@@ -129,7 +129,7 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
 }
 
 impl<T: DCTnum> DCT3<T> for DCT3SplitRadix<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
         assert!(input.len() == self.len());
 
         self.process_step(input, output, 1);

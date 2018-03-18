@@ -40,7 +40,7 @@ impl<T: DCTnum> DCT3Naive<T> {
 }
 
 impl<T: DCTnum> DCT3<T> for DCT3Naive<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
         assert_eq!(input.len(), self.len());
 
         let half_first = T::from_f32(0.5f32).unwrap() * input[0];

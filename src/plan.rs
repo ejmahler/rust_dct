@@ -106,15 +106,15 @@ impl<T: DCTnum> DCTplanner<T> {
 
     /// Returns a DCT Type 3 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct3(&mut self, len: usize) -> Box<DCT3<T>> {
+    pub fn plan_dct3(&mut self, len: usize) -> Arc<DCT3<T>> {
         if len.is_power_of_two() && len > 2 {
-            Box::new(DCT3SplitRadix::new(len))
+            Arc::new(DCT3SplitRadix::new(len))
         } else if len < 5 {
             //benchmarking shows that below about 5, it's faster to just use the naive DCT3 algorithm
-            Box::new(DCT3Naive::new(len))
+            Arc::new(DCT3Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
-            Box::new(DCT3ViaFFT::new(fft))
+            Arc::new(DCT3ViaFFT::new(fft))
         }
     }
 

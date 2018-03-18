@@ -12,7 +12,7 @@ pub trait DCT3<T: DCTnum>: Length {
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
     /// after calling
-    fn process(&mut self, input: &mut [T], output: &mut [T]);
+    fn process(&self, input: &mut [T], output: &mut [T]);
 }
 
 pub use self::dct3_via_fft::DCT3ViaFFT;

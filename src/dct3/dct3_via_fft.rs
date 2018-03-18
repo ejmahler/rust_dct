@@ -26,9 +26,6 @@ use dct3::DCT3;
 /// ~~~
 pub struct DCT3ViaFFT<T> {
     fft: Arc<FFT<T>>,
-    fft_input: Box<[Complex<T>]>,
-    fft_output: Box<[Complex<T>]>,
-
     twiddles: Box<[Complex<T>]>,
 }
 
@@ -51,17 +48,18 @@ impl<T: DCTnum> DCT3ViaFFT<T> {
 
         Self {
             fft: inner_fft,
-            fft_input: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
-            fft_output: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
             twiddles: twiddles.into_boxed_slice(),
         }
     }
 }
 
 impl<T: DCTnum> DCT3<T> for DCT3ViaFFT<T> {
-    fn process(&mut self, signal: &mut [T], spectrum: &mut [T]) {
+    fn process(&self, signal: &mut [T], spectrum: &mut [T]) {
 
-        assert!(signal.len() == self.fft_input.len());
+        assert!(signal.len() == self.len());
+
+        let mut buffer = vec![Complex::zero(); self.len() * 2];
+        let (mut fft_input, mut fft_output) = buffer.split_at_mut(self.len());
 
         // compute the FFT input based on the correction factors
         for i in 0..signal.len() {
@@ -75,28 +73,28 @@ impl<T: DCTnum> DCT3<T> for DCT3ViaFFT<T> {
                 im: imaginary_part,
             };
 
-            self.fft_input[i] = c * self.twiddles[i];
+            fft_input[i] = c * self.twiddles[i];
         }
 
         // run the fft
-        self.fft.process(&mut self.fft_input, &mut self.fft_output);
+        self.fft.process(&mut fft_input, &mut fft_output);
 
         // copy the first half of the fft output into the even elements of the spectrum
         let even_end = (signal.len() + 1) / 2;
         for i in 0..even_end {
-            spectrum[i * 2] = self.fft_output[i].re;
+            spectrum[i * 2] = fft_output[i].re;
         }
 
         // copy the second half of the fft output into the odd elements, reversed
         let odd_end = signal.len() - 1 - signal.len() % 2;
         for i in 0..signal.len() / 2 {
-            spectrum[odd_end - 2 * i] = self.fft_output[i + even_end].re;
+            spectrum[odd_end - 2 * i] = fft_output[i + even_end].re;
         }
     }
 }
 impl<T> Length for DCT3ViaFFT<T> {
     fn len(&self) -> usize {
-        self.fft_input.len()
+        self.twiddles.len()
     }
 }
 
