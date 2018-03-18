@@ -34,7 +34,7 @@ impl<T: DCTnum> MDCTNaive<T> {
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     pub fn new<F>(output_len: usize, window_fn: F) -> Self
     where
-        F: Fn(usize) -> Vec<T>,
+        F: FnOnce(usize) -> Vec<T>,
     {
         assert!(
             output_len % 2 == 0,

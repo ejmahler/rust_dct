@@ -37,7 +37,7 @@ impl<T: DCTnum> MDCTViaDCT4<T> {
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     pub fn new<F>(inner_dct: Box<DCT4<T>>, window_fn: F) -> Self
     where
-        F: Fn(usize) -> Vec<T>,
+        F: FnOnce(usize) -> Vec<T>,
     {
         let len = inner_dct.len();
 

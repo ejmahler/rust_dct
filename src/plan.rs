@@ -153,7 +153,7 @@ impl<T: DCTnum> DCTplanner<T> {
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_mdct<F>(&mut self, len: usize, window_fn: F) -> Box<MDCT<T>>
     where
-        F: Fn(usize) -> Vec<T>,
+        F: FnOnce(usize) -> Vec<T>,
     {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
@@ -168,7 +168,7 @@ impl<T: DCTnum> DCTplanner<T> {
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_imdct<F>(&mut self, len: usize, window_fn: F) -> Box<IMDCT<T>>
     where
-        F: Fn(usize) -> Vec<T>,
+        F: FnOnce(usize) -> Vec<T>,
     {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
