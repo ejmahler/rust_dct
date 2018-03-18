@@ -58,8 +58,8 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
         
         {
             // divide the output into 3 sub-lists to use for our inner DCTs, one of size N/2 and two of size N/4
-            let (mut recursive_input_evens, mut recursive_input_odds) = output.split_at_mut(half_len);
-            let (mut recursive_input_n1, mut recursive_input_n3) = recursive_input_odds.split_at_mut(quarter_len);
+            let (recursive_input_evens, recursive_input_odds) = output.split_at_mut(half_len);
+            let (recursive_input_n1, recursive_input_n3) = recursive_input_odds.split_at_mut(quarter_len);
 
             // do the same pre-loop setup as DCT4ViaDCT3, and since we're skipping the first iteration of the loop we
             // to also set up the corresponding evens cells
@@ -84,8 +84,8 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
             }
 
             //now that we're done with the input, divide it up the same way we did the output
-            let (mut recursive_output_evens, mut recursive_output_odds) = input.split_at_mut(half_len);
-            let (mut recursive_output_n1, mut recursive_output_n3) = recursive_output_odds.split_at_mut(quarter_len);
+            let (recursive_output_evens, recursive_output_odds) = input.split_at_mut(half_len);
+            let (recursive_output_n1, recursive_output_n3) = recursive_output_odds.split_at_mut(quarter_len);
 
             //perform our recursive DCTs
             self.process_recursive(recursive_input_evens, recursive_output_evens, twiddle_stride * 2);
@@ -93,7 +93,7 @@ impl<T: DCTnum> DCT3SplitRadix<T> {
             self.process_recursive(recursive_input_n3, recursive_output_n3, twiddle_stride * 4);
         }
 
-        //we want the input array to stay split, but to playcate the borrow checker it's easier to just re-split it
+        //we want the input array to stay split, but to placate the borrow checker it's easier to just re-split it
         let (recursive_output_evens, recursive_output_odds) = input.split_at(half_len);
         let (recursive_output_n1, recursive_output_n3) = recursive_output_odds.split_at(quarter_len);
 

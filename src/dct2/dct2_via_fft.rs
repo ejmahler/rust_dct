@@ -57,7 +57,7 @@ impl<T: DCTnum> DCT2<T> for DCT2ViaFFT<T> {
         assert!(signal.len() == self.len());
 
         let mut buffer = vec![Complex::zero(); self.len() * 2];
-        let (mut fft_input, mut fft_output) = buffer.split_at_mut(self.len());
+        let (fft_input, fft_output) = buffer.split_at_mut(self.len());
 
         // the first half of the array will be the even elements, in order
         let even_end = (signal.len() + 1) / 2;

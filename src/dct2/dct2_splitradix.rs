@@ -61,8 +61,8 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
 
         //preprocess the data by splitting it up into vectors of size n/2, n/4, and n/4
         {
-            let (mut input_dct2, mut input_dct4) = output.split_at_mut(half_len);
-            let (mut input_dct4_even, mut input_dct4_odd) = input_dct4.split_at_mut(quarter_len);
+            let (input_dct2, input_dct4) = output.split_at_mut(half_len);
+            let (input_dct4_even, input_dct4_odd) = input_dct4.split_at_mut(quarter_len);
 
             for i in 0..quarter_len {
                 let input_bottom = *input.get_unchecked(i);
@@ -92,8 +92,8 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
             }
 
             // compute the recursive DCT2s
-            let (mut output_dct2, mut output_dct4) = input.split_at_mut(half_len);
-            let (mut output_dct4_even, mut output_dct4_odd) = output_dct4.split_at_mut(quarter_len);
+            let (output_dct2, output_dct4) = input.split_at_mut(half_len);
+            let (output_dct4_even, output_dct4_odd) = output_dct4.split_at_mut(quarter_len);
 
             self.half_dct.process(input_dct2, output_dct2);
             self.quarter_dct.process(input_dct4_even, output_dct4_even);
