@@ -54,13 +54,13 @@ impl<T: DCTnum> DCTplanner<T> {
 
     /// Returns a DCT Type 1 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct1(&mut self, len: usize) -> Box<DCT1<T>> {
+    pub fn plan_dct1(&mut self, len: usize) -> Arc<DCT1<T>> {
         //benchmarking shows that below about 25, it's faster to just use the naive DCT1 algorithm
         if len < 25 {
-            Box::new(DCT1Naive::new(len))
+            Arc::new(DCT1Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft((len - 1) * 2);
-            Box::new(DCT1ViaFFT::new(fft))
+            Arc::new(DCT1ViaFFT::new(fft))
         }
     }
 

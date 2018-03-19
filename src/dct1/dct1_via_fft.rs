@@ -25,8 +25,6 @@ use dct1::DCT1;
 /// ~~~
 pub struct DCT1ViaFFT<T> {
     fft: Arc<FFT<T>>,
-    fft_input: Box<[Complex<T>]>,
-    fft_output: Box<[Complex<T>]>,
 }
 
 impl<T: DCTnum> DCT1ViaFFT<T> {
@@ -47,18 +45,19 @@ impl<T: DCTnum> DCT1ViaFFT<T> {
 
         Self {
             fft: inner_fft,
-            fft_input: vec![Complex::new(Zero::zero(), Zero::zero()); inner_len].into_boxed_slice(),
-            fft_output: vec![Complex::new(Zero::zero(), Zero::zero()); inner_len]
-                .into_boxed_slice(),
         }
     }
 }
 
 impl<T: DCTnum> DCT1<T> for DCT1ViaFFT<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
         assert!(input.len() == self.len());
 
-        for (&input_val, fft_cell) in input.iter().zip(&mut self.fft_input[..input.len()]) {
+        let inner_len = self.fft.len();
+        let mut buffer = vec![Complex::zero(); inner_len * 2];
+        let (mut fft_input, mut fft_output) = buffer.split_at_mut(inner_len);
+
+        for (&input_val, fft_cell) in input.iter().zip(&mut fft_input[..input.len()]) {
             *fft_cell = Complex {
                 re: input_val,
                 im: T::zero(),
@@ -66,7 +65,7 @@ impl<T: DCTnum> DCT1<T> for DCT1ViaFFT<T> {
         }
         for (&input_val, fft_cell) in
             input.iter().rev().skip(1).zip(
-                &mut self.fft_input[input.len()..],
+                &mut fft_input[input.len()..],
             )
         {
             *fft_cell = Complex {
@@ -76,18 +75,18 @@ impl<T: DCTnum> DCT1<T> for DCT1ViaFFT<T> {
         }
 
         // run the fft
-        self.fft.process(&mut self.fft_input, &mut self.fft_output);
+        self.fft.process(&mut fft_input, &mut fft_output);
 
         // apply a correction factor to the result
         let half = T::from_f32(0.5f32).unwrap();
-        for (fft_entry, output_val) in self.fft_output.iter().zip(output.iter_mut()) {
+        for (fft_entry, output_val) in fft_output.iter().zip(output.iter_mut()) {
             *output_val = fft_entry.re * half;
         }
     }
 }
 impl<T> Length for DCT1ViaFFT<T> {
     fn len(&self) -> usize {
-        self.fft_input.len() / 2 + 1
+        self.fft.len() / 2 + 1
     }
 }
 
@@ -115,7 +114,13 @@ mod test {
             naive_dct.process(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
-            let mut dct = DCT1ViaFFT::new(fft_planner.plan_fft((size - 1) * 2));
+            let inner_fft = fft_planner.plan_fft((size - 1) * 2);
+            println!("size: {}", size);
+            println!("inner fft len: {}", inner_fft.len());
+            
+
+            let mut dct = DCT1ViaFFT::new(inner_fft);
+            println!("dct len: {}", dct.len());
             dct.process(&mut actual_input, &mut actual_output);
 
             assert!(
