@@ -4,7 +4,7 @@ use rustfft::num_traits::Zero;
 use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
-use DCTnum;
+use common;
 use twiddles;
 use dct3::DCT3;
 
@@ -15,13 +15,14 @@ use dct3::DCT3;
 /// use rustdct::dct3::{DCT3, DCT3ViaFFT};
 /// use rustdct::rustfft::FFTplanner;
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 1234];
-/// let mut output: Vec<f32> = vec![0f32; 1234];
+/// let len = 1234;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let mut planner = FFTplanner::new(false);
-/// let fft = planner.plan_fft(1234);
+/// let fft = planner.plan_fft(len);
 ///
-/// let mut dct = DCT3ViaFFT::new(fft);
+/// let dct = DCT3ViaFFT::new(fft);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT3ViaFFT<T> {
@@ -29,7 +30,7 @@ pub struct DCT3ViaFFT<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: DCTnum> DCT3ViaFFT<T> {
+impl<T: common::DCTnum> DCT3ViaFFT<T> {
     /// Creates a new DCT3 context that will process signals of length `inner_fft.len()`.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         assert!(
@@ -53,23 +54,22 @@ impl<T: DCTnum> DCT3ViaFFT<T> {
     }
 }
 
-impl<T: DCTnum> DCT3<T> for DCT3ViaFFT<T> {
-    fn process(&self, signal: &mut [T], spectrum: &mut [T]) {
-
-        assert!(signal.len() == self.len());
+impl<T: common::DCTnum> DCT3<T> for DCT3ViaFFT<T> {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
+        common::verify_length(input, output, self.len());
 
         let mut buffer = vec![Complex::zero(); self.len() * 2];
         let (mut fft_input, mut fft_output) = buffer.split_at_mut(self.len());
 
         // compute the FFT input based on the correction factors
-        for i in 0..signal.len() {
+        for i in 0..input.len() {
             let imaginary_part = if i == 0 {
                 T::zero()
             } else {
-                signal[signal.len() - i]
+                input[input.len() - i]
             };
             let c = Complex {
-                re: signal[i],
+                re: input[i],
                 im: imaginary_part,
             };
 
@@ -79,16 +79,16 @@ impl<T: DCTnum> DCT3<T> for DCT3ViaFFT<T> {
         // run the fft
         self.fft.process(&mut fft_input, &mut fft_output);
 
-        // copy the first half of the fft output into the even elements of the spectrum
-        let even_end = (signal.len() + 1) / 2;
+        // copy the first half of the fft output into the even elements of the output
+        let even_end = (input.len() + 1) / 2;
         for i in 0..even_end {
-            spectrum[i * 2] = fft_output[i].re;
+            output[i * 2] = fft_output[i].re;
         }
 
         // copy the second half of the fft output into the odd elements, reversed
-        let odd_end = signal.len() - 1 - signal.len() % 2;
-        for i in 0..signal.len() / 2 {
-            spectrum[odd_end - 2 * i] = fft_output[i + even_end].re;
+        let odd_end = input.len() - 1 - input.len() % 2;
+        for i in 0..input.len() / 2 {
+            output[odd_end - 2 * i] = fft_output[i + even_end].re;
         }
     }
 }

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use DCTnum;
+use common;
 use twiddles;
 use dct2::DCT2;
 
@@ -11,16 +11,18 @@ use dct2::DCT2;
 ///
 /// ~~~
 /// // Computes a DCT Type 2 of size 1024
-/// use std::sync::Arc;
-/// use rustdct::dct2::{DCT2, DCT2Naive, DCT2SplitRadix};
+/// use rustdct::dct2::{DCT2, DCT2SplitRadix};
+/// use rustdct::DCTplanner;
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 1024];
-/// let mut output: Vec<f32> = vec![0f32; 1024];
+/// let len = 1024;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let quarter_dct = Arc::new(DCT2Naive::new(256));
-/// let half_dct = Arc::new(DCT2Naive::new(512));
+/// let mut planner = DCTplanner::new();
+/// let quarter_dct = planner.plan_dct2(len / 4);
+/// let half_dct = planner.plan_dct2(len / 2);
 ///
-/// let mut dct = DCT2SplitRadix::new(half_dct, quarter_dct);
+/// let dct = DCT2SplitRadix::new(half_dct, quarter_dct);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT2SplitRadix<T> {
@@ -29,7 +31,7 @@ pub struct DCT2SplitRadix<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: DCTnum> DCT2SplitRadix<T> {
+impl<T: common::DCTnum> DCT2SplitRadix<T> {
     /// Creates a new DCT2 context that will process signals of length `len`
     pub fn new(half_dct: Arc<DCT2<T>>, quarter_dct: Arc<DCT2<T>>) -> Self {
         let len = half_dct.len() * 2;
@@ -128,9 +130,9 @@ impl<T: DCTnum> DCT2SplitRadix<T> {
     }
 }
 
-impl<T: DCTnum> DCT2<T> for DCT2SplitRadix<T> {
+impl<T: common::DCTnum> DCT2<T> for DCT2SplitRadix<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert!(input.len() == self.len());
+        common::verify_length(input, output, self.len());
 
         unsafe {
             self.process_step(input, output);

@@ -3,7 +3,7 @@ use std::f64;
 use rustfft::Length;
 
 use dct2::DCT2;
-use DCTnum;
+use common;
 
 /// Naive O(n^2 ) DCT Type 2 implementation
 ///
@@ -14,17 +14,18 @@ use DCTnum;
 /// // Computes a naive DCT2 of size 123
 /// use rustdct::dct2::{DCT2, DCT2Naive};
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 123];
-/// let mut output: Vec<f32> = vec![0f32; 123];
+/// let len = 123;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut dct = DCT2Naive::new(123);
+/// let dct = DCT2Naive::new(len);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT2Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: DCTnum> DCT2Naive<T> {
+impl<T: common::DCTnum> DCT2Naive<T> {
     /// Creates a new DCT2 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
 
@@ -39,9 +40,9 @@ impl<T: DCTnum> DCT2Naive<T> {
     }
 }
 
-impl<T: DCTnum> DCT2<T> for DCT2Naive<T> {
+impl<T: common::DCTnum> DCT2<T> for DCT2Naive<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output, self.len());
 
         for k in 0..output.len() {
             let output_cell = output.get_mut(k).unwrap();

@@ -3,7 +3,7 @@ use std::f64;
 use rustfft::Length;
 
 use dct1::DCT1;
-use DCTnum;
+use common;
 
 /// Naive O(n^2 ) DCT Type 1 implementation
 ///
@@ -14,17 +14,18 @@ use DCTnum;
 /// // Computes a naive DCT1 of size 123
 /// use rustdct::dct1::{DCT1, DCT1Naive};
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 123];
-/// let mut output: Vec<f32> = vec![0f32; 123];
+/// let len = 123;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut dct = DCT1Naive::new(123);
+/// let dct = DCT1Naive::new(len);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT1Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: DCTnum> DCT1Naive<T> {
+impl<T: common::DCTnum> DCT1Naive<T> {
     pub fn new(len: usize) -> Self {
         assert_ne!(len, 1, "DCT Type 1 is undefined for len == 1");
 
@@ -39,9 +40,9 @@ impl<T: DCTnum> DCT1Naive<T> {
     }
 }
 
-impl<T: DCTnum> DCT1<T> for DCT1Naive<T> {
+impl<T: common::DCTnum> DCT1<T> for DCT1Naive<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output, self.len());
 
         let half = T::from_f32(0.5f32).unwrap();
         input[0] = input[0] * half;

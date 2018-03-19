@@ -21,7 +21,7 @@ use test::Bencher;
 fn bench_dct1_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let mut dct = DCT1ViaFFT::new(planner.plan_fft((len - 1) * 2));
+    let dct = DCT1ViaFFT::new(planner.plan_fft((len - 1) * 2));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -107,20 +107,20 @@ fn bench_dct2_split(b: &mut Bencher, len: usize) {
     b.iter(|| { dct.process(&mut signal, &mut spectrum); });
 }
 #[bench]
+fn dct2_power2_split_0002(b: &mut Bencher) {
+    bench_dct2_split(b, 2);
+}
+#[bench]
 fn dct2_power2_split_0004(b: &mut Bencher) {
     bench_dct2_split(b, 4);
 }
 #[bench]
 fn dct2_power2_split_0008(b: &mut Bencher) {
-    bench_dct2_split(b, 8);
+    bench_dct2_split(b, 4);
 }
 #[bench]
 fn dct2_power2_split_0016(b: &mut Bencher) {
     bench_dct2_split(b, 16);
-}
-#[bench]
-fn dct2_power2_split_0032(b: &mut Bencher) {
-    bench_dct2_split(b, 32);
 }
 #[bench]
 fn dct2_power2_split_0064(b: &mut Bencher) {
@@ -134,11 +134,6 @@ fn dct2_power2_split_0256(b: &mut Bencher) {
 fn dct2_power2_split_065536(b: &mut Bencher) {
     bench_dct2_split(b, 65536);
 }
-#[bench]
-fn dct2_power2_split_16777216(b: &mut Bencher) {
-    bench_dct2_split(b, 16777216);
-}
-
 
 
 
@@ -149,7 +144,7 @@ fn dct2_power2_split_16777216(b: &mut Bencher) {
 fn bench_dct3_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let mut dct = DCT3ViaFFT::new(planner.plan_fft(len));
+    let dct = DCT3ViaFFT::new(planner.plan_fft(len));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -232,27 +227,31 @@ fn bench_dct3_split(b: &mut Bencher, len: usize) {
 }
 #[bench]
 fn dct3_power2_split_0002(b: &mut Bencher) {
-    bench_dct2_split(b, 4);
+    bench_dct3_split(b, 4);
 }
 #[bench]
 fn dct3_power2_split_0004(b: &mut Bencher) {
-    bench_dct2_split(b, 4);
+    bench_dct3_split(b, 4);
+}
+#[bench]
+fn dct3_power2_split_0008(b: &mut Bencher) {
+    bench_dct3_split(b, 4);
 }
 #[bench]
 fn dct3_power2_split_0016(b: &mut Bencher) {
-    bench_dct2_split(b, 16);
+    bench_dct3_split(b, 16);
 }
 #[bench]
 fn dct3_power2_split_0064(b: &mut Bencher) {
-    bench_dct2_split(b, 64);
+    bench_dct3_split(b, 64);
 }
 #[bench]
 fn dct3_power2_split_0256(b: &mut Bencher) {
-    bench_dct2_split(b, 256);
+    bench_dct3_split(b, 256);
 }
 #[bench]
 fn dct3_power2_split_065536(b: &mut Bencher) {
-    bench_dct2_split(b, 65536);
+    bench_dct3_split(b, 65536);
 }
 
 
@@ -263,7 +262,7 @@ fn bench_dct4_via_dct3(b: &mut Bencher, len: usize) {
 
     let mut planner = DCTplanner::new();
     let inner_dct3 = planner.plan_dct3(len / 2);
-    let mut dct = DCT4ViaDCT3::new(inner_dct3);
+    let dct = DCT4ViaDCT3::new(inner_dct3);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -303,7 +302,7 @@ fn bench_dct4_via_fft_odd(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
     let inner_fft = planner.plan_fft(len);
-    let mut dct = DCT4ViaFFTOdd::new(inner_fft);
+    let dct = DCT4ViaFFTOdd::new(inner_fft);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -343,7 +342,7 @@ fn dct4_odd_via_fft_999999(b: &mut Bencher) {
 fn bench_mdct_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = DCTplanner::new();
-    let mut dct = MDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
+    let dct = MDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
 
     let signal = vec![0_f32; len * 2];
     let mut spectrum = vec![0_f32; len];
@@ -382,7 +381,7 @@ fn mdct_fft_12(b: &mut Bencher) {
 fn bench_imdct_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = DCTplanner::new();
-    let mut dct = IMDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
+    let dct = IMDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len * 2];

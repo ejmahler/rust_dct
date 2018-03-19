@@ -4,7 +4,7 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use twiddles;
-use DCTnum;
+use common;
 use dct4::DCT4;
 use dct3::DCT3;
 
@@ -17,18 +17,16 @@ use dct3::DCT3;
 /// // Computes a DCT Type 4 of size 1234
 /// use std::sync::Arc;
 /// use rustdct::dct4::{DCT4, DCT4ViaDCT3};
-/// use rustdct::dct3::{DCT3, DCT3Naive};
-/// use rustdct::rustfft::FFTplanner;
+/// use rustdct::DCTplanner;
 ///
 /// let len = 1234;
-/// let inner_len = len / 2;
-///
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let inner_dct3 = Arc::new(DCT3Naive::new(inner_len));
-///
-/// let mut dct = DCT4ViaDCT3::new(inner_dct3);
+/// let mut planner = DCTplanner::new();
+/// let inner_dct3 = planner.plan_dct3(len / 2);
+/// 
+/// let dct = DCT4ViaDCT3::new(inner_dct3);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT4ViaDCT3<T> {
@@ -36,7 +34,7 @@ pub struct DCT4ViaDCT3<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: DCTnum> DCT4ViaDCT3<T> {
+impl<T: common::DCTnum> DCT4ViaDCT3<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_dct.len() * 2`.
     pub fn new(inner_dct: Arc<DCT3<T>>) -> Self {
         let inner_len = inner_dct.len();
@@ -53,12 +51,12 @@ impl<T: DCTnum> DCT4ViaDCT3<T> {
         }
     }
 }
-impl<T: DCTnum> DCT4<T> for DCT4ViaDCT3<T> {
+impl<T: common::DCTnum> DCT4<T> for DCT4ViaDCT3<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
+        common::verify_length(input, output, self.len());
+
         let len = self.len();
         let inner_len = len / 2;
-
-        assert_eq!(input.len(), len);
 
         //pre-process the input by splitting into into two arrays, one for the inner DCT3, and the other for the DST3
         let (mut output_left, mut output_right) = output.split_at_mut(inner_len);

@@ -3,7 +3,7 @@ use std::f64;
 use rustfft::Length;
 
 use dct3::DCT3;
-use DCTnum;
+use common;
 
 /// Naive O(n^2 ) DCT Type 3 implementation
 ///
@@ -14,17 +14,18 @@ use DCTnum;
 /// // Computes a naive DCT3 of size 123
 /// use rustdct::dct3::{DCT3, DCT3Naive};
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 123];
-/// let mut output: Vec<f32> = vec![0f32; 123];
+/// let len = 123;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut dct = DCT3Naive::new(123);
+/// let dct = DCT3Naive::new(len);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT3Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: DCTnum> DCT3Naive<T> {
+impl<T: common::DCTnum> DCT3Naive<T> {
     /// Creates a new DCT3 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
 
@@ -39,9 +40,9 @@ impl<T: DCTnum> DCT3Naive<T> {
     }
 }
 
-impl<T: DCTnum> DCT3<T> for DCT3Naive<T> {
+impl<T: common::DCTnum> DCT3<T> for DCT3Naive<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output, self.len());
 
         let half_first = T::from_f32(0.5f32).unwrap() * input[0];
 

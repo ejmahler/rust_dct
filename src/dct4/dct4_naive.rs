@@ -3,7 +3,7 @@ use std::f64;
 use rustfft::Length;
 
 use dct4::DCT4;
-use DCTnum;
+use common;
 
 /// Naive O(n^2 ) DCT Type 4 implementation
 ///
@@ -14,17 +14,18 @@ use DCTnum;
 /// // Computes a naive DCT4 of size 123
 /// use rustdct::dct4::{DCT4, DCT4Naive};
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 123];
-/// let mut output: Vec<f32> = vec![0f32; 123];
+/// let len = 123;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut dct = DCT4Naive::new(123);
+/// let dct = DCT4Naive::new(len);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT4Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: DCTnum> DCT4Naive<T> {
+impl<T: common::DCTnum> DCT4Naive<T> {
     /// Creates a new DCT4 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
 
@@ -39,9 +40,9 @@ impl<T: DCTnum> DCT4Naive<T> {
     }
 }
 
-impl<T: DCTnum> DCT4<T> for DCT4Naive<T> {
+impl<T: common::DCTnum> DCT4<T> for DCT4Naive<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output, self.len());
 
         for k in 0..output.len() {
             let output_cell = output.get_mut(k).unwrap();

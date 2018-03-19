@@ -1,9 +1,9 @@
 use std::f64;
 
-use DCTnum;
+use common;
 
 /// MP3 window function for MDCT
-pub fn mp3<T: DCTnum>(len: usize) -> Vec<T> {
+pub fn mp3<T: common::DCTnum>(len: usize) -> Vec<T> {
     let constant_term = f64::consts::PI / len as f64;
 
     (0..len)
@@ -13,7 +13,7 @@ pub fn mp3<T: DCTnum>(len: usize) -> Vec<T> {
 }
 
 /// Ogg Vorbis window function for MDCT
-pub fn vorbis<T: DCTnum>(len: usize) -> Vec<T> {
+pub fn vorbis<T: common::DCTnum>(len: usize) -> Vec<T> {
     let constant_term = f64::consts::PI / len as f64;
 
     (0..len)
@@ -27,7 +27,7 @@ pub fn vorbis<T: DCTnum>(len: usize) -> Vec<T> {
 }
 
 /// MDCT window function which is all ones (IE, no windowing will be applied)
-pub fn one<T: DCTnum>(len: usize) -> Vec<T> {
+pub fn one<T: common::DCTnum>(len: usize) -> Vec<T> {
     (0..len).map(|_| T::one()).collect()
 }
 

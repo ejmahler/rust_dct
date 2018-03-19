@@ -4,7 +4,7 @@ use rustfft::Length;
 
 use dct4::DCT4;
 use mdct::IMDCT;
-use DCTnum;
+use common;
 
 /// IMDCT implementation that converts the problem to a DCT Type 4 of the same size.
 ///
@@ -16,12 +16,14 @@ use DCTnum;
 /// use rustdct::mdct::{IMDCT, IMDCTViaDCT4, window_fn};
 /// use rustdct::DCTplanner;
 ///
-/// let input:  Vec<f32> = vec![0f32; 1234];
-/// let mut output: Vec<f32> = vec![0f32; 1234 * 2];
+/// let len = 1234;
+/// let input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len * 2];
 ///
 /// let mut planner = DCTplanner::new();
-/// let mut inner_dct4 = planner.plan_dct4(1234);
-/// let mut dct = IMDCTViaDCT4::new(inner_dct4, window_fn::mp3);
+/// let inner_dct4 = planner.plan_dct4(len);
+/// 
+/// let dct = IMDCTViaDCT4::new(inner_dct4, window_fn::mp3);
 /// dct.process(&input, &mut output);
 /// ~~~
 pub struct IMDCTViaDCT4<T> {
@@ -29,8 +31,8 @@ pub struct IMDCTViaDCT4<T> {
     window: Box<[T]>,
 }
 
-impl<T: DCTnum> IMDCTViaDCT4<T> {
-    /// Creates a new IMDCT context that will process signals of input length `inner_dct.len()`, resulting in outputs of length `inner_dct.len() * 2`
+impl<T: common::DCTnum> IMDCTViaDCT4<T> {
+    /// Creates a new IMDCT context that will process inputs of input length `inner_dct.len()`, resulting in outputs of length `inner_dct.len() * 2`
     ///
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
@@ -40,18 +42,10 @@ impl<T: DCTnum> IMDCTViaDCT4<T> {
     {
         let len = inner_dct.len();
 
-        assert!(
-            len % 2 == 0,
-            "The IMDCT inner_dct.len() must be even. Got {}",
-            len
-        );
+        assert!(len % 2 == 0, "The IMDCT inner_dct.len() must be even. Got {}", len);
 
         let window = window_fn(len * 2);
-        assert_eq!(
-            window.len(),
-            len * 2,
-            "Window function returned incorrect number of values"
-        );
+        assert_eq!(window.len(), len * 2, "Window function returned incorrect number of values");
 
         Self {
             dct: inner_dct,
@@ -59,9 +53,10 @@ impl<T: DCTnum> IMDCTViaDCT4<T> {
         }
     }
 }
-impl<T: DCTnum> IMDCT<T> for IMDCTViaDCT4<T> {
+impl<T: common::DCTnum> IMDCT<T> for IMDCTViaDCT4<T> {
     fn process_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output_a, self.len());
+        assert_eq!(output_a.len(), output_b.len());
 
         let mut buffer = vec![T::zero(); self.len() * 2];
         let (mut dct_input, mut dct_output) = buffer.split_at_mut(self.len());

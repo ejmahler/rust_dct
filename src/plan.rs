@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use rustfft::FFTplanner;
-use DCTnum;
+use common;
 use dct1::*;
 use dct2::*;
 use dct2::dct2_butterflies::*;
@@ -16,19 +16,23 @@ const DCT3_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 
 /// The DCT planner is used to make new DCT algorithm instances.
 ///
-/// RustDCT has several DCT algorithms available for each DCT type; For a given DCT size and type, the FFTplanner
+/// RustDCT has several DCT algorithms available for each DCT type; For a given DCT type and problem size, the FFTplanner
 /// decides which of the available DCT algorithms to use and then initializes them.
 ///
 /// ~~~
 /// // Perform a DCT Type 4 of size 1234
+/// use std::sync::Arc;
 /// use rustdct::DCTplanner;
 ///
 /// let mut input:  Vec<f32> = vec![0f32; 1234];
 /// let mut output: Vec<f32> = vec![0f32; 1234];
 ///
 /// let mut planner = DCTplanner::new();
-/// let mut dct4 = planner.plan_dct4(1234);
+/// let dct4 = planner.plan_dct4(1234);
 /// dct4.process(&mut input, &mut output);
+/// 
+/// // The DCT instance returned by the planner is stored behind an `Arc`, so it's cheap to clone
+/// let dct4_clone = Arc::clone(&dct4);
 /// ~~~
 ///
 /// If you plan on creating multiple DCT instances, it is recommnded to reuse the same planner for all of them. This
@@ -36,14 +40,14 @@ const DCT3_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 /// setup time. (DCT instances created with one planner will never re-use data and buffers with DCT instances created
 /// by a different planner)
 ///
-/// Each FFT instance owns `Arc`s to its shared internal data, rather than borrowing it from the planner, so it's
+/// Each DCT instance owns `Arc`s to its shared internal data, rather than borrowing it from the planner, so it's
 /// perfectly safe to drop the planner after creating DCT instances.
 pub struct DCTplanner<T> {
     fft_planner: FFTplanner<T>,
     dct2_cache: HashMap<usize, Arc<DCT2<T>>>,
     dct3_cache: HashMap<usize, Arc<DCT3<T>>>,
 }
-impl<T: DCTnum> DCTplanner<T> {
+impl<T: common::DCTnum> DCTplanner<T> {
     pub fn new() -> Self {
         Self {
             fft_planner: FFTplanner::new(false),
@@ -108,7 +112,7 @@ impl<T: DCTnum> DCTplanner<T> {
 
 
 
-    /// Returns a DCT Type 3 instance which processes signals of size `len`.
+    /// Returns DCT Type 3 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct3(&mut self, len: usize) -> Arc<DCT3<T>> {
         if self.dct3_cache.contains_key(&len) {

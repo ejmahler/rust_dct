@@ -4,21 +4,21 @@ use rustfft::Length;
 
 use twiddles;
 use dct3::DCT3;
-use DCTnum;
+use common;
 
 pub struct DCT3Butterfly2 {}
 impl DCT3Butterfly2 {
 	pub fn new() -> Self {
 		Self {}
 	}
-	pub unsafe fn process_inplace<T: DCTnum>(&self, buffer: &mut [T]) {
+	pub unsafe fn process_inplace<T: common::DCTnum>(&self, buffer: &mut [T]) {
 		let half_0 = *buffer.get_unchecked(0) * T::from_f32(0.5).unwrap();
 		let frac_1 = *buffer.get_unchecked(1) * T::FRAC_1_SQRT_2();
 
         *buffer.get_unchecked_mut(0) = half_0 + frac_1;
         *buffer.get_unchecked_mut(1) = half_0 - frac_1;
 	}
-	unsafe fn process_direct<T: DCTnum>(buffer: &mut [T], zero: usize, one: usize) {
+	unsafe fn process_direct<T: common::DCTnum>(buffer: &mut [T], zero: usize, one: usize) {
 		let half_0 = *buffer.get_unchecked(zero) * T::from_f32(0.5).unwrap();
 		let frac_1 = *buffer.get_unchecked(one) * T::FRAC_1_SQRT_2();
 
@@ -26,9 +26,10 @@ impl DCT3Butterfly2 {
         *buffer.get_unchecked_mut(one) = half_0 - frac_1;
 	}
 }
-impl<T: DCTnum> DCT3<T> for DCT3Butterfly2 {
+impl<T: common::DCTnum> DCT3<T> for DCT3Butterfly2 {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output, self.len());
+
 		let half_0 = input[0] * T::from_f32(0.5).unwrap();
 		let frac_1 = input[1] * T::FRAC_1_SQRT_2();
 
@@ -45,7 +46,7 @@ impl Length for DCT3Butterfly2 {
 pub struct DCT3Butterfly4<T> {
 	twiddle: Complex<T>,
 }
-impl<T: DCTnum> DCT3Butterfly4<T> {
+impl<T: common::DCTnum> DCT3Butterfly4<T> {
 	pub fn new() -> Self {
 		Self {
 			twiddle: twiddles::single_twiddle(1,16,true)
@@ -68,9 +69,9 @@ impl<T: DCTnum> DCT3Butterfly4<T> {
 		*buffer.get_unchecked_mut(2) = *buffer.get_unchecked(2) - upper_dct4;
 	}
 }
-impl<T: DCTnum> DCT3<T> for DCT3Butterfly4<T> {
+impl<T: common::DCTnum> DCT3<T> for DCT3Butterfly4<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output, self.len());
 		
         output.copy_from_slice(input);
         unsafe { self.process_inplace(output); }
@@ -87,7 +88,7 @@ pub struct DCT3Butterfly8<T> {
 	butterfly2: DCT3Butterfly2,
 	twiddles: [Complex<T>; 2],
 }
-impl<T: DCTnum> DCT3Butterfly8<T> {
+impl<T: common::DCTnum> DCT3Butterfly8<T> {
 	pub fn new() -> Self {
 		Self {
 			butterfly4: DCT3Butterfly4::new(),
@@ -140,9 +141,9 @@ impl<T: DCTnum> DCT3Butterfly8<T> {
 		}
 	}
 }
-impl<T: DCTnum> DCT3<T> for DCT3Butterfly8<T> {
+impl<T: common::DCTnum> DCT3<T> for DCT3Butterfly8<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output, self.len());
 		
         output.copy_from_slice(input);
         unsafe { self.process_inplace(output); }
@@ -159,7 +160,7 @@ pub struct DCT3Butterfly16<T> {
 	butterfly4: DCT3Butterfly4<T>,
 	twiddles: [Complex<T>; 4],
 }
-impl<T: DCTnum> DCT3Butterfly16<T> {
+impl<T: common::DCTnum> DCT3Butterfly16<T> {
 	pub fn new() -> Self {
 		Self {
 			butterfly8: DCT3Butterfly8::new(),
@@ -226,9 +227,9 @@ impl<T: DCTnum> DCT3Butterfly16<T> {
 		}
 	}
 }
-impl<T: DCTnum> DCT3<T> for DCT3Butterfly16<T> {
+impl<T: common::DCTnum> DCT3<T> for DCT3Butterfly16<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output, self.len());
 		
         output.copy_from_slice(input);
         unsafe { self.process_inplace(output); }

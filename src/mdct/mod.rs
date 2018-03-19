@@ -1,6 +1,6 @@
 use rustfft::Length;
 
-use DCTnum;
+use common;
 
 mod mdct_naive;
 mod mdct_via_dct4;
@@ -10,7 +10,7 @@ mod imdct_via_dct4;
 pub mod window_fn;
 
 /// An umbrella trait for algorithms which compute the Modified Discrete Cosine Transform (MDCT)
-pub trait MDCT<T: DCTnum>: Length {
+pub trait MDCT<T: common::DCTnum>: Length {
     /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
@@ -28,7 +28,7 @@ pub trait MDCT<T: DCTnum>: Length {
 }
 
 /// An umbrella trait for algorithms which compute the Inverse Modified Discrete Cosine Transform (IMDCT)
-pub trait IMDCT<T: DCTnum>: Length {
+pub trait IMDCT<T: common::DCTnum>: Length {
     /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
     ///
     /// To make overlapping array segments easier, this method DOES NOT zero out the output buffer, instead it adds

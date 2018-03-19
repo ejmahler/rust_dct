@@ -4,7 +4,7 @@ use rustfft::num_traits::Zero;
 use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
-use DCTnum;
+use common;
 use dct4::DCT4;
 
 /// DCT Type 4 implementation that converts the problem into an O(nlogn) FFT of the same size. 
@@ -16,20 +16,21 @@ use dct4::DCT4;
 /// use rustdct::dct4::{DCT4, DCT4ViaFFTOdd};
 /// use rustdct::rustfft::FFTplanner;
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 1233];
-/// let mut output: Vec<f32> = vec![0f32; 1233];
+/// let len = 1233;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let mut planner = FFTplanner::new(false);
-/// let fft = planner.plan_fft(1233);
+/// let fft = planner.plan_fft(len);
 ///
-/// let mut dct = DCT4ViaFFTOdd::new(fft);
+/// let dct = DCT4ViaFFTOdd::new(fft);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT4ViaFFTOdd<T> {
     fft: Arc<FFT<T>>,
 }
 
-impl<T: DCTnum> DCT4ViaFFTOdd<T> {
+impl<T: common::DCTnum> DCT4ViaFFTOdd<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_fft.len()`. `inner_fft.len()` must be odd.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         assert!(
@@ -46,12 +47,11 @@ impl<T: DCTnum> DCT4ViaFFTOdd<T> {
     }
 }
 
-impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
+impl<T: common::DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
+        common::verify_length(input, output, self.len());
 
         let len = self.len();
-        assert!(input.len() == len);
-
         let half_len = len / 2;
         let quarter_len = len / 4;
 

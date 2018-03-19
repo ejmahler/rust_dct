@@ -3,7 +3,7 @@ use std::f64;
 use rustfft::Length;
 
 use mdct::MDCT;
-use DCTnum;
+use common;
 
 /// Naive O(n^2 ) MDCT implementation
 ///
@@ -13,10 +13,11 @@ use DCTnum;
 /// // Computes a naive MDCT of output size 124, using the MP3 window function
 /// use rustdct::mdct::{MDCT, MDCTNaive, window_fn};
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 124 * 2];
-/// let mut output: Vec<f32> = vec![0f32; 124];
+/// let len = 124;
+/// let mut input:  Vec<f32> = vec![0f32; len * 2];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut dct = MDCTNaive::new(124, window_fn::mp3);
+/// let dct = MDCTNaive::new(len, window_fn::mp3);
 /// dct.process(&input, &mut output);
 /// ~~~
 pub struct MDCTNaive<T> {
@@ -24,7 +25,7 @@ pub struct MDCTNaive<T> {
     window: Box<[T]>,
 }
 
-impl<T: DCTnum> MDCTNaive<T> {
+impl<T: common::DCTnum> MDCTNaive<T> {
     /// Creates a new MDCT context that will process inputs of length `output_len * 2` and produce
     /// outputs of length `output_len`
     ///
@@ -36,11 +37,7 @@ impl<T: DCTnum> MDCTNaive<T> {
     where
         F: FnOnce(usize) -> Vec<T>,
     {
-        assert!(
-            output_len % 2 == 0,
-            "The MDCT output_len must be even. Got {}",
-            output_len
-        );
+        assert!(output_len % 2 == 0, "The MDCT len must be even. Got {}", output_len);
 
         let constant_factor = 0.5f64 * f64::consts::PI / (output_len as f64);
         let twiddles: Vec<T> = (0..output_len * 4)
@@ -49,11 +46,7 @@ impl<T: DCTnum> MDCTNaive<T> {
             .collect();
 
         let window = window_fn(output_len * 2);
-        assert_eq!(
-            window.len(),
-            output_len * 2,
-            "Window function returned incorrect number of values"
-        );
+        assert_eq!(window.len(), output_len * 2, "Window function returned incorrect number of values");
 
         Self {
             twiddles: twiddles.into_boxed_slice(),
@@ -62,9 +55,10 @@ impl<T: DCTnum> MDCTNaive<T> {
     }
 }
 
-impl<T: DCTnum> MDCT<T> for MDCTNaive<T> {
+impl<T: common::DCTnum> MDCT<T> for MDCTNaive<T> {
     fn process_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
-        assert_eq!(input_a.len(), self.len());
+        common::verify_length(input_a, output, self.len());
+        assert_eq!(input_a.len(), input_b.len());
 
         let output_len = output.len();
         let half_output = output.len() / 2;

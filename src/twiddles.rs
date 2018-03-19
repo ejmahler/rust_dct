@@ -1,10 +1,10 @@
 
 use std::f64;
 use rustfft::num_complex::Complex;
-use DCTnum;
+use common;
 
 #[inline(always)]
-pub fn single_twiddle<T: DCTnum>(i: usize, fft_len: usize, inverse: bool) -> Complex<T> {
+pub fn single_twiddle<T: common::DCTnum>(i: usize, fft_len: usize, inverse: bool) -> Complex<T> {
     let constant = if inverse {
         2f64 * f64::consts::PI
     } else {

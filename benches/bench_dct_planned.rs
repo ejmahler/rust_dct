@@ -9,7 +9,7 @@ use test::Bencher;
 fn bench_dct1_planned(b: &mut Bencher, len: usize) {
 
     let mut planner = rustdct::DCTplanner::new();
-    let mut dct = planner.plan_dct1(len);
+    let dct = planner.plan_dct1(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -32,7 +32,7 @@ fn dct1_planned_65536(b: &mut Bencher) {
 fn bench_dct2_planned(b: &mut Bencher, len: usize) {
 
     let mut planner = rustdct::DCTplanner::new();
-    let mut dct = planner.plan_dct2(len);
+    let dct = planner.plan_dct2(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -56,7 +56,7 @@ fn dct2_planned_65536(b: &mut Bencher) {
 fn bench_dct3_planned(b: &mut Bencher, len: usize) {
 
     let mut planner = rustdct::DCTplanner::new();
-    let mut dct = planner.plan_dct3(len);
+    let dct = planner.plan_dct3(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -80,7 +80,7 @@ fn dct3_planned_65536(b: &mut Bencher) {
 fn bench_dct4_planned(b: &mut Bencher, len: usize) {
 
     let mut planner = rustdct::DCTplanner::new();
-    let mut dct = planner.plan_dct4(len);
+    let dct = planner.plan_dct4(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();

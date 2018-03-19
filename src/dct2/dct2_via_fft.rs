@@ -4,7 +4,7 @@ use rustfft::num_traits::Zero;
 use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
-use DCTnum;
+use common;
 use twiddles;
 use dct2::DCT2;
 
@@ -15,13 +15,14 @@ use dct2::DCT2;
 /// use rustdct::dct2::{DCT2, DCT2ViaFFT};
 /// use rustdct::rustfft::FFTplanner;
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 1234];
-/// let mut output: Vec<f32> = vec![0f32; 1234];
+/// let len = 1234;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let mut planner = FFTplanner::new(false);
-/// let fft = planner.plan_fft(1234);
+/// let fft = planner.plan_fft(len);
 ///
-/// let mut dct = DCT2ViaFFT::new(fft);
+/// let dct = DCT2ViaFFT::new(fft);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT2ViaFFT<T> {
@@ -29,7 +30,7 @@ pub struct DCT2ViaFFT<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: DCTnum> DCT2ViaFFT<T> {
+impl<T: common::DCTnum> DCT2ViaFFT<T> {
     /// Creates a new DCT2 context that will process signals of length `inner_fft.len()`.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         assert!(
@@ -51,28 +52,27 @@ impl<T: DCTnum> DCT2ViaFFT<T> {
     }
 }
 
-impl<T: DCTnum> DCT2<T> for DCT2ViaFFT<T> {
-    fn process(&self, signal: &mut [T], spectrum: &mut [T]) {
-
-        assert!(signal.len() == self.len());
+impl<T: common::DCTnum> DCT2<T> for DCT2ViaFFT<T> {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
+        common::verify_length(input, output, self.len());
 
         let mut buffer = vec![Complex::zero(); self.len() * 2];
         let (fft_input, fft_output) = buffer.split_at_mut(self.len());
 
         // the first half of the array will be the even elements, in order
-        let even_end = (signal.len() + 1) / 2;
+        let even_end = (input.len() + 1) / 2;
         for i in 0..even_end {
             fft_input[i] = Complex {
-                re: signal[i * 2],
+                re: input[i * 2],
                 im: T::zero(),
             };
         }
 
         // the second half is the odd elements in reverse order
-        let odd_end = signal.len() - 1 - signal.len() % 2;
-        for i in 0..signal.len() / 2 {
+        let odd_end = input.len() - 1 - input.len() % 2;
+        for i in 0..input.len() / 2 {
             fft_input[even_end + i] = Complex {
-                re: signal[odd_end - 2 * i],
+                re: input[odd_end - 2 * i],
                 im: T::zero(),
             };
         }
@@ -82,9 +82,7 @@ impl<T: DCTnum> DCT2<T> for DCT2ViaFFT<T> {
 
         // apply a correction factor to the result
         for ((fft_entry, correction_entry), spectrum_entry) in
-            fft_output.iter().zip(self.twiddles.iter()).zip(
-                spectrum.iter_mut(),
-            )
+            fft_output.iter().zip(self.twiddles.iter()).zip(output.iter_mut())
         {
             *spectrum_entry = (fft_entry * correction_entry).re;
         }

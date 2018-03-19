@@ -12,15 +12,39 @@
 //!
 //! ```rust
 //! // Compute a DCT Type 2 of size 1234
+//! use std::sync::Arc;
 //! use rustdct::DCTplanner;
 //!
 //! let mut input:  Vec<f32> = vec![0f32; 1234];
 //! let mut output: Vec<f32> = vec![0f32; 1234];
 //!
 //! let mut planner = DCTplanner::new();
-//! let mut dct = planner.plan_dct2(1234);
+//! let dct = planner.plan_dct2(1234);
 //! dct.process(&mut input, &mut output);
 //!
+//! // The DCT instance returned by the planner is stored behind an `Arc`, so it's cheap to clone
+//! let dct_clone = Arc::clone(&dct);
+//! ```
+//! 
+//! RustDCT also exposes individual DCT algorithms. For example, if you're writing a JPEG compression library, it's
+//! safe to assume you want a DCT2 and DCT3 of size 8. Instead of going through the planner, you can directly create
+//! hardcoded DCT instances of size 8.
+//! ```rust
+//! // Compute a DCT type 2 of size 8, and then compute a DCT type 3 of size 8 on the output.
+//! use rustdct::dct2::DCT2;
+//! use rustdct::dct2::dct2_butterflies::DCT2Butterfly8;
+//! use rustdct::dct3::DCT3;
+//! use rustdct::dct3::dct3_butterflies::DCT3Butterfly8;
+//! 
+//! let mut input = [0f32; 8];
+//! let mut intermediate = [0f32; 8];
+//! let mut output = [0f32; 8];
+//! 
+//! let dct2 = DCT2Butterfly8::new();
+//! let dct3 = DCT3Butterfly8::new();
+//! 
+//! dct2.process(&mut input, &mut intermediate);
+//! dct3.process(&mut intermediate, &mut output);
 //! ```
 
 
@@ -29,7 +53,6 @@ pub extern crate rustfft;
 #[cfg(test)]
 extern crate rand;
 
-use std::fmt::Debug;
 
 pub use rustfft::num_complex;
 pub use rustfft::num_traits;
@@ -48,15 +71,13 @@ pub mod dct4;
 
 /// Algorithms for computing the Modified Discrete Cosine Transform
 pub mod mdct;
+
 mod plan;
 mod twiddles;
+mod common;
+pub use common::DCTnum;
+
+pub use self::plan::DCTplanner;
 
 #[cfg(test)]
 mod test_utils;
-
-/// Generic floating point number, implemented for f32 and f64
-pub trait DCTnum: rustfft::FFTnum + num_traits::FloatConst + Debug {}
-impl DCTnum for f32 {}
-impl DCTnum for f64 {}
-
-pub use self::plan::DCTplanner;

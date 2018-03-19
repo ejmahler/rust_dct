@@ -14,7 +14,7 @@ use test::Bencher;
 /// for a given length
 fn bench_dct1_naive(b: &mut Bencher, len: usize) {
 
-    let mut dct = DCT1Naive::new(len);
+    let dct = DCT1Naive::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -82,7 +82,7 @@ fn dct2_naive_022(b: &mut Bencher) {
 /// for a given length
 fn bench_dct3_naive(b: &mut Bencher, len: usize) {
 
-    let mut dct = DCT3Naive::new(len);
+    let dct = DCT3Naive::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -117,7 +117,7 @@ fn dct3_naive_0006(b: &mut Bencher) {
 /// for a given length
 fn bench_dct4_naive(b: &mut Bencher, len: usize) {
 
-    let mut dct = DCT4Naive::new(len);
+    let dct = DCT4Naive::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -172,7 +172,7 @@ fn dct4_odd_naive_09(b: &mut Bencher) {
 /// for a given length
 fn bench_mdct_naive(b: &mut Bencher, len: usize) {
 
-    let mut dct = MDCTNaive::new(len, window_fn::mp3);
+    let dct = MDCTNaive::new(len, window_fn::mp3);
 
     let signal = vec![0_f32; len * 2];
     let mut spectrum = vec![0_f32; len];
@@ -211,7 +211,7 @@ fn mdct_naive_12(b: &mut Bencher) {
 /// for a given length
 fn bench_imdct_naive(b: &mut Bencher, len: usize) {
 
-    let mut dct = IMDCTNaive::new(len, window_fn::mp3);
+    let dct = IMDCTNaive::new(len, window_fn::mp3);
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len * 2];

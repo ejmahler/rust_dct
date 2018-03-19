@@ -4,7 +4,7 @@ use rustfft::num_traits::Zero;
 use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
-use DCTnum;
+use common;
 use dct1::DCT1;
 
 /// DCT Type 1 implementation that converts the problem into an O(nlogn) FFT of size 2 * (n - 1)
@@ -14,20 +14,21 @@ use dct1::DCT1;
 /// use rustdct::dct1::{DCT1, DCT1ViaFFT};
 /// use rustdct::rustfft::FFTplanner;
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 1234];
-/// let mut output: Vec<f32> = vec![0f32; 1234];
+/// let len = 1234;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let mut planner = FFTplanner::new(false);
-/// let fft = planner.plan_fft(2 * (1234 - 1));
+/// let fft = planner.plan_fft(2 * (len - 1));
 ///
-/// let mut dct = DCT1ViaFFT::new(fft);
+/// let dct = DCT1ViaFFT::new(fft);
 /// dct.process(&mut input, &mut output);
 /// ~~~
 pub struct DCT1ViaFFT<T> {
     fft: Arc<FFT<T>>,
 }
 
-impl<T: DCTnum> DCT1ViaFFT<T> {
+impl<T: common::DCTnum> DCT1ViaFFT<T> {
     /// Creates a new DCT1 context that will process signals of length `inner_fft.len() / 2 + 1`.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
@@ -49,9 +50,9 @@ impl<T: DCTnum> DCT1ViaFFT<T> {
     }
 }
 
-impl<T: DCTnum> DCT1<T> for DCT1ViaFFT<T> {
+impl<T: common::DCTnum> DCT1<T> for DCT1ViaFFT<T> {
     fn process(&self, input: &mut [T], output: &mut [T]) {
-        assert!(input.len() == self.len());
+        common::verify_length(input, output, self.len());
 
         let inner_len = self.fft.len();
         let mut buffer = vec![Complex::zero(); inner_len * 2];

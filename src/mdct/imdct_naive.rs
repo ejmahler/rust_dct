@@ -3,7 +3,7 @@ use std::f64;
 use rustfft::Length;
 
 use mdct::IMDCT;
-use DCTnum;
+use common;
 
 /// Naive O(n^2 ) IMDCT implementation
 ///
@@ -13,10 +13,11 @@ use DCTnum;
 /// // Computes a naive IMDCT of input size 124, using the MP3 window function
 /// use rustdct::mdct::{IMDCT, IMDCTNaive, window_fn};
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 124];
-/// let mut output: Vec<f32> = vec![0f32; 124 * 2];
+/// let len = 124;
+/// let mut input:  Vec<f32> = vec![0f32; len];
+/// let mut output: Vec<f32> = vec![0f32; len * 2];
 ///
-/// let mut dct = IMDCTNaive::new(124, window_fn::mp3);
+/// let dct = IMDCTNaive::new(len, window_fn::mp3);
 /// dct.process(&input, &mut output);
 /// ~~~
 
@@ -25,7 +26,7 @@ pub struct IMDCTNaive<T> {
     window: Box<[T]>,
 }
 
-impl<T: DCTnum> IMDCTNaive<T> {
+impl<T: common::DCTnum> IMDCTNaive<T> {
     /// Creates a new IMDCT context that will process signals of length `input_len` and produce
     /// outputs of length `output_len * 2`
     ///
@@ -37,11 +38,7 @@ impl<T: DCTnum> IMDCTNaive<T> {
     where
         F: FnOnce(usize) -> Vec<T>,
     {
-        assert!(
-            input_len % 2 == 0,
-            "The IMDCT input_len must be even. Got {}",
-            input_len
-        );
+        assert!(input_len % 2 == 0, "The IMDCT len must be even. Got {}", input_len);
 
         let constant_factor = 0.5f64 * f64::consts::PI / (input_len as f64);
         let twiddles: Vec<T> = (0..input_len * 8)
@@ -50,11 +47,7 @@ impl<T: DCTnum> IMDCTNaive<T> {
             .collect();
 
         let window = window_fn(input_len * 2);
-        assert_eq!(
-            window.len(),
-            input_len * 2,
-            "Window function returned incorrect number of values"
-        );
+        assert_eq!(window.len(), input_len * 2, "Window function returned incorrect number of values");
 
         Self {
             twiddles: twiddles.into_boxed_slice(),
@@ -63,9 +56,10 @@ impl<T: DCTnum> IMDCTNaive<T> {
     }
 }
 
-impl<T: DCTnum> IMDCT<T> for IMDCTNaive<T> {
+impl<T: common::DCTnum> IMDCT<T> for IMDCTNaive<T> {
     fn process_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
-        assert_eq!(input.len(), self.len());
+        common::verify_length(input, output_a, self.len());
+        assert_eq!(output_a.len(), output_b.len());
 
         let input_len = input.len();
         let half_input = input_len / 2;
