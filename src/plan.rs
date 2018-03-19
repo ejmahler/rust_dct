@@ -179,13 +179,13 @@ impl<T: DCTnum> DCTplanner<T> {
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     ///
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_mdct<F>(&mut self, len: usize, window_fn: F) -> Box<MDCT<T>>
+    pub fn plan_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<MDCT<T>>
     where
         F: FnOnce(usize) -> Vec<T>,
     {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
-        Box::new(MDCTViaDCT4::new(inner_dct4, window_fn))
+        Arc::new(MDCTViaDCT4::new(inner_dct4, window_fn))
     }
 
     /// Returns an IMDCT instance which processes input of size `len` and produces outputs of size `len * 2`.
@@ -194,12 +194,12 @@ impl<T: DCTnum> DCTplanner<T> {
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     ///
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_imdct<F>(&mut self, len: usize, window_fn: F) -> Box<IMDCT<T>>
+    pub fn plan_imdct<F>(&mut self, len: usize, window_fn: F) -> Arc<IMDCT<T>>
     where
         F: FnOnce(usize) -> Vec<T>,
     {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
-        Box::new(IMDCTViaDCT4::new(inner_dct4, window_fn))
+        Arc::new(IMDCTViaDCT4::new(inner_dct4, window_fn))
     }
 }

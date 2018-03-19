@@ -26,8 +26,6 @@ use DCTnum;
 /// ~~~
 pub struct IMDCTViaDCT4<T> {
     dct: Arc<DCT4<T>>,
-    dct_input: Box<[T]>,
-    dct_output: Box<[T]>,
     window: Box<[T]>,
 }
 
@@ -57,29 +55,28 @@ impl<T: DCTnum> IMDCTViaDCT4<T> {
 
         Self {
             dct: inner_dct,
-            dct_input: vec![T::zero(); len].into_boxed_slice(),
-            dct_output: vec![T::zero(); len].into_boxed_slice(),
             window: window.into_boxed_slice(),
         }
     }
 }
 impl<T: DCTnum> IMDCT<T> for IMDCTViaDCT4<T> {
-    fn process_split(&mut self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
+    fn process_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
         assert_eq!(input.len(), self.len());
 
-        self.dct_input.copy_from_slice(input);
+        let mut buffer = vec![T::zero(); self.len() * 2];
+        let (mut dct_input, mut dct_output) = buffer.split_at_mut(self.len());
+        dct_input.copy_from_slice(input);
 
-        self.dct.process(&mut self.dct_input, &mut self.dct_output);
+        self.dct.process(&mut dct_input, &mut dct_output);
 
         let group_size = self.len() / 2;
 
         //copy the second half of the DCT output into the result
         for ((output, window_val), val) in
-            output_a.iter_mut().zip(&self.window[..]).zip(
-                self.dct_output
-                    [group_size..]
-                    .iter(),
-            )
+            output_a
+                .iter_mut()
+                .zip(&self.window[..])
+                .zip(dct_output[group_size..].iter())
         {
             *output = *output + *val * *window_val;
         }
@@ -90,16 +87,17 @@ impl<T: DCTnum> IMDCT<T> for IMDCTViaDCT4<T> {
                 .iter_mut()
                 .zip(&self.window[..])
                 .skip(group_size)
-                .zip(self.dct_output[group_size..].iter().rev())
+                .zip(dct_output[group_size..].iter().rev())
         {
             *output = *output - *val * *window_val;
         }
 
         //copy the first half of the DCT output into the result, reversde+negated
         for ((output, window_val), val) in
-            output_b.iter_mut().zip(&self.window[self.len()..]).zip(
-                self.dct_output[..group_size].iter().rev(),
-            )
+            output_b
+                .iter_mut()
+                .zip(&self.window[self.len()..])
+                .zip( dct_output[..group_size].iter().rev())
         {
             *output = *output - *val * *window_val;
         }
@@ -110,7 +108,7 @@ impl<T: DCTnum> IMDCT<T> for IMDCTViaDCT4<T> {
                 .iter_mut()
                 .zip(&self.window[self.len()..])
                 .skip(group_size)
-                .zip(self.dct_output[..group_size].iter())
+                .zip(dct_output[..group_size].iter())
         {
             *output = *output - *val * *window_val;
         }
@@ -118,7 +116,7 @@ impl<T: DCTnum> IMDCT<T> for IMDCTViaDCT4<T> {
 }
 impl<T> Length for IMDCTViaDCT4<T> {
     fn len(&self) -> usize {
-        self.dct_input.len()
+        self.dct.len()
     }
 }
 

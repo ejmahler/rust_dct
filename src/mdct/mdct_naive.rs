@@ -63,7 +63,7 @@ impl<T: DCTnum> MDCTNaive<T> {
 }
 
 impl<T: DCTnum> MDCT<T> for MDCTNaive<T> {
-    fn process_split(&mut self, input_a: &[T], input_b: &[T], output: &mut [T]) {
+    fn process_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         assert_eq!(input_a.len(), self.len());
 
         let output_len = output.len();

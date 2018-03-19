@@ -14,7 +14,7 @@ pub trait MDCT<T: DCTnum>: Length {
     /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
-    fn process(&mut self, input: &[T], output: &mut [T]) {
+    fn process(&self, input: &[T], output: &mut [T]) {
         let (input_a, input_b) = input.split_at(output.len());
 
         self.process_split(input_a, input_b, output);
@@ -24,7 +24,7 @@ pub trait MDCT<T: DCTnum>: Length {
     /// Uses `input_a` for the first half of the input, and `input_b` for the second half of the input
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
-    fn process_split(&mut self, input_a: &[T], input_b: &[T], output: &mut [T]);
+    fn process_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]);
 }
 
 /// An umbrella trait for algorithms which compute the Inverse Modified Discrete Cosine Transform (IMDCT)
@@ -33,7 +33,7 @@ pub trait IMDCT<T: DCTnum>: Length {
     ///
     /// To make overlapping array segments easier, this method DOES NOT zero out the output buffer, instead it adds
     /// (via operator+) the result of the IMDCT to what's already in the buffer.
-    fn process(&mut self, input: &[T], output: &mut [T]) {
+    fn process(&self, input: &[T], output: &mut [T]) {
         let (output_a, output_b) = output.split_at_mut(input.len());
 
         self.process_split(input, output_a, output_b);
@@ -44,7 +44,7 @@ pub trait IMDCT<T: DCTnum>: Length {
     ///
     /// To make overlapping array segments easier, this method DOES NOT zero out the output buffer, instead it adds
     /// (via operator+) the result of the IMDCT to what's already in the buffer.
-    fn process_split(&mut self, input: &[T], output_a: &mut [T], output_b: &mut [T]);
+    fn process_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]);
 }
 
 pub use self::mdct_naive::MDCTNaive;

@@ -58,10 +58,10 @@ macro_rules! dct_test_fns {
                 let mut naive_output = vec![0f32; len];
                 let mut actual_output = vec![0f32; len];
 
-                let mut naive_dct = $naive_struct::new(len);
+                let naive_dct = $naive_struct::new(len);
 
                 let mut planner = DCTplanner::new();
-                let mut actual_dct = planner.$planner_fn(len);
+                let actual_dct = planner.$planner_fn(len);
 
                 assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
 
@@ -87,10 +87,10 @@ macro_rules! dct_test_fns {
                 let mut naive_output = vec![0f32; len];
                 let mut actual_output = vec![0f32; len];
 
-                let mut naive_dct = $naive_struct::new(len);
+                let naive_dct = $naive_struct::new(len);
 
                 let mut planner = DCTplanner::new();
-                let mut actual_dct = planner.$planner_fn(len);
+                let actual_dct = planner.$planner_fn(len);
 
                 assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length");
 
@@ -127,10 +127,10 @@ pub mod test_mdct {
         let mut naive_output = vec![0f32; len];
         let mut actual_output = vec![0f32; len];
 
-        let mut naive_dct = MDCTNaive::new(len, &window_fn);
+        let naive_dct = MDCTNaive::new(len, &window_fn);
 
         let mut planner = DCTplanner::new();
-        let mut actual_dct = planner.plan_mdct(len, window_fn);
+        let actual_dct = planner.plan_mdct(len, window_fn);
 
         assert_eq!(
             actual_dct.len(),
@@ -156,8 +156,8 @@ pub mod test_mdct {
         F: Fn(usize) -> Vec<f32>,
     {
         let mut planner = DCTplanner::new();
-        let mut forward_dct = planner.plan_mdct(len, &window_fn);
-        let mut inverse_dct = planner.plan_imdct(len, window_fn);
+        let forward_dct = planner.plan_mdct(len, &window_fn);
+        let inverse_dct = planner.plan_imdct(len, window_fn);
 
         const NUM_SEGMENTS: usize = 5;
 
@@ -210,10 +210,10 @@ pub mod test_imdct {
         let mut naive_output = vec![0f32; len * 2];
         let mut actual_output = vec![0f32; len * 2];
 
-        let mut naive_dct = IMDCTNaive::new(len, &window_fn);
+        let naive_dct = IMDCTNaive::new(len, &window_fn);
 
         let mut planner = DCTplanner::new();
-        let mut actual_dct = planner.plan_imdct(len, window_fn);
+        let actual_dct = planner.plan_imdct(len, window_fn);
 
         assert_eq!(
             actual_dct.len(),

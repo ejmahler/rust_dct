@@ -64,7 +64,7 @@ impl<T: DCTnum> IMDCTNaive<T> {
 }
 
 impl<T: DCTnum> IMDCT<T> for IMDCTNaive<T> {
-    fn process_split(&mut self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
+    fn process_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
         assert_eq!(input.len(), self.len());
 
         let input_len = input.len();

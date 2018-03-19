@@ -26,7 +26,6 @@ use DCTnum;
 /// ~~~
 pub struct MDCTViaDCT4<T> {
     dct: Arc<DCT4<T>>,
-    dct_buffer: Box<[T]>,
     window: Box<[T]>,
 }
 
@@ -54,16 +53,17 @@ impl<T: DCTnum> MDCTViaDCT4<T> {
 
         Self {
             dct: inner_dct,
-            dct_buffer: vec![T::zero(); len].into_boxed_slice(),
             window: window.into_boxed_slice(),
         }
     }
 }
 impl<T: DCTnum> MDCT<T> for MDCTViaDCT4<T> {
-    fn process_split(&mut self, input_a: &[T], input_b: &[T], output: &mut [T]) {
+    fn process_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         assert_eq!(input_a.len(), self.len());
 
         let group_size = self.len() / 2;
+
+        let mut dct_buffer = vec![T::zero(); self.len()];
 
         //we're going to divide input_a into two subgroups, (a,b), and input_b into two subgroups: (c,d)
         //then scale them by the window function, then combine them into two subgroups: (-D-Cr, A-Br) where R means reversed
@@ -92,7 +92,7 @@ impl<T: DCTnum> MDCT<T> for MDCTViaDCT4<T> {
 
         //the first half of the dct input is -Cr - D
         for (element, (cr_val, d_val)) in
-            self.dct_buffer.iter_mut().zip(
+            dct_buffer.iter_mut().zip(
                 group_c_rev_iter.zip(group_d_iter),
             )
         {
@@ -101,21 +101,19 @@ impl<T: DCTnum> MDCT<T> for MDCTViaDCT4<T> {
 
         //the second half of the dct input is is A - Br
         for (element, (a_val, br_val)) in
-            self.dct_buffer[group_size..].iter_mut().zip(
-                group_a_iter.zip(
-                    group_b_rev_iter,
-                ),
+            dct_buffer[group_size..].iter_mut().zip(
+                group_a_iter.zip( group_b_rev_iter,),
             )
         {
             *element = a_val - br_val;
         }
 
-        self.dct.process(&mut self.dct_buffer, output);
+        self.dct.process(&mut dct_buffer, output);
     }
 }
 impl<T> Length for MDCTViaDCT4<T> {
     fn len(&self) -> usize {
-        self.dct_buffer.len()
+        self.dct.len()
     }
 }
 
