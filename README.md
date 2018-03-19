@@ -25,3 +25,5 @@ let mut dct = planner.plan_dct2(1234);
 dct.process(&mut input, &mut output);
 
 ```
+## Releases
+Release notes are available in [RELEASES.md](RELEASES.md).
