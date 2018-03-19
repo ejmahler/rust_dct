@@ -180,7 +180,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         }
     }
 
-    pub fn plan_new_dct4(&mut self, len: usize) -> Arc<DCT4<T>> {
+    fn plan_new_dct4(&mut self, len: usize) -> Arc<DCT4<T>> {
         //if we have an even size, we can use the DCT4 Via DCT3 algorithm
         if len % 2 == 0 {
             //benchmarking shows that below 6, it's faster to just use the naive DCT4 algorithm
@@ -219,7 +219,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         }
     }
 
-    pub fn plan_new_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<MDCT<T>>
+    fn plan_new_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<MDCT<T>>
     where F: (FnOnce(usize) -> Vec<T>) {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
@@ -243,7 +243,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         }
     }
 
-    pub fn plan_new_imdct<F>(&mut self, len: usize, window_fn: F) -> Arc<IMDCT<T>>
+    fn plan_new_imdct<F>(&mut self, len: usize, window_fn: F) -> Arc<IMDCT<T>>
     where F: (FnOnce(usize) -> Vec<T>) {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
