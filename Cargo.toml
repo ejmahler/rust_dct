@@ -1,11 +1,12 @@
 [package]
 name = "rustdct"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["Elliott Mahler <join.together@gmail.com>"]
 
 description = "RustDCT is a pure-Rust signal processing library that computes the most common Discrete Cosine Transforms"
 
 repository = "https://github.com/ejmahler/rust_dct"
+documentation = "https://docs.rs/rustdct/"
 
 keywords = ["dct", "mdct", "discrete", "cosine", "jpeg"]
 categories = ["algorithms", "compression", "multimedia::encoding", "science", "visualization"]
