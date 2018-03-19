@@ -44,21 +44,39 @@ const DCT3_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 /// perfectly safe to drop the planner after creating DCT instances.
 pub struct DCTplanner<T> {
     fft_planner: FFTplanner<T>,
+    dct1_cache: HashMap<usize, Arc<DCT1<T>>>,
     dct2_cache: HashMap<usize, Arc<DCT2<T>>>,
     dct3_cache: HashMap<usize, Arc<DCT3<T>>>,
+    dct4_cache: HashMap<usize, Arc<DCT4<T>>>,
+    mdct_cache: HashMap<usize, Arc<MDCT<T>>>,
+    imdct_cache: HashMap<usize, Arc<IMDCT<T>>>,
 }
 impl<T: common::DCTnum> DCTplanner<T> {
     pub fn new() -> Self {
         Self {
             fft_planner: FFTplanner::new(false),
+            dct1_cache: HashMap::new(),
             dct2_cache: HashMap::new(),
             dct3_cache: HashMap::new(),
+            dct4_cache: HashMap::new(),
+            mdct_cache: HashMap::new(),
+            imdct_cache: HashMap::new(),
         }
     }
 
     /// Returns a DCT Type 1 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct1(&mut self, len: usize) -> Arc<DCT1<T>> {
+        if self.dct1_cache.contains_key(&len) {
+            Arc::clone(self.dct1_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_dct1(len);
+            self.dct1_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
+
+    fn plan_new_dct1(&mut self, len: usize) -> Arc<DCT1<T>> {
         //benchmarking shows that below about 25, it's faster to just use the naive DCT1 algorithm
         if len < 25 {
             Arc::new(DCT1Naive::new(len))
@@ -153,7 +171,16 @@ impl<T: common::DCTnum> DCTplanner<T> {
     /// Returns a DCT Type 4 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct4(&mut self, len: usize) -> Arc<DCT4<T>> {
+        if self.dct4_cache.contains_key(&len) {
+            Arc::clone(self.dct4_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_dct4(len);
+            self.dct4_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
 
+    pub fn plan_new_dct4(&mut self, len: usize) -> Arc<DCT4<T>> {
         //if we have an even size, we can use the DCT4 Via DCT3 algorithm
         if len % 2 == 0 {
             //benchmarking shows that below 6, it's faster to just use the naive DCT4 algorithm
@@ -163,9 +190,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
                 let inner_dct = self.plan_dct3(len / 2);
                 Arc::new(DCT4ViaDCT3::new(inner_dct))
             }
-
-        }
-        else {
+        } else {
             //odd size, so we can use the "DCT4 via FFT odd" algorithm
             //benchmarking shows that below about 7, it's faster to just use the naive DCT4 algorithm
             if len < 7 {
@@ -184,9 +209,18 @@ impl<T: common::DCTnum> DCTplanner<T> {
     ///
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<MDCT<T>>
-    where
-        F: FnOnce(usize) -> Vec<T>,
-    {
+    where F: (FnOnce(usize) -> Vec<T>) {
+        if self.mdct_cache.contains_key(&len) {
+            Arc::clone(self.mdct_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_mdct(len, window_fn);
+            self.mdct_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
+
+    pub fn plan_new_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<MDCT<T>>
+    where F: (FnOnce(usize) -> Vec<T>) {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
         Arc::new(MDCTViaDCT4::new(inner_dct4, window_fn))
@@ -199,9 +233,18 @@ impl<T: common::DCTnum> DCTplanner<T> {
     ///
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_imdct<F>(&mut self, len: usize, window_fn: F) -> Arc<IMDCT<T>>
-    where
-        F: FnOnce(usize) -> Vec<T>,
-    {
+    where F: (FnOnce(usize) -> Vec<T>) {
+        if self.imdct_cache.contains_key(&len) {
+            Arc::clone(self.imdct_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_imdct(len, window_fn);
+            self.imdct_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
+
+    pub fn plan_new_imdct<F>(&mut self, len: usize, window_fn: F) -> Arc<IMDCT<T>>
+    where F: (FnOnce(usize) -> Vec<T>) {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
         Arc::new(IMDCTViaDCT4::new(inner_dct4, window_fn))
