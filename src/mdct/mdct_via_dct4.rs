@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use rustfft::Length;
 
 use dct4::DCT4;
@@ -23,7 +25,7 @@ use DCTnum;
 /// dct.process(&input, &mut output);
 /// ~~~
 pub struct MDCTViaDCT4<T> {
-    dct: Box<DCT4<T>>,
+    dct: Arc<DCT4<T>>,
     dct_buffer: Box<[T]>,
     window: Box<[T]>,
 }
@@ -35,7 +37,7 @@ impl<T: DCTnum> MDCTViaDCT4<T> {
     ///
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
-    pub fn new<F>(inner_dct: Box<DCT4<T>>, window_fn: F) -> Self
+    pub fn new<F>(inner_dct: Arc<DCT4<T>>, window_fn: F) -> Self
     where
         F: FnOnce(usize) -> Vec<T>,
     {
@@ -147,7 +149,7 @@ mod unit_tests {
 
                 let mut naive_mdct = MDCTNaive::new(output_len, current_window_fn);
 
-                let inner_dct4 = Box::new(DCT4Naive::new(output_len));
+                let inner_dct4 = Arc::new(DCT4Naive::new(output_len));
                 let mut fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
 
                 naive_mdct.process(&input, &mut naive_output);

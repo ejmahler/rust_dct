@@ -54,7 +54,7 @@ impl<T: DCTnum> DCT4ViaDCT3<T> {
     }
 }
 impl<T: DCTnum> DCT4<T> for DCT4ViaDCT3<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
         let len = self.len();
         let inner_len = len / 2;
 

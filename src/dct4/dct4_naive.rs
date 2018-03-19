@@ -40,7 +40,7 @@ impl<T: DCTnum> DCT4Naive<T> {
 }
 
 impl<T: DCTnum> DCT4<T> for DCT4Naive<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
         assert_eq!(input.len(), self.len());
 
         for k in 0..output.len() {

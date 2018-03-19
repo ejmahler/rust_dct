@@ -27,8 +27,6 @@ use dct4::DCT4;
 /// ~~~
 pub struct DCT4ViaFFTOdd<T> {
     fft: Arc<FFT<T>>,
-    fft_input: Box<[Complex<T>]>,
-    fft_output: Box<[Complex<T>]>,
 }
 
 impl<T: DCTnum> DCT4ViaFFTOdd<T> {
@@ -44,14 +42,12 @@ impl<T: DCTnum> DCT4ViaFFTOdd<T> {
 
         Self {
             fft: inner_fft,
-            fft_input: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
-            fft_output: vec![Complex::new(Zero::zero(), Zero::zero()); len].into_boxed_slice(),
         }
     }
 }
 
 impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
-    fn process(&mut self, input: &mut [T], output: &mut [T]) {
+    fn process(&self, input: &mut [T], output: &mut [T]) {
 
         let len = self.len();
         assert!(input.len() == len);
@@ -59,11 +55,14 @@ impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
         let half_len = len / 2;
         let quarter_len = len / 4;
 
+        let mut buffer = vec![Complex::zero(); len * 2];
+        let (mut fft_input, mut fft_output) = buffer.split_at_mut(len);
+
         //start by reordering the input into the FFT input
         let mut input_index = half_len;
         let mut fft_index = 0;
         while input_index < len {
-            self.fft_input[fft_index] = Complex{ re: input[input_index], im: T::zero() };
+            fft_input[fft_index] = Complex{ re: input[input_index], im: T::zero() };
 
             input_index += 4;
             fft_index += 1;
@@ -72,7 +71,7 @@ impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
         //subtract len to simulate modular arithmetic
         input_index = input_index - len;
         while input_index < len {
-            self.fft_input[fft_index] = -Complex{ re: input[len - input_index - 1], im: T::zero() };
+            fft_input[fft_index] = -Complex{ re: input[len - input_index - 1], im: T::zero() };
 
             input_index += 4;
             fft_index += 1;
@@ -80,7 +79,7 @@ impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
 
         input_index = input_index - len;
         while input_index < len {
-            self.fft_input[fft_index] = -Complex{ re: input[input_index], im: T::zero() };
+            fft_input[fft_index] = -Complex{ re: input[input_index], im: T::zero() };
 
             input_index += 4;
             fft_index += 1;
@@ -88,7 +87,7 @@ impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
 
         input_index = input_index - len;
         while input_index < len {
-            self.fft_input[fft_index] = Complex{ re: input[len - input_index - 1], im: T::zero() };
+            fft_input[fft_index] = Complex{ re: input[len - input_index - 1], im: T::zero() };
 
             input_index += 4;
             fft_index += 1;
@@ -96,14 +95,14 @@ impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
 
         input_index = input_index - len;
         while fft_index < len {
-            self.fft_input[fft_index] = Complex{ re: input[input_index], im: T::zero() };
+            fft_input[fft_index] = Complex{ re: input[input_index], im: T::zero() };
 
             input_index += 4;
             fft_index += 1;
         }
 
         // run the fft
-        self.fft.process(&mut self.fft_input, &mut self.fft_output);
+        self.fft.process(&mut fft_input, &mut fft_output);
 
         let result_scale = T::SQRT_2() * T::from_f32(0.5f32).unwrap();
         let second_half_sign = if len % 4 == 1 { T::one() } else { -T::one() };
@@ -111,8 +110,8 @@ impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
         //post-process the results 4 at a time
         let mut output_sign = T::one();
         for i in 0..quarter_len {
-            let fft_result = self.fft_output[4 * i + 1] * (output_sign * result_scale);
-            let next_result = self.fft_output[4 * i + 3] * (output_sign * result_scale);
+            let fft_result = fft_output[4 * i + 1] * (output_sign * result_scale);
+            let next_result = fft_output[4 * i + 3] * (output_sign * result_scale);
 
             output[i * 2] =           fft_result.re + fft_result.im;
             output[i * 2 + 1] =      -next_result.re + next_result.im;
@@ -125,21 +124,21 @@ impl<T: DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
 
         //we either have 1 or 3 elements left over that we couldn't get in the above loop, handle them here
         if len % 4 == 1 {
-            output[half_len] =      self.fft_output[0].re * output_sign * result_scale;
+            output[half_len] = fft_output[0].re * output_sign * result_scale;
         }
         else {
-            let fft_result = self.fft_output[len - 2] * (output_sign * result_scale);
+            let fft_result = fft_output[len - 2] * (output_sign * result_scale);
 
             output[half_len - 1] =  fft_result.re + fft_result.im;
             output[half_len + 1] = -fft_result.re + fft_result.im;
-            output[half_len] =     -self.fft_output[0].re * output_sign * result_scale;
+            output[half_len] =     -fft_output[0].re * output_sign * result_scale;
         }
         
     }
 }
 impl<T> Length for DCT4ViaFFTOdd<T> {
     fn len(&self) -> usize {
-        self.fft_input.len()
+        self.fft.len()
     }
 }
 
