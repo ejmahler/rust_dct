@@ -1,3 +1,5 @@
+# Release 0.2.1
+ - Removed the `pub` keyword from some methods on the `DCTplanner` that should not have been public
 # Release 0.2.0
  - All of the `DCT#ViaFFT` algorithms now allocate a Vec for internal scratch space, rather than using a member variable, allowing them to be immutable.
  - [Breaking Change] The `process` method of all DCT traits take `&self` instead of `&mut self`
