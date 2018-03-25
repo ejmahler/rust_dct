@@ -10,10 +10,10 @@ use common;
 /// This implementation is primarily used to test other DST3 algorithms.
 ///
 /// ~~~
-/// // Computes a naive DST3 of size 123
+/// // Computes a naive DST3 of size 23
 /// use rustdct::dst::{DST3, DST3Naive};
 ///
-/// let len = 123;
+/// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///

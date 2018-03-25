@@ -11,7 +11,7 @@ use common;
 /// faster than `DCT4ViaFFT` because we don't have to pay the cost associated with converting the problem to a FFT.
 ///
 /// ~~~
-/// // Computes a naive DCT4 of size 123
+/// // Computes a naive DCT4 of size 23
 /// use rustdct::dct4::{DCT4, DCT4Naive};
 ///
 /// let len = 23;

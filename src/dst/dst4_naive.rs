@@ -10,7 +10,7 @@ use common;
 /// This implementation is primarily used to test other DST4 algorithms.
 ///
 /// ~~~
-/// // Computes a naive DST4 of size 123
+/// // Computes a naive DST4 of size 23
 /// use rustdct::dst::{DST4, DST4Naive};
 ///
 /// let len = 23;
