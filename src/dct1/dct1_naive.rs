@@ -11,10 +11,10 @@ use common;
 /// faster than `DCT1ViaFFT` because we don't have to pay the cost associated with converting the problem to a FFT.
 ///
 /// ~~~
-/// // Computes a naive DCT1 of size 123
+/// // Computes a naive DCT1 of size 23
 /// use rustdct::dct1::{DCT1, DCT1Naive};
 ///
-/// let len = 123;
+/// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///

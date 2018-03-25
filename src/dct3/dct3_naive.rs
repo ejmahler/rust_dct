@@ -11,10 +11,10 @@ use common;
 /// than `DCT3ViaFFT`.
 ///
 /// ~~~
-/// // Computes a naive DCT3 of size 123
+/// // Computes a naive DCT3 of size 23
 /// use rustdct::dct3::{DCT3, DCT3Naive};
 ///
-/// let len = 123;
+/// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///

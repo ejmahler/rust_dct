@@ -8,6 +8,7 @@ use rustdct::dct1::{DCT1, DCT1Naive};
 use rustdct::dct2::{DCT2, DCT2Naive};
 use rustdct::dct3::{DCT3, DCT3Naive};
 use rustdct::dct4::{DCT4, DCT4Naive};
+use rustdct::dst::{DST1, DST2, DST3, DST4, DST1Naive, DST2Naive, DST3Naive, DST4Naive};
 use rustdct::mdct::window_fn;
 use rustdct::DCTplanner;
 
@@ -38,6 +39,26 @@ fn test_dct3_accuracy() {
 fn test_dct4_accuracy() {
     dct_test_with_known_data!(DCT4Naive, slow_dct4, known_values_dct4);
     dct_test_with_planner!(DCT4Naive, plan_dct4, 1);
+}
+
+#[test]
+fn test_dst1_accuracy() {
+    dct_test_with_known_data!(DST1Naive, slow_dst1, known_values_dst1);
+}
+
+#[test]
+fn test_dst2_accuracy() {
+    dct_test_with_known_data!(DST2Naive, slow_dst2, known_values_dst2);
+}
+
+#[test]
+fn test_dst3_accuracy() {
+    dct_test_with_known_data!(DST3Naive, slow_dst3, known_values_dst3);
+}
+
+#[test]
+fn test_dst4_accuracy() {
+    dct_test_with_known_data!(DST4Naive, slow_dst4, known_values_dst4);
 }
 
 

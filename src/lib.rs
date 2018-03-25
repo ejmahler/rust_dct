@@ -69,6 +69,9 @@ pub mod dct3;
 /// Algorithms for computing the Discrete Cosine Transform Type 4
 pub mod dct4;
 
+/// Algorithms for computing the Discrete Sine Transforms
+pub mod dst;
+
 /// Algorithms for computing the Modified Discrete Cosine Transform
 pub mod mdct;
 

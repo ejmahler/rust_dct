@@ -14,7 +14,7 @@ use common;
 /// // Computes a naive DCT4 of size 123
 /// use rustdct::dct4::{DCT4, DCT4Naive};
 ///
-/// let len = 123;
+/// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
