@@ -24,7 +24,7 @@ use dct4::DCT4;
 /// let fft = planner.plan_fft(len);
 ///
 /// let dct = DCT4ViaFFTOdd::new(fft);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct4(&mut input, &mut output);
 /// ~~~
 pub struct DCT4ViaFFTOdd<T> {
     fft: Arc<FFT<T>>,
@@ -48,7 +48,7 @@ impl<T: common::DCTnum> DCT4ViaFFTOdd<T> {
 }
 
 impl<T: common::DCTnum> DCT4<T> for DCT4ViaFFTOdd<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let len = self.len();
@@ -167,11 +167,11 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             let mut naive_dct = DCT4Naive::new(size);
-            naive_dct.process(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct4(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
             let mut dct = DCT4ViaFFTOdd::new(fft_planner.plan_fft(size));
-            dct.process(&mut actual_input, &mut actual_output);
+            dct.process_dct4(&mut actual_input, &mut actual_output);
 
             println!("expected: {:?}", expected_output);
             println!("actual: {:?}", actual_output);

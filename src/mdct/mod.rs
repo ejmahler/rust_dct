@@ -14,17 +14,17 @@ pub trait MDCT<T: common::DCTnum>: Length {
     /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
-    fn process(&self, input: &[T], output: &mut [T]) {
+    fn process_mdct(&self, input: &[T], output: &mut [T]) {
         let (input_a, input_b) = input.split_at(output.len());
 
-        self.process_split(input_a, input_b, output);
+        self.process_mdct_split(input_a, input_b, output);
     }
 
     /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
     /// Uses `input_a` for the first half of the input, and `input_b` for the second half of the input
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
-    fn process_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]);
+    fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]);
 }
 
 /// An umbrella trait for algorithms which compute the Inverse Modified Discrete Cosine Transform (IMDCT)
@@ -33,10 +33,10 @@ pub trait IMDCT<T: common::DCTnum>: Length {
     ///
     /// To make overlapping array segments easier, this method DOES NOT zero out the output buffer, instead it adds
     /// (via operator+) the result of the IMDCT to what's already in the buffer.
-    fn process(&self, input: &[T], output: &mut [T]) {
+    fn process_imdct(&self, input: &[T], output: &mut [T]) {
         let (output_a, output_b) = output.split_at_mut(input.len());
 
-        self.process_split(input, output_a, output_b);
+        self.process_imdct_split(input, output_a, output_b);
     }
 
     /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
@@ -44,7 +44,7 @@ pub trait IMDCT<T: common::DCTnum>: Length {
     ///
     /// To make overlapping array segments easier, this method DOES NOT zero out the output buffer, instead it adds
     /// (via operator+) the result of the IMDCT to what's already in the buffer.
-    fn process_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]);
+    fn process_imdct_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]);
 }
 
 pub use self::mdct_naive::MDCTNaive;

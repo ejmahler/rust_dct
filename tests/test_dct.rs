@@ -19,46 +19,46 @@ use common::{random_signal, compare_float_vectors};
 
 #[test]
 fn test_dct1_accuracy() {
-    dct_test_with_known_data!(DCT1Naive, slow_dct1, known_values_dct1);
-    dct_test_with_planner!(DCT1Naive, plan_dct1, 2);
+    dct_test_with_known_data!(DCT1Naive, process_dct1, slow_dct1, known_values_dct1);
+    dct_test_with_planner!(DCT1Naive, process_dct1, plan_dct1, 2);
 }
 
 #[test]
 fn test_dct2_accuracy() {
-    dct_test_with_known_data!(DCT2Naive, slow_dct2, known_values_dct2);
-    dct_test_with_planner!(DCT2Naive, plan_dct2, 1);
+    dct_test_with_known_data!(DCT2Naive, process_dct2, slow_dct2, known_values_dct2);
+    dct_test_with_planner!(DCT2Naive, process_dct2, plan_dct2, 1);
 }
 
 #[test]
 fn test_dct3_accuracy() {
-    dct_test_with_known_data!(DCT3Naive, slow_dct3, known_values_dct3);
-    dct_test_with_planner!(DCT3Naive, plan_dct3, 1);
+    dct_test_with_known_data!(DCT3Naive, process_dct3, slow_dct3, known_values_dct3);
+    dct_test_with_planner!(DCT3Naive, process_dct3, plan_dct3, 1);
 }
 
 #[test]
 fn test_dct4_accuracy() {
-    dct_test_with_known_data!(DCT4Naive, slow_dct4, known_values_dct4);
-    dct_test_with_planner!(DCT4Naive, plan_dct4, 1);
+    dct_test_with_known_data!(DCT4Naive, process_dct4, slow_dct4, known_values_dct4);
+    dct_test_with_planner!(DCT4Naive, process_dct4, plan_dct4, 1);
 }
 
 #[test]
 fn test_dst1_accuracy() {
-    dct_test_with_known_data!(DST1Naive, slow_dst1, known_values_dst1);
+    dct_test_with_known_data!(DST1Naive, process_dst1, slow_dst1, known_values_dst1);
 }
 
 #[test]
 fn test_dst2_accuracy() {
-    dct_test_with_known_data!(DST2Naive, slow_dst2, known_values_dst2);
+    dct_test_with_known_data!(DST2Naive, process_dst2, slow_dst2, known_values_dst2);
 }
 
 #[test]
 fn test_dst3_accuracy() {
-    dct_test_with_known_data!(DST3Naive, slow_dst3, known_values_dst3);
+    dct_test_with_known_data!(DST3Naive, process_dst3, slow_dst3, known_values_dst3);
 }
 
 #[test]
 fn test_dst4_accuracy() {
-    dct_test_with_known_data!(DST4Naive, slow_dst4, known_values_dst4);
+    dct_test_with_known_data!(DST4Naive, process_dst4, slow_dst4, known_values_dst4);
 }
 
 

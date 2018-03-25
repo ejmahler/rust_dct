@@ -24,7 +24,7 @@ use dct3::DCT3;
 /// let half_dct = planner.plan_dct3(len / 2);
 /// 
 /// let dct = DCT3SplitRadix::new(half_dct, quarter_dct);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct3(&mut input, &mut output);
 /// ~~~
 pub struct DCT3SplitRadix<T> {
     half_dct: Arc<DCT3<T>>,
@@ -90,9 +90,9 @@ impl<T: common::DCTnum> DCT3SplitRadix<T> {
             let (recursive_output_n1, recursive_output_n3) = recursive_output_odds.split_at_mut(quarter_len);
 
             //perform our recursive DCTs
-            self.half_dct.process(recursive_input_evens, recursive_output_evens);
-            self.quarter_dct.process(recursive_input_n1, recursive_output_n1);
-            self.quarter_dct.process(recursive_input_n3, recursive_output_n3);
+            self.half_dct.process_dct3(recursive_input_evens, recursive_output_evens);
+            self.quarter_dct.process_dct3(recursive_input_n1, recursive_output_n1);
+            self.quarter_dct.process_dct3(recursive_input_n3, recursive_output_n3);
         }
 
         //we want the input array to stay split, but to placate the borrow checker it's easier to just re-split it
@@ -129,7 +129,7 @@ impl<T: common::DCTnum> DCT3SplitRadix<T> {
 }
 
 impl<T: common::DCTnum> DCT3<T> for DCT3SplitRadix<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         unsafe {
@@ -165,13 +165,13 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             let mut naive_dct = DCT3Naive::new(size);
-            naive_dct.process(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct3(&mut expected_input, &mut expected_output);
 
             let quarter_dct = Arc::new(DCT3Naive::new(size/4));
             let half_dct = Arc::new(DCT3Naive::new(size/2));
 
             let mut dct = DCT3SplitRadix::new(half_dct, quarter_dct);
-            dct.process(&mut actual_input, &mut actual_output);
+            dct.process_dct3(&mut actual_input, &mut actual_output);
 
             assert!(
                 compare_float_vectors(&actual_output, &expected_output),

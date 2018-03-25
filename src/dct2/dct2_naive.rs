@@ -19,7 +19,7 @@ use common;
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let dct = DCT2Naive::new(len);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct2(&mut input, &mut output);
 /// ~~~
 pub struct DCT2Naive<T> {
     twiddles: Box<[T]>,
@@ -41,7 +41,7 @@ impl<T: common::DCTnum> DCT2Naive<T> {
 }
 
 impl<T: common::DCTnum> DCT2<T> for DCT2Naive<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         for k in 0..output.len() {

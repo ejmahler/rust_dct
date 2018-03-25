@@ -18,7 +18,7 @@ use common;
 /// let mut output: Vec<f32> = vec![0f32; len * 2];
 ///
 /// let dct = IMDCTNaive::new(len, window_fn::mp3);
-/// dct.process(&input, &mut output);
+/// dct.process_imdct(&input, &mut output);
 /// ~~~
 
 pub struct IMDCTNaive<T> {
@@ -57,7 +57,7 @@ impl<T: common::DCTnum> IMDCTNaive<T> {
 }
 
 impl<T: common::DCTnum> IMDCT<T> for IMDCTNaive<T> {
-    fn process_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
+    fn process_imdct_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
         common::verify_length(input, output_a, self.len());
         assert_eq!(output_a.len(), output_b.len());
 
@@ -168,7 +168,7 @@ mod unit_tests {
             let mut fast_output = vec![0f32; input.len() * 2];
 
             let mut dct = IMDCTNaive::new(input.len(), window_fn::one);
-            dct.process(&input, &mut fast_output);
+            dct.process_imdct(&input, &mut fast_output);
 
             assert!(compare_float_vectors(&expected, &slow_output));
             assert!(compare_float_vectors(&expected, &fast_output));
@@ -225,7 +225,7 @@ mod unit_tests {
             let mut fast_output = vec![0f32; input.len() * 2];
 
             let mut dct = IMDCTNaive::new(input.len(), window_fn::mp3);
-            dct.process(&input, &mut fast_output);
+            dct.process_imdct(&input, &mut fast_output);
 
             assert!(compare_float_vectors(&expected, &slow_output));
             assert!(compare_float_vectors(&expected, &fast_output));
@@ -246,7 +246,7 @@ mod unit_tests {
                 let mut fast_output = vec![0f32; output_len];
 
                 let mut dct = IMDCTNaive::new(input_len, current_window_fn);
-                dct.process(&mut input, &mut fast_output);
+                dct.process_imdct(&mut input, &mut fast_output);
 
                 assert!(
                     compare_float_vectors(&slow_output, &fast_output),

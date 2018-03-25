@@ -19,7 +19,7 @@ use common;
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let dct = DCT3Naive::new(len);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct3(&mut input, &mut output);
 /// ~~~
 pub struct DCT3Naive<T> {
     twiddles: Box<[T]>,
@@ -41,7 +41,7 @@ impl<T: common::DCTnum> DCT3Naive<T> {
 }
 
 impl<T: common::DCTnum> DCT3<T> for DCT3Naive<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let half_first = T::from_f32(0.5f32).unwrap() * input[0];

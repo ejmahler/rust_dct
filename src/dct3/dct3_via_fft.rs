@@ -23,7 +23,7 @@ use dct3::DCT3;
 /// let fft = planner.plan_fft(len);
 ///
 /// let dct = DCT3ViaFFT::new(fft);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct3(&mut input, &mut output);
 /// ~~~
 pub struct DCT3ViaFFT<T> {
     fft: Arc<FFT<T>>,
@@ -55,7 +55,7 @@ impl<T: common::DCTnum> DCT3ViaFFT<T> {
 }
 
 impl<T: common::DCTnum> DCT3<T> for DCT3ViaFFT<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let mut buffer = vec![Complex::zero(); self.len() * 2];
@@ -118,11 +118,11 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             let mut naive_dct = DCT3Naive::new(size);
-            naive_dct.process(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct3(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
             let mut dct = DCT3ViaFFT::new(fft_planner.plan_fft(size));
-            dct.process(&mut actual_input, &mut actual_output);
+            dct.process_dct3(&mut actual_input, &mut actual_output);
 
             assert!(
                 compare_float_vectors(&actual_output, &expected_output),

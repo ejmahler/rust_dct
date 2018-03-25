@@ -12,7 +12,7 @@ pub trait DST1<T: common::DCTnum>: Length {
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
     /// after calling
-    fn process(&self, input: &mut [T], output: &mut [T]);
+    fn process_dst1(&self, input: &mut [T], output: &mut [T]);
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 2 (DST2)
@@ -21,7 +21,7 @@ pub trait DST2<T: common::DCTnum>: Length {
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
     /// after calling
-    fn process(&self, input: &mut [T], output: &mut [T]);
+    fn process_dst2(&self, input: &mut [T], output: &mut [T]);
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 3 (DST3)
@@ -30,7 +30,7 @@ pub trait DST3<T: common::DCTnum>: Length {
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
     /// after calling
-    fn process(&self, input: &mut [T], output: &mut [T]);
+    fn process_dst3(&self, input: &mut [T], output: &mut [T]);
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 4 (DST4)
@@ -39,7 +39,7 @@ pub trait DST4<T: common::DCTnum>: Length {
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
     /// after calling
-    fn process(&self, input: &mut [T], output: &mut [T]);
+    fn process_dst4(&self, input: &mut [T], output: &mut [T]);
 }
 
 pub use self::dst1_naive::DST1Naive;

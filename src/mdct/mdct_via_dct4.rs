@@ -24,7 +24,7 @@ use common;
 /// let inner_dct4 = planner.plan_dct4(len);
 /// 
 /// let dct = MDCTViaDCT4::new(inner_dct4, window_fn::mp3);
-/// dct.process(&input, &mut output);
+/// dct.process_mdct(&input, &mut output);
 /// ~~~
 pub struct MDCTViaDCT4<T> {
     dct: Arc<DCT4<T>>,
@@ -56,7 +56,7 @@ impl<T: common::DCTnum> MDCTViaDCT4<T> {
     }
 }
 impl<T: common::DCTnum> MDCT<T> for MDCTViaDCT4<T> {
-    fn process_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
+    fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
 
@@ -107,7 +107,7 @@ impl<T: common::DCTnum> MDCT<T> for MDCTViaDCT4<T> {
             *element = a_val - br_val;
         }
 
-        self.dct.process(&mut dct_buffer, output);
+        self.dct.process_dct4(&mut dct_buffer, output);
     }
 }
 impl<T> Length for MDCTViaDCT4<T> {
@@ -149,8 +149,8 @@ mod unit_tests {
                 let inner_dct4 = Arc::new(DCT4Naive::new(output_len));
                 let mut fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
 
-                naive_mdct.process(&input, &mut naive_output);
-                fast_mdct.process(&input, &mut fast_output);
+                naive_mdct.process_mdct(&input, &mut naive_output);
+                fast_mdct.process_mdct(&input, &mut fast_output);
 
                 assert!(
                     compare_float_vectors(&naive_output, &fast_output),

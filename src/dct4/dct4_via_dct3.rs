@@ -27,7 +27,7 @@ use dct3::DCT3;
 /// let inner_dct3 = planner.plan_dct3(len / 2);
 /// 
 /// let dct = DCT4ViaDCT3::new(inner_dct3);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct4(&mut input, &mut output);
 /// ~~~
 pub struct DCT4ViaDCT3<T> {
     inner_dct: Arc<DCT3<T>>,
@@ -52,7 +52,7 @@ impl<T: common::DCTnum> DCT4ViaDCT3<T> {
     }
 }
 impl<T: common::DCTnum> DCT4<T> for DCT4ViaDCT3<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let len = self.len();
@@ -72,8 +72,8 @@ impl<T: common::DCTnum> DCT4<T> for DCT4ViaDCT3<T> {
         //run the two inner DCTs on our separated arrays
         let (mut inner_result_cosine, mut inner_result_sine) = input.split_at_mut(inner_len);
 
-        self.inner_dct.process(&mut output_left, &mut inner_result_cosine);
-        self.inner_dct.process(&mut output_right, &mut inner_result_sine);
+        self.inner_dct.process_dct3(&mut output_left, &mut inner_result_cosine);
+        self.inner_dct.process_dct3(&mut output_right, &mut inner_result_sine);
 
         //post-process the data by combining it back into a single array
         for k in 0..inner_len {
@@ -121,11 +121,11 @@ mod test {
 
             
             let mut naive_dct4 = DCT4Naive::new(size);
-            naive_dct4.process(&mut expected_input, &mut expected_output);
+            naive_dct4.process_dct4(&mut expected_input, &mut expected_output);
 
             let inner_dct3 =Arc::new(DCT3Naive::new(inner_size));
             let mut dct = DCT4ViaDCT3::new(inner_dct3);
-            dct.process(&mut actual_input, &mut actual_output);
+            dct.process_dct4(&mut actual_input, &mut actual_output);
 
             let divided: Vec<f32> = expected_output
                 .iter()

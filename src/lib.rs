@@ -20,7 +20,7 @@
 //!
 //! let mut planner = DCTplanner::new();
 //! let dct = planner.plan_dct2(1234);
-//! dct.process(&mut input, &mut output);
+//! dct.process_dct2(&mut input, &mut output);
 //!
 //! // The DCT instance returned by the planner is stored behind an `Arc`, so it's cheap to clone
 //! let dct_clone = Arc::clone(&dct);
@@ -43,8 +43,8 @@
 //! let dct2 = DCT2Butterfly8::new();
 //! let dct3 = DCT3Butterfly8::new();
 //! 
-//! dct2.process(&mut input, &mut intermediate);
-//! dct3.process(&mut intermediate, &mut output);
+//! dct2.process_dct2(&mut input, &mut intermediate);
+//! dct3.process_dct3(&mut intermediate, &mut output);
 //! ```
 
 

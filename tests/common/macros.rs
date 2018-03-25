@@ -3,7 +3,7 @@ use rustdct::DCTplanner;
 use common::{random_signal, compare_float_vectors};
 
 macro_rules! dct_test_with_known_data {
-    ($naive_struct:ident, $slow_fn:ident, $known_data_fn:ident) => (
+    ($naive_struct:ident, $process_fn: ident, $slow_fn:ident, $known_data_fn:ident) => (
         // Compare our naive struct and our slow_fn implementation against a bunch of known data
         let known_data = $known_data_fn();
         for entry in known_data {
@@ -14,7 +14,7 @@ macro_rules! dct_test_with_known_data {
             let mut naive_output = vec![0.0; len];
 
             let naive_dct = $naive_struct::new(len);
-            naive_dct.process(&mut naive_input, &mut naive_output);
+            naive_dct.$process_fn(&mut naive_input, &mut naive_output);
 
             let slow_output = $slow_fn(&entry.input);
 
@@ -30,7 +30,7 @@ macro_rules! dct_test_with_known_data {
 }
 
 macro_rules! dct_test_with_planner {
-    ($naive_struct:ident, $planner_fn:ident, $first_size:expr) => (
+    ($naive_struct:ident, $process_fn: ident, $planner_fn:ident, $first_size:expr) => (
         // Compare our naive struct against the output from the planner
         for len in $first_size..20 {
             let input = random_signal(len);
@@ -48,8 +48,8 @@ macro_rules! dct_test_with_planner {
 
             assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length. Expected {}, got {}", len, actual_dct.len());
 
-            naive_dct.process(&mut naive_input, &mut naive_output);
-            actual_dct.process(&mut actual_input, &mut actual_output);
+            naive_dct.$process_fn(&mut naive_input, &mut naive_output);
+            actual_dct.$process_fn(&mut actual_input, &mut actual_output);
 
             println!("input:          {:?}", input);
             println!("expected output:{:?}", naive_output);
@@ -88,8 +88,8 @@ pub mod test_mdct {
             "Planner created a DCT of incorrect length"
         );
 
-        naive_dct.process(&mut naive_input, &mut naive_output);
-        actual_dct.process(&mut actual_input, &mut actual_output);
+        naive_dct.process_mdct(&mut naive_input, &mut naive_output);
+        actual_dct.process_mdct(&mut actual_input, &mut actual_output);
 
         println!("Naive output:   {:?}", naive_output);
         println!("Planned output: {:?}", actual_output);
@@ -119,13 +119,13 @@ pub mod test_mdct {
             let input_chunk = &input[len * i..(len * (i + 2))];
             let output_chunk = &mut output[len * i..(len * (i + 1))];
 
-            forward_dct.process(input_chunk, output_chunk);
+            forward_dct.process_mdct(input_chunk, output_chunk);
         }
         for i in 0..NUM_SEGMENTS {
             let input_chunk = &output[len * i..(len * (i + 1))];
             let output_chunk = &mut inverse[len * i..(len * (i + 2))];
 
-            inverse_dct.process(input_chunk, output_chunk);
+            inverse_dct.process_imdct(input_chunk, output_chunk);
         }
 
         //we have to scale the inverse by 1/len
@@ -171,8 +171,8 @@ pub mod test_imdct {
             "Planner created a DCT of incorrect length"
         );
 
-        naive_dct.process(&mut naive_input, &mut naive_output);
-        actual_dct.process(&mut actual_input, &mut actual_output);
+        naive_dct.process_imdct(&mut naive_input, &mut naive_output);
+        actual_dct.process_imdct(&mut actual_input, &mut actual_output);
 
         println!("Naive output:   {:?}", naive_output);
         println!("Planned output: {:?}", actual_output);

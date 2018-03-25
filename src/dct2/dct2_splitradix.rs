@@ -23,7 +23,7 @@ use dct2::DCT2;
 /// let half_dct = planner.plan_dct2(len / 2);
 ///
 /// let dct = DCT2SplitRadix::new(half_dct, quarter_dct);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct2(&mut input, &mut output);
 /// ~~~
 pub struct DCT2SplitRadix<T> {
     half_dct: Arc<DCT2<T>>,
@@ -95,9 +95,9 @@ impl<T: common::DCTnum> DCT2SplitRadix<T> {
             let (output_dct2, output_dct4) = input.split_at_mut(half_len);
             let (output_dct4_even, output_dct4_odd) = output_dct4.split_at_mut(quarter_len);
 
-            self.half_dct.process(input_dct2, output_dct2);
-            self.quarter_dct.process(input_dct4_even, output_dct4_even);
-            self.quarter_dct.process(input_dct4_odd, output_dct4_odd);
+            self.half_dct.process_dct2(input_dct2, output_dct2);
+            self.quarter_dct.process_dct2(input_dct4_even, output_dct4_even);
+            self.quarter_dct.process_dct2(input_dct4_odd, output_dct4_odd);
         }
 
 
@@ -131,7 +131,7 @@ impl<T: common::DCTnum> DCT2SplitRadix<T> {
 }
 
 impl<T: common::DCTnum> DCT2<T> for DCT2SplitRadix<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         unsafe {
@@ -170,13 +170,13 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             let naive_dct = DCT2Naive::new(size);
-            naive_dct.process(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct2(&mut expected_input, &mut expected_output);
 
             let quarter_dct = Arc::new(DCT2Naive::new(size/4));
             let half_dct = Arc::new(DCT2Naive::new(size/2));
 
             let dct = DCT2SplitRadix::new(half_dct, quarter_dct);
-            dct.process(&mut actual_input, &mut actual_output);
+            dct.process_dct2(&mut actual_input, &mut actual_output);
 
             println!("input:       {:?}", expected_input);
             println!("expected:    {:?}", expected_output);

@@ -23,7 +23,7 @@ use dct2::DCT2;
 /// let fft = planner.plan_fft(len);
 ///
 /// let dct = DCT2ViaFFT::new(fft);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct2(&mut input, &mut output);
 /// ~~~
 pub struct DCT2ViaFFT<T> {
     fft: Arc<FFT<T>>,
@@ -53,7 +53,7 @@ impl<T: common::DCTnum> DCT2ViaFFT<T> {
 }
 
 impl<T: common::DCTnum> DCT2<T> for DCT2ViaFFT<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let mut buffer = vec![Complex::zero(); self.len() * 2];
@@ -114,11 +114,11 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             let naive_dct = DCT2Naive::new(size);
-            naive_dct.process(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct2(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
             let dct = DCT2ViaFFT::new(fft_planner.plan_fft(size));
-            dct.process(&mut actual_input, &mut actual_output);
+            dct.process_dct2(&mut actual_input, &mut actual_output);
 
             println!("{}", size);
             println!("expected: {:?}", actual_output);

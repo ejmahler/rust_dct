@@ -27,7 +27,7 @@ impl DCT3Butterfly2 {
 	}
 }
 impl<T: common::DCTnum> DCT3<T> for DCT3Butterfly2 {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
 		let half_0 = input[0] * T::from_f32(0.5).unwrap();
@@ -70,7 +70,7 @@ impl<T: common::DCTnum> DCT3Butterfly4<T> {
 	}
 }
 impl<T: common::DCTnum> DCT3<T> for DCT3Butterfly4<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 		
         output.copy_from_slice(input);
@@ -142,7 +142,7 @@ impl<T: common::DCTnum> DCT3Butterfly8<T> {
 	}
 }
 impl<T: common::DCTnum> DCT3<T> for DCT3Butterfly8<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 		
         output.copy_from_slice(input);
@@ -228,7 +228,7 @@ impl<T: common::DCTnum> DCT3Butterfly16<T> {
 	}
 }
 impl<T: common::DCTnum> DCT3<T> for DCT3Butterfly16<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 		
         output.copy_from_slice(input);
@@ -269,11 +269,11 @@ mod test {
 		        let mut actual_output = expected_output.clone();
 
 		        // perform the test
-		        naive.process(&mut expected_input, &mut expected_output);
+		        naive.process_dct3(&mut expected_input, &mut expected_output);
 
 		        unsafe { butterfly.process_inplace(&mut inplace_buffer); }
 
-		        butterfly.process(&mut actual_input, &mut actual_output);
+		        butterfly.process_dct3(&mut actual_input, &mut actual_output);
 		        println!("");
 		        println!("expected output: {:?}", expected_output);
 		        println!("inplace output:  {:?}", inplace_buffer);

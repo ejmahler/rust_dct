@@ -18,7 +18,7 @@ use common;
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let dst = DST3Naive::new(len);
-/// dst.process(&mut input, &mut output);
+/// dst.process_dst3(&mut input, &mut output);
 /// ~~~
 pub struct DST3Naive<T> {
     twiddles: Box<[T]>,
@@ -40,7 +40,7 @@ impl<T: common::DCTnum> DST3Naive<T> {
 }
 
 impl<T: common::DCTnum> DST3<T> for DST3Naive<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         // scale the last input value by half before going into the loop

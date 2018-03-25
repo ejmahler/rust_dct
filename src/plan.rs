@@ -29,7 +29,7 @@ const DCT3_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 ///
 /// let mut planner = DCTplanner::new();
 /// let dct4 = planner.plan_dct4(1234);
-/// dct4.process(&mut input, &mut output);
+/// dct4.process_dct4(&mut input, &mut output);
 /// 
 /// // The DCT instance returned by the planner is stored behind an `Arc`, so it's cheap to clone
 /// let dct4_clone = Arc::clone(&dct4);

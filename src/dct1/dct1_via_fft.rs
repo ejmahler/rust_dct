@@ -22,7 +22,7 @@ use dct1::DCT1;
 /// let fft = planner.plan_fft(2 * (len - 1));
 ///
 /// let dct = DCT1ViaFFT::new(fft);
-/// dct.process(&mut input, &mut output);
+/// dct.process_dct1(&mut input, &mut output);
 /// ~~~
 pub struct DCT1ViaFFT<T> {
     fft: Arc<FFT<T>>,
@@ -51,7 +51,7 @@ impl<T: common::DCTnum> DCT1ViaFFT<T> {
 }
 
 impl<T: common::DCTnum> DCT1<T> for DCT1ViaFFT<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dct1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let inner_len = self.fft.len();
@@ -112,7 +112,7 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             let mut naive_dct = DCT1Naive::new(size);
-            naive_dct.process(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct1(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
             let inner_fft = fft_planner.plan_fft((size - 1) * 2);
@@ -122,7 +122,7 @@ mod test {
 
             let mut dct = DCT1ViaFFT::new(inner_fft);
             println!("dct len: {}", dct.len());
-            dct.process(&mut actual_input, &mut actual_output);
+            dct.process_dct1(&mut actual_input, &mut actual_output);
 
             assert!(
                 compare_float_vectors(&actual_output, &expected_output),

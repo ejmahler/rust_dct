@@ -18,7 +18,7 @@ use common;
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let dct = MDCTNaive::new(len, window_fn::mp3);
-/// dct.process(&input, &mut output);
+/// dct.process_mdct(&input, &mut output);
 /// ~~~
 pub struct MDCTNaive<T> {
     twiddles: Box<[T]>,
@@ -56,7 +56,7 @@ impl<T: common::DCTnum> MDCTNaive<T> {
 }
 
 impl<T: common::DCTnum> MDCT<T> for MDCTNaive<T> {
-    fn process_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
+    fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
 
@@ -211,7 +211,7 @@ mod unit_tests {
 
                 let mut dct = MDCTNaive::new(output_len, current_window_fn);
 
-                dct.process(&mut input, &mut fast_output);
+                dct.process_mdct(&mut input, &mut fast_output);
 
                 println!("{}", output_len);
                 println!("expected: {:?}", slow_output);

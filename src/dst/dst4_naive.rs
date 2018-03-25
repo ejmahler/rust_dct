@@ -18,7 +18,7 @@ use common;
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let dst = DST4Naive::new(len);
-/// dst.process(&mut input, &mut output);
+/// dst.process_dst4(&mut input, &mut output);
 /// ~~~
 pub struct DST4Naive<T> {
     twiddles: Box<[T]>,
@@ -35,14 +35,12 @@ impl<T: common::DCTnum> DST4Naive<T> {
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        println!("dst4 twiddles: {:?}", twiddles);
-
         Self { twiddles: twiddles.into_boxed_slice() }
     }
 }
 
 impl<T: common::DCTnum> DST4<T> for DST4Naive<T> {
-    fn process(&self, input: &mut [T], output: &mut [T]) {
+    fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         for k in 0..output.len() {
