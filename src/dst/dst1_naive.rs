@@ -2,7 +2,7 @@ use std::f64;
 
 use rustfft::Length;
 
-use dst::DST1;
+use ::DST1;
 use common;
 
 /// Naive O(n^2 ) DST Type 1 implementation
@@ -11,7 +11,8 @@ use common;
 ///
 /// ~~~
 /// // Computes a naive DST1 of size 23
-/// use rustdct::dst::{DST1, DST1Naive};
+/// use rustdct::DST1;
+/// use rustdct::dst::DST1Naive;
 ///
 /// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];

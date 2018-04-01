@@ -13,7 +13,7 @@ fn bench_dct1_planned(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct1(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -36,7 +36,7 @@ fn bench_dct2_planned(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct2(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -60,7 +60,7 @@ fn bench_dct3_planned(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct3(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -84,7 +84,7 @@ fn bench_dct4_planned(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct4(&mut signal, &mut spectrum); });
 }
 
 #[bench]

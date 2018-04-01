@@ -5,13 +5,14 @@ use rustfft::Length;
 
 use common;
 use twiddles;
-use dct2::DCT2;
+use ::DCT2;
 
 /// DCT Type 2 implemention that recursively divides the problem in half. The problem size must be a power of two.
 ///
 /// ~~~
 /// // Computes a DCT Type 2 of size 1024
-/// use rustdct::dct2::{DCT2, DCT2SplitRadix};
+/// use rustdct::DCT2;
+/// use rustdct::dct2::DCT2SplitRadix;
 /// use rustdct::DCTplanner;
 ///
 /// let len = 1024;
@@ -41,7 +42,7 @@ impl<T: common::DCTnum> DCT2SplitRadix<T> {
         );
 
         let twiddles: Vec<Complex<T>> = (0..(len/4))
-            .map(|i| twiddles::single_twiddle(2 * i + 1, len * 4, true))
+            .map(|i| twiddles::single_twiddle(2 * i + 1, len * 4).conj())
             .collect();
 
         Self {
@@ -151,7 +152,7 @@ impl<T> Length for DCT2SplitRadix<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use dct2::DCT2Naive;
+    use algorithm::NaiveType23;
 
     use test_utils::{compare_float_vectors, random_signal};
 
@@ -169,11 +170,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let naive_dct = DCT2Naive::new(size);
+            let naive_dct = NaiveType23::new(size);
             naive_dct.process_dct2(&mut expected_input, &mut expected_output);
 
-            let quarter_dct = Arc::new(DCT2Naive::new(size/4));
-            let half_dct = Arc::new(DCT2Naive::new(size/2));
+            let quarter_dct = Arc::new(NaiveType23::new(size/4));
+            let half_dct = Arc::new(NaiveType23::new(size/2));
 
             let dct = DCT2SplitRadix::new(half_dct, quarter_dct);
             dct.process_dct2(&mut actual_input, &mut actual_output);

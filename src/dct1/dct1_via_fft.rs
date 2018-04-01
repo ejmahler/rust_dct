@@ -5,13 +5,14 @@ use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
 use common;
-use dct1::DCT1;
+use ::DCT1;
 
 /// DCT Type 1 implementation that converts the problem into an O(nlogn) FFT of size 2 * (n - 1)
 ///
 /// ~~~
 /// // Computes a DCT Type 1 of size 1234
-/// use rustdct::dct1::{DCT1, DCT1ViaFFT};
+/// use rustdct::DCT1;
+/// use rustdct::dct1::DCT1ViaFFT;
 /// use rustdct::rustfft::FFTplanner;
 ///
 /// let len = 1234;
@@ -95,7 +96,7 @@ impl<T> Length for DCT1ViaFFT<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use dct1::DCT1Naive;
+    use algorithm::NaiveDCT1;
 
     use test_utils::{compare_float_vectors, random_signal};
     use rustfft::FFTplanner;
@@ -111,7 +112,7 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = DCT1Naive::new(size);
+            let mut naive_dct = NaiveDCT1::new(size);
             naive_dct.process_dct1(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);

@@ -3,7 +3,7 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use twiddles;
-use dct2::DCT2;
+use ::DCT2;
 use common;
 
 pub struct DCT2Butterfly2 {}
@@ -42,7 +42,7 @@ pub struct DCT2Butterfly4<T> {
 impl<T: common::DCTnum> DCT2Butterfly4<T> {
 	pub fn new() -> Self {
 		Self {
-			twiddle: twiddles::single_twiddle(1,16,true)
+			twiddle: twiddles::single_twiddle(1,16).conj()
 		}
 	}
 	pub unsafe fn process_inplace(&self, buffer: &mut [T]) {
@@ -85,8 +85,8 @@ impl<T: common::DCTnum> DCT2Butterfly8<T> {
 		Self {
 			butterfly4: DCT2Butterfly4::new(),
 			butterfly2: DCT2Butterfly2::new(),
-			twiddle0: twiddles::single_twiddle(1,32,true),
-			twiddle1: twiddles::single_twiddle(3,32,true),
+			twiddle0: twiddles::single_twiddle(1,32).conj(),
+			twiddle1: twiddles::single_twiddle(3,32).conj(),
 		}
 	}
 	pub unsafe fn process_inplace(&self, buffer: &mut [T]) {
@@ -160,10 +160,10 @@ impl<T: common::DCTnum> DCT2Butterfly16<T> {
 		Self {
 			butterfly8: DCT2Butterfly8::new(),
 			butterfly4: DCT2Butterfly4::new(),
-			twiddle0: twiddles::single_twiddle(1,64,true),
-			twiddle1: twiddles::single_twiddle(3,64,true),
-			twiddle2: twiddles::single_twiddle(5,64,true),
-			twiddle3: twiddles::single_twiddle(7,64,true),
+			twiddle0: twiddles::single_twiddle(1,64).conj(),
+			twiddle1: twiddles::single_twiddle(3,64).conj(),
+			twiddle2: twiddles::single_twiddle(5,64).conj(),
+			twiddle3: twiddles::single_twiddle(7,64).conj(),
 		}
 	}
 	pub unsafe fn process_inplace(&self, buffer: &mut [T]) {
@@ -247,7 +247,7 @@ impl<T> Length for DCT2Butterfly16<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use dct2::DCT2Naive;
+	use algorithm::NaiveType23;
     use test_utils::{compare_float_vectors, random_signal};
 
      //the tests for all butterflies will be identical except for the identifiers used and size
@@ -260,7 +260,7 @@ mod test {
                 let size = $size;
                 println!("{}", size);
 
-                let naive = DCT2Naive::new(size);
+                let naive = NaiveType23::new(size);
 
 		        // set up buffers
 		        let mut expected_input = random_signal(size);

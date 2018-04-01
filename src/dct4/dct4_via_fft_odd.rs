@@ -5,7 +5,7 @@ use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
 use common;
-use dct4::DCT4;
+use ::DCT4;
 
 /// DCT Type 4 implementation that converts the problem into an O(nlogn) FFT of the same size. 
 ///
@@ -13,7 +13,8 @@ use dct4::DCT4;
 ///
 /// ~~~
 /// // Computes a DCT Type 4 of size 1233
-/// use rustdct::dct4::{DCT4, DCT4ViaFFTOdd};
+/// use rustdct::DCT4;
+/// use rustdct::dct4::DCT4ViaFFTOdd;
 /// use rustdct::rustfft::FFTplanner;
 ///
 /// let len = 1233;
@@ -146,7 +147,7 @@ impl<T> Length for DCT4ViaFFTOdd<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use dct4::DCT4Naive;
+    use algorithm::NaiveType4;
 
     use test_utils::{compare_float_vectors, random_signal};
     use rustfft::FFTplanner;
@@ -166,7 +167,7 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = DCT4Naive::new(size);
+            let mut naive_dct = NaiveType4::new(size);
             naive_dct.process_dct4(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);

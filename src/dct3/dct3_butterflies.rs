@@ -3,7 +3,7 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use twiddles;
-use dct3::DCT3;
+use ::DCT3;
 use common;
 
 pub struct DCT3Butterfly2 {}
@@ -49,7 +49,7 @@ pub struct DCT3Butterfly4<T> {
 impl<T: common::DCTnum> DCT3Butterfly4<T> {
 	pub fn new() -> Self {
 		Self {
-			twiddle: twiddles::single_twiddle(1,16,true)
+			twiddle: twiddles::single_twiddle(1,16).conj()
 		}
 	}
 	pub unsafe fn process_inplace(&self, buffer: &mut [T]) {
@@ -93,7 +93,7 @@ impl<T: common::DCTnum> DCT3Butterfly8<T> {
 		Self {
 			butterfly4: DCT3Butterfly4::new(),
 			butterfly2: DCT3Butterfly2::new(),
-			twiddles: [twiddles::single_twiddle(1,32,true), twiddles::single_twiddle(3,32,true)]
+			twiddles: [twiddles::single_twiddle(1,32).conj(), twiddles::single_twiddle(3,32).conj()]
 		}
 	}
 	pub unsafe fn process_inplace(&self, buffer: &mut [T]) {
@@ -166,10 +166,10 @@ impl<T: common::DCTnum> DCT3Butterfly16<T> {
 			butterfly8: DCT3Butterfly8::new(),
 			butterfly4: DCT3Butterfly4::new(),
 			twiddles: [ 
-				twiddles::single_twiddle(1,64,true),
-				twiddles::single_twiddle(3,64,true),
-				twiddles::single_twiddle(5,64,true),
-				twiddles::single_twiddle(7,64,true),
+				twiddles::single_twiddle(1,64).conj(),
+				twiddles::single_twiddle(3,64).conj(),
+				twiddles::single_twiddle(5,64).conj(),
+				twiddles::single_twiddle(7,64).conj(),
 			],
 		}
 	}
@@ -244,7 +244,7 @@ impl<T> Length for DCT3Butterfly16<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use dct3::DCT3Naive;
+   	use algorithm::NaiveType23;
     use test_utils::{compare_float_vectors, random_signal};
 
      //the tests for all butterflies will be identical except for the identifiers used and size
@@ -257,7 +257,7 @@ mod test {
                 let size = $size;
                 println!("{}", size);
 
-                let naive = DCT3Naive::new(size);
+                let naive = NaiveType23::new(size);
 
 		        // set up buffers
 		        let mut expected_input = random_signal(size);

@@ -4,11 +4,8 @@ extern crate rand;
 #[macro_use]
 mod common;
 
-use rustdct::dct1::{DCT1, DCT1Naive};
-use rustdct::dct2::{DCT2, DCT2Naive};
-use rustdct::dct3::{DCT3, DCT3Naive};
-use rustdct::dct4::{DCT4, DCT4Naive};
-use rustdct::dst::{DST1, DST2, DST3, DST4, DST1Naive, DST2Naive, DST3Naive, DST4Naive};
+use rustdct::{DCT1,  DCT2, DCT3, DCT4, DST1, DST2, DST3, DST4};
+use rustdct::algorithm::{NaiveDCT1, NaiveDST1, NaiveType23, NaiveType4};
 use rustdct::mdct::window_fn;
 use rustdct::DCTplanner;
 
@@ -19,46 +16,46 @@ use common::{random_signal, compare_float_vectors};
 
 #[test]
 fn test_dct1_accuracy() {
-    dct_test_with_known_data!(DCT1Naive, process_dct1, slow_dct1, known_values_dct1);
-    dct_test_with_planner!(DCT1Naive, process_dct1, plan_dct1, 2);
+    dct_test_with_known_data!(NaiveDCT1, process_dct1, slow_dct1, known_values_dct1);
+    dct_test_with_planner!(NaiveDCT1, process_dct1, plan_dct1, 2);
 }
 
 #[test]
 fn test_dct2_accuracy() {
-    dct_test_with_known_data!(DCT2Naive, process_dct2, slow_dct2, known_values_dct2);
-    dct_test_with_planner!(DCT2Naive, process_dct2, plan_dct2, 1);
+    dct_test_with_known_data!(NaiveType23, process_dct2, slow_dct2, known_values_dct2);
+    dct_test_with_planner!(NaiveType23, process_dct2, plan_dct2, 1);
 }
 
 #[test]
 fn test_dct3_accuracy() {
-    dct_test_with_known_data!(DCT3Naive, process_dct3, slow_dct3, known_values_dct3);
-    dct_test_with_planner!(DCT3Naive, process_dct3, plan_dct3, 1);
+    dct_test_with_known_data!(NaiveType23, process_dct3, slow_dct3, known_values_dct3);
+    dct_test_with_planner!(NaiveType23, process_dct3, plan_dct3, 1);
 }
 
 #[test]
 fn test_dct4_accuracy() {
-    dct_test_with_known_data!(DCT4Naive, process_dct4, slow_dct4, known_values_dct4);
-    dct_test_with_planner!(DCT4Naive, process_dct4, plan_dct4, 1);
+    dct_test_with_known_data!(NaiveType4, process_dct4, slow_dct4, known_values_dct4);
+    dct_test_with_planner!(NaiveType4, process_dct4, plan_dct4, 1);
 }
 
 #[test]
 fn test_dst1_accuracy() {
-    dct_test_with_known_data!(DST1Naive, process_dst1, slow_dst1, known_values_dst1);
+    dct_test_with_known_data!(NaiveDST1, process_dst1, slow_dst1, known_values_dst1);
 }
 
 #[test]
 fn test_dst2_accuracy() {
-    dct_test_with_known_data!(DST2Naive, process_dst2, slow_dst2, known_values_dst2);
+    dct_test_with_known_data!(NaiveType23, process_dst2, slow_dst2, known_values_dst2);
 }
 
 #[test]
 fn test_dst3_accuracy() {
-    dct_test_with_known_data!(DST3Naive, process_dst3, slow_dst3, known_values_dst3);
+    dct_test_with_known_data!(NaiveType23, process_dst3, slow_dst3, known_values_dst3);
 }
 
 #[test]
 fn test_dst4_accuracy() {
-    dct_test_with_known_data!(DST4Naive, process_dst4, slow_dst4, known_values_dst4);
+    dct_test_with_known_data!(NaiveType4, process_dst4, slow_dst4, known_values_dst4);
 }
 
 

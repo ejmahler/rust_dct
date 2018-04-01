@@ -6,13 +6,14 @@ use rustfft::{FFT, Length};
 
 use common;
 use twiddles;
-use dct3::DCT3;
+use ::DCT3;
 
 /// DCT Type 3 implementation that converts the problem into an O(nlogn) FFT of the same size
 ///
 /// ~~~
 /// // Computes a DCT Type 3 of size 1234
-/// use rustdct::dct3::{DCT3, DCT3ViaFFT};
+/// use rustdct::DCT3;
+/// use rustdct::dct3::DCT3ViaFFT;
 /// use rustdct::rustfft::FFTplanner;
 ///
 /// let len = 1234;
@@ -44,7 +45,7 @@ impl<T: common::DCTnum> DCT3ViaFFT<T> {
         let half = T::from_f32(0.5f32).unwrap();
 
         let twiddles: Vec<Complex<T>> = (0..len)
-            .map(|i| twiddles::single_twiddle(i, len * 4, false) * half)
+            .map(|i| twiddles::single_twiddle(i, len * 4) * half)
             .collect();
 
         Self {
@@ -102,7 +103,7 @@ impl<T> Length for DCT3ViaFFT<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use dct3::DCT3Naive;
+    use algorithm::NaiveType23;
 
     use test_utils::{compare_float_vectors, random_signal};
     use rustfft::FFTplanner;
@@ -117,7 +118,7 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = DCT3Naive::new(size);
+            let mut naive_dct = NaiveType23::new(size);
             naive_dct.process_dct3(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);

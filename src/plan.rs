@@ -3,6 +3,7 @@ use std::sync::Arc;
 
 use rustfft::FFTplanner;
 use common;
+use ::{DCT1, DCT2, DCT3, DCT4};
 use dct1::*;
 use dct2::*;
 use dct2::dct2_butterflies::*;
@@ -10,6 +11,7 @@ use dct3::*;
 use dct3::dct3_butterflies::*;
 use dct4::*;
 use mdct::*;
+use algorithm::*;
 
 const DCT2_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 const DCT3_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
@@ -79,7 +81,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
     fn plan_new_dct1(&mut self, len: usize) -> Arc<DCT1<T>> {
         //benchmarking shows that below about 25, it's faster to just use the naive DCT1 algorithm
         if len < 25 {
-            Arc::new(DCT1Naive::new(len))
+            Arc::new(NaiveDCT1::new(len))
         } else {
             let fft = self.fft_planner.plan_fft((len - 1) * 2);
             Arc::new(DCT1ViaFFT::new(fft))
@@ -110,7 +112,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             Arc::new(DCT2SplitRadix::new(half_dct, quarter_dct)) as Arc<DCT2<T>>
         } else if len < 16 {
             //benchmarking shows that below about 16, it's faster to just use the naive DCT2 algorithm
-            Arc::new(DCT2Naive::new(len))
+            Arc::new(NaiveType23::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
             Arc::new(DCT2ViaFFT::new(fft))
@@ -151,7 +153,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             Arc::new(DCT3SplitRadix::new(half_dct, quarter_dct)) as Arc<DCT3<T>>
         } else if len < 16 {
             //benchmarking shows that below about 16, it's faster to just use the naive DCT2 algorithm
-            Arc::new(DCT3Naive::new(len))
+            Arc::new(NaiveType23::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
             Arc::new(DCT3ViaFFT::new(fft))
@@ -185,7 +187,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         if len % 2 == 0 {
             //benchmarking shows that below 6, it's faster to just use the naive DCT4 algorithm
             if len < 6 {
-                Arc::new(DCT4Naive::new(len))
+                Arc::new(NaiveType4::new(len))
             } else {
                 let inner_dct = self.plan_dct3(len / 2);
                 Arc::new(DCT4ViaDCT3::new(inner_dct))
@@ -194,7 +196,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             //odd size, so we can use the "DCT4 via FFT odd" algorithm
             //benchmarking shows that below about 7, it's faster to just use the naive DCT4 algorithm
             if len < 7 {
-                Arc::new(DCT4Naive::new(len))
+                Arc::new(NaiveType4::new(len))
             } else {
                 let fft = self.fft_planner.plan_fft(len);
                 Arc::new(DCT4ViaFFTOdd::new(fft))

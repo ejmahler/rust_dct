@@ -5,8 +5,7 @@ use rustfft::Length;
 
 use twiddles;
 use common;
-use dct4::DCT4;
-use dct3::DCT3;
+use ::{DCT3, DCT4};
 
 /// DCT Type 4 implementation that converts the problem into two DCT type 3 of half size. If the inner DCT3 is 
 /// O(nlogn), then so is this.
@@ -16,7 +15,8 @@ use dct3::DCT3;
 /// ~~~
 /// // Computes a DCT Type 4 of size 1234
 /// use std::sync::Arc;
-/// use rustdct::dct4::{DCT4, DCT4ViaDCT3};
+/// use rustdct::DCT4;
+/// use rustdct::dct4::DCT4ViaDCT3;
 /// use rustdct::DCTplanner;
 ///
 /// let len = 1234;
@@ -42,7 +42,7 @@ impl<T: common::DCTnum> DCT4ViaDCT3<T> {
 
 
         let twiddles: Vec<Complex<T>> = (0..inner_len)
-            .map(|i| twiddles::single_twiddle(2 * i + 1, len * 8, true))
+            .map(|i| twiddles::single_twiddle(2 * i + 1, len * 8).conj())
             .collect();
 
         Self {
@@ -104,8 +104,7 @@ impl<T> Length for DCT4ViaDCT3<T> {
 mod test {
     use super::*;
     use test_utils::{compare_float_vectors, random_signal};
-    use dct4::DCT4Naive;
-    use dct3::DCT3Naive;
+    use algorithm::{NaiveType23, NaiveType4};
 
     /// Verify that our fast implementation of the DCT4 gives the same output as the slow version, for many different inputs
     #[test]
@@ -120,10 +119,10 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             
-            let mut naive_dct4 = DCT4Naive::new(size);
+            let mut naive_dct4 = NaiveType4::new(size);
             naive_dct4.process_dct4(&mut expected_input, &mut expected_output);
 
-            let inner_dct3 =Arc::new(DCT3Naive::new(inner_size));
+            let inner_dct3 = Arc::new(NaiveType23::new(inner_size));
             let mut dct = DCT4ViaDCT3::new(inner_dct3);
             dct.process_dct4(&mut actual_input, &mut actual_output);
 

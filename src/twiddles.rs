@@ -4,14 +4,23 @@ use rustfft::num_complex::Complex;
 use common;
 
 #[inline(always)]
-pub fn single_twiddle<T: common::DCTnum>(i: usize, fft_len: usize, inverse: bool) -> Complex<T> {
-    let constant = if inverse {
-        2f64 * f64::consts::PI
-    } else {
-        -2f64 * f64::consts::PI
-    };
+pub fn single_twiddle<T: common::DCTnum>(i: usize, fft_len: usize) -> Complex<T> {
+    let angle_constant = f64::consts::PI * -2f64 / fft_len as f64;
 
-    let c = Complex::from_polar(&1f64, &(constant * i as f64 / fft_len as f64));
+    let c = Complex::from_polar(&1f64, &(angle_constant * i as f64));
+
+    Complex {
+        re: T::from_f64(c.re).unwrap(),
+        im: T::from_f64(c.im).unwrap(),
+    }
+}
+
+// Same as above, but we add 0.5 to 0 before 
+#[inline(always)]
+pub fn single_twiddle_halfoffset<T: common::DCTnum>(i: usize, fft_len: usize) -> Complex<T> {
+    let angle_constant = f64::consts::PI * -2f64 / fft_len as f64;
+    
+    let c = Complex::from_polar(&1f64, &(angle_constant * (i as f64 + 0.5f64)));
 
     Complex {
         re: T::from_f64(c.re).unwrap(),
@@ -31,8 +40,8 @@ mod unit_tests {
         let len = 20;
 
         for i in 0..len {
-            let single: Complex<f32> = single_twiddle(i, len, false);
-            let single_inverse: Complex<f32> = single_twiddle(i, len, true);
+            let single: Complex<f32> = single_twiddle(i, len);
+            let single_inverse: Complex<f32> = single_twiddle(i, len).conj();
 
             let expected =
                 Complex::from_polar(&1f32, &(-2f32 * f32::consts::PI * i as f32 / len as f32));

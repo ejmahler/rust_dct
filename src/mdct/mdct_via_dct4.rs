@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use rustfft::Length;
 
-use dct4::DCT4;
+use ::DCT4;
 use mdct::MDCT;
 use common;
 
@@ -125,7 +125,7 @@ impl<T> Length for MDCTViaDCT4<T> {
 mod unit_tests {
     use super::*;
 
-    use dct4::DCT4Naive;
+    use algorithm::NaiveType4;
     use mdct::MDCTNaive;
     use mdct::window_fn;
     use test_utils::{compare_float_vectors, random_signal};
@@ -146,7 +146,7 @@ mod unit_tests {
 
                 let mut naive_mdct = MDCTNaive::new(output_len, current_window_fn);
 
-                let inner_dct4 = Arc::new(DCT4Naive::new(output_len));
+                let inner_dct4 = Arc::new(NaiveType4::new(output_len));
                 let mut fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
 
                 naive_mdct.process_mdct(&input, &mut naive_output);

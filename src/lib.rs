@@ -31,9 +31,8 @@
 //! hardcoded DCT instances of size 8.
 //! ```rust
 //! // Compute a DCT type 2 of size 8, and then compute a DCT type 3 of size 8 on the output.
-//! use rustdct::dct2::DCT2;
+//! use rustdct::{DCT2, DCT3};
 //! use rustdct::dct2::dct2_butterflies::DCT2Butterfly8;
-//! use rustdct::dct3::DCT3;
 //! use rustdct::dct3::dct3_butterflies::DCT3Butterfly8;
 //! 
 //! let mut input = [0f32; 8];
@@ -75,6 +74,8 @@ pub mod dst;
 /// Algorithms for computing the Modified Discrete Cosine Transform
 pub mod mdct;
 
+pub mod algorithm;
+
 mod plan;
 mod twiddles;
 mod common;
@@ -84,3 +85,76 @@ pub use self::plan::DCTplanner;
 
 #[cfg(test)]
 mod test_utils;
+
+/// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 1 (DCT1)
+pub trait DCT1<T: common::DCTnum>: rustfft::Length {
+    /// Computes the DCT Type 1 on the `input` buffer and places the result in the `output` buffer.
+    ///
+    /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
+    /// after calling
+    fn process_dct1(&self, input: &mut [T], output: &mut [T]);
+}
+
+/// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 2 (DCT2)
+pub trait DCT2<T: common::DCTnum>: rustfft::Length {
+    /// Computes the DCT Type 2 on the `input` buffer and places the result in the `output` buffer.
+    ///
+    /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
+    /// after calling
+    fn process_dct2(&self, input: &mut [T], output: &mut [T]);
+}
+
+/// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 3 (DCT3)
+pub trait DCT3<T: common::DCTnum>: rustfft::Length {
+    /// Computes the DCT Type 3 on the `input` buffer and places the result in the `output` buffer.
+    ///
+    /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
+    /// after calling
+    fn process_dct3(&self, input: &mut [T], output: &mut [T]);
+}
+
+
+/// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 4 (DCT4)
+pub trait DCT4<T: common::DCTnum>: rustfft::Length {
+    /// Computes the DCT Type 4 on the `input` buffer and places the result in the `output` buffer.
+    ///
+    /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
+    /// after calling
+    fn process_dct4(&self, input: &mut [T], output: &mut [T]);
+}
+
+/// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 1 (DST1)
+pub trait DST1<T: common::DCTnum>: rustfft::Length {
+    /// Computes the DST Type 1 on the `input` buffer and places the result in the `output` buffer.
+    ///
+    /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
+    /// after calling
+    fn process_dst1(&self, input: &mut [T], output: &mut [T]);
+}
+
+/// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 2 (DST2)
+pub trait DST2<T: common::DCTnum>: rustfft::Length {
+    /// Computes the DST Type 2 on the `input` buffer and places the result in the `output` buffer.
+    ///
+    /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
+    /// after calling
+    fn process_dst2(&self, input: &mut [T], output: &mut [T]);
+}
+
+/// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 3 (DST3)
+pub trait DST3<T: common::DCTnum>: rustfft::Length {
+    /// Computes the DST Type 3 on the `input` buffer and places the result in the `output` buffer.
+    ///
+    /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
+    /// after calling
+    fn process_dst3(&self, input: &mut [T], output: &mut [T]);
+}
+
+/// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 4 (DST4)
+pub trait DST4<T: common::DCTnum>: rustfft::Length {
+    /// Computes the DST Type 4 on the `input` buffer and places the result in the `output` buffer.
+    ///
+    /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
+    /// after calling
+    fn process_dst4(&self, input: &mut [T], output: &mut [T]);
+}

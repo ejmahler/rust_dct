@@ -2,10 +2,8 @@
 extern crate test;
 extern crate rustdct;
 
-use rustdct::dct1::{DCT1, DCT1Naive};
-use rustdct::dct2::{DCT2, DCT2Naive};
-use rustdct::dct3::{DCT3, DCT3Naive};
-use rustdct::dct4::{DCT4, DCT4Naive};
+use rustdct::{DCT1, DCT2, DCT3, DCT4};
+use rustdct::algorithm::{NaiveDCT1, NaiveType23, NaiveType4};
 use rustdct::mdct::{MDCT, IMDCT, MDCTNaive, IMDCTNaive, window_fn};
 
 use test::Bencher;
@@ -14,11 +12,11 @@ use test::Bencher;
 /// for a given length
 fn bench_dct1_naive(b: &mut Bencher, len: usize) {
 
-    let dct = DCT1Naive::new(len);
+    let dct = NaiveDCT1::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct1(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -40,11 +38,11 @@ fn dct1_naive_0026(b: &mut Bencher) {
 /// for a given length
 fn bench_dct2_naive(b: &mut Bencher, len: usize) {
 
-    let dct = DCT2Naive::new(len);
+    let dct = NaiveType23::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct2(&mut signal, &mut spectrum); });
 }
 
 
@@ -82,11 +80,11 @@ fn dct2_naive_022(b: &mut Bencher) {
 /// for a given length
 fn bench_dct3_naive(b: &mut Bencher, len: usize) {
 
-    let dct = DCT3Naive::new(len);
+    let dct = NaiveType23::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct3(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -117,11 +115,11 @@ fn dct3_naive_0006(b: &mut Bencher) {
 /// for a given length
 fn bench_dct4_naive(b: &mut Bencher, len: usize) {
 
-    let dct = DCT4Naive::new(len);
+    let dct = NaiveType4::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct4(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -176,7 +174,7 @@ fn bench_mdct_naive(b: &mut Bencher, len: usize) {
 
     let signal = vec![0_f32; len * 2];
     let mut spectrum = vec![0_f32; len];
-    b.iter(|| { dct.process(&signal, &mut spectrum); });
+    b.iter(|| { dct.process_mdct(&signal, &mut spectrum); });
 }
 
 #[bench]
@@ -215,7 +213,7 @@ fn bench_imdct_naive(b: &mut Bencher, len: usize) {
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len * 2];
-    b.iter(|| { dct.process(&signal, &mut spectrum); });
+    b.iter(|| { dct.process_imdct(&signal, &mut spectrum); });
 }
 
 #[bench]

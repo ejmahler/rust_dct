@@ -6,12 +6,14 @@ use std::sync::Arc;
 
 use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
-use rustdct::dct1::{DCT1, DCT1ViaFFT};
-use rustdct::dct2::{DCT2, DCT2ViaFFT, DCT2SplitRadix, DCT2Naive};
+use rustdct::{DCT1, DCT2, DCT3, DCT4};
+use rustdct::algorithm::NaiveType23;
+use rustdct::dct1::DCT1ViaFFT;
+use rustdct::dct2::{DCT2ViaFFT, DCT2SplitRadix};
 use rustdct::dct2::dct2_butterflies::*;
-use rustdct::dct3::{DCT3, DCT3ViaFFT, DCT3SplitRadix, DCT3Naive};
+use rustdct::dct3::{DCT3ViaFFT, DCT3SplitRadix};
 use rustdct::dct3::dct3_butterflies::*;
-use rustdct::dct4::{DCT4, DCT4ViaDCT3, DCT4ViaFFTOdd};
+use rustdct::dct4::{DCT4ViaDCT3, DCT4ViaFFTOdd};
 use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
 
 use test::Bencher;
@@ -25,7 +27,7 @@ fn bench_dct1_fft(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct1(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -52,7 +54,7 @@ fn bench_dct2_fft(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct2(&mut signal, &mut spectrum); });
 }
 
 
@@ -88,7 +90,7 @@ fn bench_dct2_split(b: &mut Bencher, len: usize) {
 
     let power = len.trailing_zeros() as usize;
     let mut instances = vec![
-        Arc::new(DCT2Naive::new(1)) as Arc<DCT2<f32>>,
+        Arc::new(NaiveType23::new(1)) as Arc<DCT2<f32>>,
         Arc::new(DCT2Butterfly2::new()) as Arc<DCT2<f32>>,
         Arc::new(DCT2Butterfly4::new()) as Arc<DCT2<f32>>,
         Arc::new(DCT2Butterfly8::new()) as Arc<DCT2<f32>>,
@@ -104,7 +106,7 @@ fn bench_dct2_split(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct2(&mut signal, &mut spectrum); });
 }
 #[bench]
 fn dct2_power2_split_0002(b: &mut Bencher) {
@@ -148,7 +150,7 @@ fn bench_dct3_fft(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct3(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -207,7 +209,7 @@ fn bench_dct3_split(b: &mut Bencher, len: usize) {
 
     let power = len.trailing_zeros() as usize;
     let mut instances = vec![
-        Arc::new(DCT3Naive::new(1)) as Arc<DCT3<f32>>,
+        Arc::new(NaiveType23::new(1)) as Arc<DCT3<f32>>,
         Arc::new(DCT3Butterfly2::new()) as Arc<DCT3<f32>>,
         Arc::new(DCT3Butterfly4::new()) as Arc<DCT3<f32>>,
         Arc::new(DCT3Butterfly8::new()) as Arc<DCT3<f32>>,
@@ -223,7 +225,7 @@ fn bench_dct3_split(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct3(&mut signal, &mut spectrum); });
 }
 #[bench]
 fn dct3_power2_split_0002(b: &mut Bencher) {
@@ -266,7 +268,7 @@ fn bench_dct4_via_dct3(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct4(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -306,7 +308,7 @@ fn bench_dct4_via_fft_odd(b: &mut Bencher, len: usize) {
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
-    b.iter(|| { dct.process(&mut signal, &mut spectrum); });
+    b.iter(|| { dct.process_dct4(&mut signal, &mut spectrum); });
 }
 
 #[bench]
@@ -346,7 +348,7 @@ fn bench_mdct_fft(b: &mut Bencher, len: usize) {
 
     let signal = vec![0_f32; len * 2];
     let mut spectrum = vec![0_f32; len];
-    b.iter(|| { dct.process(&signal, &mut spectrum); });
+    b.iter(|| { dct.process_mdct(&signal, &mut spectrum); });
 }
 #[bench]
 fn mdct_fft_02(b: &mut Bencher) {
@@ -385,7 +387,7 @@ fn bench_imdct_fft(b: &mut Bencher, len: usize) {
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len * 2];
-    b.iter(|| { dct.process(&signal, &mut spectrum); });
+    b.iter(|| { dct.process_imdct(&signal, &mut spectrum); });
 }
 #[bench]
 fn imdct_fft_02(b: &mut Bencher) {
