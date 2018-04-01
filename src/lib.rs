@@ -29,6 +29,7 @@
 //! RustDCT also exposes individual DCT algorithms. For example, if you're writing a JPEG compression library, it's
 //! safe to assume you want a DCT2 and DCT3 of size 8. Instead of going through the planner, you can directly create
 //! hardcoded DCT instances of size 8.
+//! 
 //! ```rust
 //! // Compute a DCT type 2 of size 8, and then compute a DCT type 3 of size 8 on the output.
 //! use rustdct::{DCT2, DCT3};
