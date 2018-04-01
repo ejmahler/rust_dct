@@ -103,7 +103,7 @@ impl<T> Length for DCT3ViaFFT<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::NaiveType23;
+    use algorithm::NaiveType2And3;
 
     use test_utils::{compare_float_vectors, random_signal};
     use rustfft::FFTplanner;
@@ -118,7 +118,7 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = NaiveType23::new(size);
+            let mut naive_dct = NaiveType2And3::new(size);
             naive_dct.process_dct3(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);

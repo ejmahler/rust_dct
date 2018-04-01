@@ -10,10 +10,10 @@ use common;
 /// ~~~
 /// // Computes a naive DCT2, DST2, DCT3, and DST3 of size 23
 /// use rustdct::{DCT2, DST2, DCT3, DST3};
-/// use rustdct::algorithm::NaiveType23;
+/// use rustdct::algorithm::NaiveType2And3;
 ///
 /// let len = 23;
-/// let naive = NaiveType23::new(len);
+/// let naive = NaiveType2And3::new(len);
 /// 
 /// let mut dct2_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct2_output: Vec<f32> = vec![0f32; len];
@@ -31,11 +31,11 @@ use common;
 /// let mut dst3_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dst3(&mut dst3_input, &mut dst3_output);
 /// ~~~
-pub struct NaiveType23<T> {
+pub struct NaiveType2And3<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DCTnum> NaiveType23<T> {
+impl<T: common::DCTnum> NaiveType2And3<T> {
     /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let twiddles: Vec<Complex<T>> = (0..len * 4)
@@ -46,7 +46,7 @@ impl<T: common::DCTnum> NaiveType23<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT2<T> for NaiveType23<T> {
+impl<T: common::DCTnum> DCT2<T> for NaiveType2And3<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -70,7 +70,7 @@ impl<T: common::DCTnum> DCT2<T> for NaiveType23<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST2<T> for NaiveType23<T> {
+impl<T: common::DCTnum> DST2<T> for NaiveType2And3<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -94,7 +94,7 @@ impl<T: common::DCTnum> DST2<T> for NaiveType23<T> {
         }
     }
 }
-impl<T: common::DCTnum> DCT3<T> for NaiveType23<T> {
+impl<T: common::DCTnum> DCT3<T> for NaiveType2And3<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -120,7 +120,7 @@ impl<T: common::DCTnum> DCT3<T> for NaiveType23<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST3<T> for NaiveType23<T> {
+impl<T: common::DCTnum> DST3<T> for NaiveType2And3<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -147,7 +147,7 @@ impl<T: common::DCTnum> DST3<T> for NaiveType23<T> {
         }
     }
 }
-impl<T> Length for NaiveType23<T> {
+impl<T> Length for NaiveType2And3<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 4
     }

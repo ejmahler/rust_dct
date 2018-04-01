@@ -112,7 +112,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             Arc::new(DCT2SplitRadix::new(half_dct, quarter_dct)) as Arc<DCT2<T>>
         } else if len < 16 {
             //benchmarking shows that below about 16, it's faster to just use the naive DCT2 algorithm
-            Arc::new(NaiveType23::new(len))
+            Arc::new(NaiveType2And3::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
             Arc::new(DCT2ViaFFT::new(fft))
@@ -153,7 +153,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             Arc::new(DCT3SplitRadix::new(half_dct, quarter_dct)) as Arc<DCT3<T>>
         } else if len < 16 {
             //benchmarking shows that below about 16, it's faster to just use the naive DCT2 algorithm
-            Arc::new(NaiveType23::new(len))
+            Arc::new(NaiveType2And3::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
             Arc::new(DCT3ViaFFT::new(fft))

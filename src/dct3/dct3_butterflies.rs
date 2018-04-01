@@ -244,7 +244,7 @@ impl<T> Length for DCT3Butterfly16<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-   	use algorithm::NaiveType23;
+   	use algorithm::NaiveType2And3;
     use test_utils::{compare_float_vectors, random_signal};
 
      //the tests for all butterflies will be identical except for the identifiers used and size
@@ -257,7 +257,7 @@ mod test {
                 let size = $size;
                 println!("{}", size);
 
-                let naive = NaiveType23::new(size);
+                let naive = NaiveType2And3::new(size);
 
 		        // set up buffers
 		        let mut expected_input = random_signal(size);

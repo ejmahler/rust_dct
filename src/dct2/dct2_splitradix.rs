@@ -152,7 +152,7 @@ impl<T> Length for DCT2SplitRadix<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::NaiveType23;
+    use algorithm::NaiveType2And3;
 
     use test_utils::{compare_float_vectors, random_signal};
 
@@ -170,11 +170,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let naive_dct = NaiveType23::new(size);
+            let naive_dct = NaiveType2And3::new(size);
             naive_dct.process_dct2(&mut expected_input, &mut expected_output);
 
-            let quarter_dct = Arc::new(NaiveType23::new(size/4));
-            let half_dct = Arc::new(NaiveType23::new(size/2));
+            let quarter_dct = Arc::new(NaiveType2And3::new(size/4));
+            let half_dct = Arc::new(NaiveType2And3::new(size/2));
 
             let dct = DCT2SplitRadix::new(half_dct, quarter_dct);
             dct.process_dct2(&mut actual_input, &mut actual_output);

@@ -7,7 +7,7 @@ use std::sync::Arc;
 use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
 use rustdct::{DCT1, DCT2, DCT3, DCT4};
-use rustdct::algorithm::NaiveType23;
+use rustdct::algorithm::NaiveType2And3;
 use rustdct::dct1::DCT1ViaFFT;
 use rustdct::dct2::{DCT2ViaFFT, DCT2SplitRadix};
 use rustdct::dct2::dct2_butterflies::*;
@@ -90,7 +90,7 @@ fn bench_dct2_split(b: &mut Bencher, len: usize) {
 
     let power = len.trailing_zeros() as usize;
     let mut instances = vec![
-        Arc::new(NaiveType23::new(1)) as Arc<DCT2<f32>>,
+        Arc::new(NaiveType2And3::new(1)) as Arc<DCT2<f32>>,
         Arc::new(DCT2Butterfly2::new()) as Arc<DCT2<f32>>,
         Arc::new(DCT2Butterfly4::new()) as Arc<DCT2<f32>>,
         Arc::new(DCT2Butterfly8::new()) as Arc<DCT2<f32>>,
@@ -209,7 +209,7 @@ fn bench_dct3_split(b: &mut Bencher, len: usize) {
 
     let power = len.trailing_zeros() as usize;
     let mut instances = vec![
-        Arc::new(NaiveType23::new(1)) as Arc<DCT3<f32>>,
+        Arc::new(NaiveType2And3::new(1)) as Arc<DCT3<f32>>,
         Arc::new(DCT3Butterfly2::new()) as Arc<DCT3<f32>>,
         Arc::new(DCT3Butterfly4::new()) as Arc<DCT3<f32>>,
         Arc::new(DCT3Butterfly8::new()) as Arc<DCT3<f32>>,

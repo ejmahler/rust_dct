@@ -104,7 +104,7 @@ impl<T> Length for DCT4ViaDCT3<T> {
 mod test {
     use super::*;
     use test_utils::{compare_float_vectors, random_signal};
-    use algorithm::{NaiveType23, NaiveType4};
+    use algorithm::{NaiveType2And3, NaiveType4};
 
     /// Verify that our fast implementation of the DCT4 gives the same output as the slow version, for many different inputs
     #[test]
@@ -122,7 +122,7 @@ mod test {
             let mut naive_dct4 = NaiveType4::new(size);
             naive_dct4.process_dct4(&mut expected_input, &mut expected_output);
 
-            let inner_dct3 = Arc::new(NaiveType23::new(inner_size));
+            let inner_dct3 = Arc::new(NaiveType2And3::new(inner_size));
             let mut dct = DCT4ViaDCT3::new(inner_dct3);
             dct.process_dct4(&mut actual_input, &mut actual_output);
 

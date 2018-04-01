@@ -5,7 +5,7 @@ extern crate rand;
 mod common;
 
 use rustdct::{DCT1,  DCT2, DCT3, DCT4, DST1, DST2, DST3, DST4};
-use rustdct::algorithm::{NaiveDCT1, NaiveDST1, NaiveType23, NaiveType4};
+use rustdct::algorithm::{NaiveDCT1, NaiveDST1, NaiveType2And3, NaiveType4};
 use rustdct::mdct::window_fn;
 use rustdct::DCTplanner;
 
@@ -22,14 +22,14 @@ fn test_dct1_accuracy() {
 
 #[test]
 fn test_dct2_accuracy() {
-    dct_test_with_known_data!(NaiveType23, process_dct2, slow_dct2, known_values_dct2);
-    dct_test_with_planner!(NaiveType23, process_dct2, plan_dct2, 1);
+    dct_test_with_known_data!(NaiveType2And3, process_dct2, slow_dct2, known_values_dct2);
+    dct_test_with_planner!(NaiveType2And3, process_dct2, plan_dct2, 1);
 }
 
 #[test]
 fn test_dct3_accuracy() {
-    dct_test_with_known_data!(NaiveType23, process_dct3, slow_dct3, known_values_dct3);
-    dct_test_with_planner!(NaiveType23, process_dct3, plan_dct3, 1);
+    dct_test_with_known_data!(NaiveType2And3, process_dct3, slow_dct3, known_values_dct3);
+    dct_test_with_planner!(NaiveType2And3, process_dct3, plan_dct3, 1);
 }
 
 #[test]
@@ -45,12 +45,12 @@ fn test_dst1_accuracy() {
 
 #[test]
 fn test_dst2_accuracy() {
-    dct_test_with_known_data!(NaiveType23, process_dst2, slow_dst2, known_values_dst2);
+    dct_test_with_known_data!(NaiveType2And3, process_dst2, slow_dst2, known_values_dst2);
 }
 
 #[test]
 fn test_dst3_accuracy() {
-    dct_test_with_known_data!(NaiveType23, process_dst3, slow_dst3, known_values_dst3);
+    dct_test_with_known_data!(NaiveType2And3, process_dst3, slow_dst3, known_values_dst3);
 }
 
 #[test]
