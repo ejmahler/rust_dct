@@ -47,12 +47,7 @@
 //! dct3.process_dct3(&mut intermediate, &mut output);
 //! ```
 
-
 pub extern crate rustfft;
-
-#[cfg(test)]
-extern crate rand;
-
 
 pub use rustfft::num_complex;
 pub use rustfft::num_traits;

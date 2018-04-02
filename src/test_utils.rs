@@ -1,7 +1,9 @@
+extern crate rand;
+
 use std::f32;
 
-use rand::{StdRng, SeedableRng};
-use rand::distributions::{Normal, IndependentSample};
+use self::rand::{StdRng, SeedableRng};
+use self::rand::distributions::{Normal, IndependentSample};
 
 pub fn fuzzy_cmp(a: f32, b: f32, tolerance: f32) -> bool {
     a >= b - tolerance && a <= b + tolerance
