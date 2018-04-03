@@ -4,7 +4,6 @@ use std::sync::Arc;
 use rustfft::FFTplanner;
 use common;
 use ::{DCT1, DCT2, DCT3, DCT4};
-use dct1::*;
 use dct2::*;
 use dct2::dct2_butterflies::*;
 use dct3::*;
@@ -84,7 +83,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             Arc::new(NaiveDCT1::new(len))
         } else {
             let fft = self.fft_planner.plan_fft((len - 1) * 2);
-            Arc::new(DCT1ViaFFT::new(fft))
+            Arc::new(ConvertToFFT_DCT1::new(fft))
         }
     }
 
@@ -115,7 +114,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             Arc::new(NaiveType2And3::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
-            Arc::new(DCT2ViaFFT::new(fft))
+            Arc::new(ConvertToFFT_Type2and3::new(fft))
         }
     }
 
@@ -156,7 +155,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             Arc::new(NaiveType2And3::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
-            Arc::new(DCT3ViaFFT::new(fft))
+            Arc::new(ConvertToFFT_Type2and3::new(fft))
         }
     }
 
@@ -199,7 +198,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
                 Arc::new(NaiveType4::new(len))
             } else {
                 let fft = self.fft_planner.plan_fft(len);
-                Arc::new(DCT4ViaFFTOdd::new(fft))
+                Arc::new(ConvertToFFT_Type4_Odd::new(fft))
             }
         }
     }

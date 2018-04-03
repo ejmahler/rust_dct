@@ -7,7 +7,7 @@ use std::sync::Arc;
 use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
 use rustdct::{DCT1, DCT2, DCT3, DCT4};
-use rustdct::algorithm::NaiveType2And3;
+use rustdct::algorithm::{NaiveType2And3, ConvertToFFT_Type2and3};
 use rustdct::dct1::DCT1ViaFFT;
 use rustdct::dct2::{DCT2ViaFFT, DCT2SplitRadix};
 use rustdct::dct2::dct2_butterflies::*;
@@ -50,7 +50,7 @@ fn dct1_fft_0026(b: &mut Bencher) {
 fn bench_dct2_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let dct = DCT2ViaFFT::new(planner.plan_fft(len));
+    let dct = ConvertToFFT_Type2and3::new(planner.plan_fft(len));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -146,7 +146,7 @@ fn dct2_power2_split_065536(b: &mut Bencher) {
 fn bench_dct3_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let dct = DCT3ViaFFT::new(planner.plan_fft(len));
+    let dct = ConvertToFFT_Type2and3::new(planner.plan_fft(len));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();

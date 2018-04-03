@@ -4,7 +4,7 @@ extern crate rand;
 #[macro_use]
 mod common;
 
-use rustdct::{DCT1,  DCT2, DCT3, DCT4, DST1, DST2, DST3, DST4};
+use rustdct::{DCT1, DCT2, DCT3, DCT4, DST1, DST2, DST3, DST4};
 use rustdct::algorithm::{NaiveDCT1, NaiveDST1, NaiveType2And3, NaiveType4};
 use rustdct::mdct::window_fn;
 use rustdct::DCTplanner;

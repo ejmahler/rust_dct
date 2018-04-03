@@ -52,9 +52,6 @@ pub extern crate rustfft;
 pub use rustfft::num_complex;
 pub use rustfft::num_traits;
 
-/// Algorithms for computing the Discrete Cosine Transform Type 1
-pub mod dct1;
-
 /// Algorithms for computing the Discrete Cosine Transform Type 2
 pub mod dct2;
 
