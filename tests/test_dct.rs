@@ -73,24 +73,40 @@ fn test_mdct_accuracy() {
 
 #[test]
 fn test_mdct_tdac() {
-    for i in 1..10 {
-        let len = i * 2;
-        test_mdct::test_tdac(len, 1f32 / len as f32, window_fn::one);
+    struct TdacTestStruct<'a> {
+        name: &'static str,
+        window: &'a dyn Fn(usize) -> Vec<f32>,
+        scale_fn: &'a dyn Fn(usize) -> f32,
     }
-    for &i in &[50, 52] {
-        let len = i * 2;
-        test_mdct::test_tdac(len, 1f32 / len as f32, window_fn::one);
+    impl<'a> TdacTestStruct<'a> {
+        fn new(name: &'static str, window: &'a dyn Fn(usize) -> Vec<f32>, scale_fn: &'a dyn Fn(usize) -> f32) -> Self {
+            Self { name, window, scale_fn }
+        }
     }
 
+    let non_window_scale = |len: usize| 1.0/(len as f32);
+    let window_scale = |len : usize| 2.0/(len as f32);
+    let invertible_scale = |_| 1.0;
 
-    for curent_window_fn in &[window_fn::mp3, window_fn::vorbis] {
+    let tests = [
+        TdacTestStruct::new("one",                  &window_fn::one,                &non_window_scale),
+        TdacTestStruct::new("mp3",                  &window_fn::mp3,                &window_scale),
+        TdacTestStruct::new("vorbis",               &window_fn::vorbis,             &window_scale),
+        TdacTestStruct::new("invertible",           &window_fn::invertible,         &invertible_scale),
+        TdacTestStruct::new("mp3_invertible",       &window_fn::mp3_invertible,     &invertible_scale),
+        TdacTestStruct::new("vorbis_invertible",    &window_fn::vorbis_invertible,  &invertible_scale),
+    ];
+
+    for test_data in &tests {
         for i in 1..10 {
             let len = i * 2;
-            test_mdct::test_tdac(len, 2f32 / len as f32, curent_window_fn);
+            println!("name: {}, len: {}", test_data.name, len);
+            test_mdct::test_tdac(len, (test_data.scale_fn)(len), test_data.window);
         }
         for &i in &[50, 52] {
             let len = i * 2;
-            test_mdct::test_tdac(len, 2f32 / len as f32, curent_window_fn);
+            println!("name: {}, len: {}", test_data.name, len);
+            test_mdct::test_tdac(len, (test_data.scale_fn)(len), test_data.window);
         }
     }
 }

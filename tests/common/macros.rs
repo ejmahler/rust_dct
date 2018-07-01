@@ -133,6 +133,10 @@ pub mod test_mdct {
             *element = *element * scale_factor;
         }
 
+        println!("scale:   {:?}", scale_factor);
+        println!("input:   {:?}", &input[len..input.len() - len]);
+        println!("inverse: {:?}", &inverse[len..input.len() - len]);
+
         assert!(
             compare_float_vectors(
                 &input[len..input.len() - len],
