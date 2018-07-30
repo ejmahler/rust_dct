@@ -37,13 +37,28 @@ impl Butterfly2_Type2and3 {
         *buffer.get_unchecked_mut(zero) = half_0 + frac_1;
         *buffer.get_unchecked_mut(one) = half_0 - frac_1;
 	}
+
+    pub unsafe fn process_inplace_dst2<T: common::DCTnum>(&self, buffer: &mut [T]) {
+		let sum = *buffer.get_unchecked(0) - *buffer.get_unchecked(1);
+        *buffer.get_unchecked_mut(0) = (*buffer.get_unchecked(0) + *buffer.get_unchecked(1)) * T::FRAC_1_SQRT_2();
+        *buffer.get_unchecked_mut(1) = sum;
+	}
+
+    pub unsafe fn process_inplace_dst3<T: common::DCTnum>(&self, buffer: &mut [T]) {
+		
+		let frac_0 = *buffer.get_unchecked(0) * T::FRAC_1_SQRT_2();
+        let half_1 = *buffer.get_unchecked(1) * T::from_f32(0.5).unwrap();
+
+        *buffer.get_unchecked_mut(0) = frac_0 + half_1;
+        *buffer.get_unchecked_mut(1) = frac_0 - half_1;
+	}
 }
 impl<T: common::DCTnum> DCT2<T> for Butterfly2_Type2and3 {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
-            output[0] = input[0] + input[1];
-            output[1] = (input[0] - input[1]) * T::FRAC_1_SQRT_2();      
+        output[0] = input[0] + input[1];
+        output[1] = (input[0] - input[1]) * T::FRAC_1_SQRT_2();      
     }
 }
 impl<T: common::DCTnum> DCT3<T> for Butterfly2_Type2and3 {
@@ -275,21 +290,21 @@ mod test {
                     let expected_input = random_signal($size);
                     
                     let mut expected_output = vec![0f32; $size];
-                    //let mut inplace_buffer = expected_input.clone();
+                    let mut inplace_buffer = expected_input.clone();
                     let mut actual_output = expected_output.clone();
 
                     // perform the test
                     naive_instance.process_dst2(&mut expected_input.clone(), &mut expected_output);
 
-                    //unsafe { butterfly_instance.process_inplace_dst2(&mut inplace_buffer); }
+                    unsafe { butterfly_instance.process_inplace_dst2(&mut inplace_buffer); }
 
                     butterfly_instance.process_dst2(&mut expected_input.clone(), &mut actual_output);
                     println!("");
                     println!("expected output: {:?}", expected_output);
-                    //println!("inplace output:  {:?}", inplace_buffer);
+                    println!("inplace output:  {:?}", inplace_buffer);
                     println!("process output:  {:?}", actual_output);
 
-                    //assert!(compare_float_vectors(&expected_output, &inplace_buffer), "process_inplace_dst2() failed, length = {}", $size);
+                    assert!(compare_float_vectors(&expected_output, &inplace_buffer), "process_inplace_dst2() failed, length = {}", $size);
                     assert!(compare_float_vectors(&expected_output, &actual_output), "process_dst2() failed, length = {}", $size);
                 }
 
@@ -300,21 +315,21 @@ mod test {
                     let expected_input = random_signal($size);
                     
                     let mut expected_output = vec![0f32; $size];
-                    //let mut inplace_buffer = expected_input.clone();
+                    let mut inplace_buffer = expected_input.clone();
                     let mut actual_output = expected_output.clone();
 
                     // perform the test
                     naive_instance.process_dst3(&mut expected_input.clone(), &mut expected_output);
 
-                    //unsafe { butterfly_instance.process_inplace_dst3(&mut inplace_buffer); }
+                    unsafe { butterfly_instance.process_inplace_dst3(&mut inplace_buffer); }
 
                     butterfly_instance.process_dst3(&mut expected_input.clone(), &mut actual_output);
                     println!("");
                     println!("expected output: {:?}", expected_output);
-                    //println!("inplace output:  {:?}", inplace_buffer);
+                    println!("inplace output:  {:?}", inplace_buffer);
                     println!("process output:  {:?}", actual_output);
 
-                    //assert!(compare_float_vectors(&expected_output, &inplace_buffer), "process_inplace_dst3() failed, length = {}", $size);
+                    assert!(compare_float_vectors(&expected_output, &inplace_buffer), "process_inplace_dst3() failed, length = {}", $size);
                     assert!(compare_float_vectors(&expected_output, &actual_output), "process_dst3() failed, length = {}", $size);
                 }
             }
