@@ -33,7 +33,7 @@ pub struct SplitRadix23<T> {
 }
 
 impl<T: common::DCTnum> SplitRadix23<T> {
-    /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `len`
+    /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `half_dct.len() * 2`
     pub fn new(half_dct: Arc<Type2and3<T>>, quarter_dct: Arc<Type2and3<T>>) -> Self {
         let len = half_dct.len() * 2;
         assert!(

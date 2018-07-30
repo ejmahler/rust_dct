@@ -211,15 +211,16 @@ mod test {
                     println!("{}", size);
 
                     let naive = NaiveType2And3::new(size);
-                    let butterfly = $struct_name::new();
 
-                    check_dct2(&butterfly, &naive);
-                    check_dct3(&butterfly, &naive);
-                    check_dst2(&butterfly, &naive);
-                    check_dst3(&butterfly, &naive);
+                    check_dct2(&naive);
+                    check_dct3(&naive);
+                    check_dst2(&naive);
+                    check_dst3(&naive);
                 }
 
-                fn check_dct2(butterfly_instance: &$struct_name, naive_instance: &NaiveType2And3<f32>) {
+                fn check_dct2(naive_instance: &NaiveType2And3<f32>) {
+                    let butterfly_instance = $struct_name::new();
+
                     // set up buffers
                     let expected_input = random_signal($size);
                     
@@ -242,7 +243,9 @@ mod test {
                     assert!(compare_float_vectors(&expected_output, &actual_output), "process_dct2() failed, length = {}", $size);
                 }
 
-                fn check_dct3(butterfly_instance: &$struct_name, naive_instance: &NaiveType2And3<f32>) {
+                fn check_dct3(naive_instance: &NaiveType2And3<f32>) {
+                    let butterfly_instance = $struct_name::new();
+
                     // set up buffers
                     let expected_input = random_signal($size);
                     
@@ -265,7 +268,9 @@ mod test {
                     assert!(compare_float_vectors(&expected_output, &actual_output), "process_dct3() failed, length = {}", $size);
                 }
 
-                fn check_dst2(butterfly_instance: &$struct_name, naive_instance: &NaiveType2And3<f32>) {
+                fn check_dst2(naive_instance: &NaiveType2And3<f32>) {
+                    let butterfly_instance = $struct_name::new();
+
                     // set up buffers
                     let expected_input = random_signal($size);
                     
@@ -288,7 +293,9 @@ mod test {
                     assert!(compare_float_vectors(&expected_output, &actual_output), "process_dst2() failed, length = {}", $size);
                 }
 
-                fn check_dst3(butterfly_instance: &$struct_name, naive_instance: &NaiveType2And3<f32>) {
+                fn check_dst3(naive_instance: &NaiveType2And3<f32>) {
+                    let butterfly_instance = $struct_name::new();
+
                     // set up buffers
                     let expected_input = random_signal($size);
                     
@@ -314,4 +321,5 @@ mod test {
         )
     }
     test_butterfly_func!(test_butterfly2_type2and3, Butterfly2_Type2and3, 2);
+    test_butterfly_func!(test_butterfly4_type2and3, Butterfly4_Type2and3, 4);
 }
