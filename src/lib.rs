@@ -33,30 +33,22 @@
 //! ```rust
 //! // Compute a DCT type 2 of size 8, and then compute a DCT type 3 of size 8 on the output.
 //! use rustdct::{DCT2, DCT3};
-//! use rustdct::dct2::dct2_butterflies::DCT2Butterfly8;
-//! use rustdct::dct3::dct3_butterflies::DCT3Butterfly8;
+//! use rustdct::algorithm::butterflies_type2and3::Butterfly8_Type2and3;
 //! 
 //! let mut input = [0f32; 8];
 //! let mut intermediate = [0f32; 8];
 //! let mut output = [0f32; 8];
 //! 
-//! let dct2 = DCT2Butterfly8::new();
-//! let dct3 = DCT3Butterfly8::new();
+//! let dct = Butterfly8_Type2and3::new();
 //! 
-//! dct2.process_dct2(&mut input, &mut intermediate);
-//! dct3.process_dct3(&mut intermediate, &mut output);
+//! dct.process_dct2(&mut input, &mut intermediate);
+//! dct.process_dct3(&mut intermediate, &mut output);
 //! ```
 
 pub extern crate rustfft;
 
 pub use rustfft::num_complex;
 pub use rustfft::num_traits;
-
-/// Algorithms for computing the Discrete Cosine Transform Type 2
-pub mod dct2;
-
-/// Algorithms for computing the Discrete Cosine Transform Type 3
-pub mod dct3;
 
 /// Algorithms for computing the Discrete Cosine Transform Type 4
 pub mod dct4;

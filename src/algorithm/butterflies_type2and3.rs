@@ -411,6 +411,267 @@ impl<T: common::DCTnum> Butterfly8_Type2and3<T> {
 }
 butterfly_boilerplate!(Butterfly8_Type2and3, 8);
 
+#[allow(non_camel_case_types)]
+pub struct Butterfly16_Type2and3<T> {
+	butterfly8: Butterfly8_Type2and3<T>,
+	butterfly4: Butterfly4_Type2and3<T>,
+    twiddles: [Complex<T>; 4],
+}
+impl<T: common::DCTnum> Butterfly16_Type2and3<T> {
+	pub fn new() -> Self {
+		Self {
+			butterfly8: Butterfly8_Type2and3::new(),
+			butterfly4: Butterfly4_Type2and3::new(),
+            twiddles: [
+                twiddles::single_twiddle(1,64).conj(),
+                twiddles::single_twiddle(3,64).conj(),
+                twiddles::single_twiddle(5,64).conj(),
+                twiddles::single_twiddle(7,64).conj(),
+            ],
+		}
+	}
+	pub unsafe fn process_inplace_dct2(&self, buffer: &mut [T]) {
+		// perform a step of split radix -- derived from DCT2SplitRadix with n = 16
+
+		//process the evens
+		let mut dct2_buffer = [
+			*buffer.get_unchecked(0) + *buffer.get_unchecked(15),
+			*buffer.get_unchecked(1) + *buffer.get_unchecked(14),
+			*buffer.get_unchecked(2) + *buffer.get_unchecked(13),
+			*buffer.get_unchecked(3) + *buffer.get_unchecked(12),
+			*buffer.get_unchecked(4) + *buffer.get_unchecked(11),
+			*buffer.get_unchecked(5) + *buffer.get_unchecked(10),
+			*buffer.get_unchecked(6) + *buffer.get_unchecked(9),
+			*buffer.get_unchecked(7) + *buffer.get_unchecked(8),
+		];
+		self.butterfly8.process_inplace_dct2(&mut dct2_buffer);
+
+		//process the odds
+		let differences = [
+			*buffer.get_unchecked(0) - *buffer.get_unchecked(15),
+			*buffer.get_unchecked(7) - *buffer.get_unchecked(8),
+			*buffer.get_unchecked(1) - *buffer.get_unchecked(14),
+			*buffer.get_unchecked(6) - *buffer.get_unchecked(9),
+			*buffer.get_unchecked(2) - *buffer.get_unchecked(13),
+			*buffer.get_unchecked(5) - *buffer.get_unchecked(10),
+			*buffer.get_unchecked(3) - *buffer.get_unchecked(12),
+			*buffer.get_unchecked(4) - *buffer.get_unchecked(11),
+		];
+
+		let mut dct4_even_buffer = [
+			differences[0] * self.twiddles[0].re + differences[1] * self.twiddles[0].im,
+			differences[2] * self.twiddles[1].re + differences[3] * self.twiddles[1].im,
+			differences[4] * self.twiddles[2].re + differences[5] * self.twiddles[2].im,
+			differences[6] * self.twiddles[3].re + differences[7] * self.twiddles[3].im,
+		];
+		let mut dct4_odd_buffer = [
+			differences[7] * self.twiddles[3].re - differences[6] * self.twiddles[3].im,
+			differences[5] * self.twiddles[2].re - differences[4] * self.twiddles[2].im,
+			differences[3] * self.twiddles[1].re - differences[2] * self.twiddles[1].im,
+			differences[1] * self.twiddles[0].re - differences[0] * self.twiddles[0].im,
+		];
+
+		self.butterfly4.process_inplace_dct2(&mut dct4_even_buffer);
+		self.butterfly4.process_inplace_dst2(&mut dct4_odd_buffer);
+
+		// combine the results
+		*buffer.get_unchecked_mut(0) =  dct2_buffer[0];
+		*buffer.get_unchecked_mut(1) =  dct4_even_buffer[0];
+		*buffer.get_unchecked_mut(2) =  dct2_buffer[1];
+		*buffer.get_unchecked_mut(3) =  dct4_even_buffer[1] - dct4_odd_buffer[0];
+		*buffer.get_unchecked_mut(4) =  dct2_buffer[2];
+		*buffer.get_unchecked_mut(5) =  dct4_even_buffer[1] + dct4_odd_buffer[0];
+		*buffer.get_unchecked_mut(6) =  dct2_buffer[3];
+		*buffer.get_unchecked_mut(7) =  dct4_even_buffer[2] + dct4_odd_buffer[1];
+		*buffer.get_unchecked_mut(8) =  dct2_buffer[4];
+		*buffer.get_unchecked_mut(9) =  dct4_even_buffer[2] - dct4_odd_buffer[1];
+		*buffer.get_unchecked_mut(10) = dct2_buffer[5];
+		*buffer.get_unchecked_mut(11) = dct4_even_buffer[3] - dct4_odd_buffer[2];
+		*buffer.get_unchecked_mut(12) = dct2_buffer[6];
+		*buffer.get_unchecked_mut(13) = dct4_even_buffer[3] + dct4_odd_buffer[2];
+		*buffer.get_unchecked_mut(14) = dct2_buffer[7];
+		*buffer.get_unchecked_mut(15) = dct4_odd_buffer[3];
+	}
+    pub unsafe fn process_inplace_dst2(&self, buffer: &mut [T]) {
+		// Derived from process_inplace_dct2, negating the odd inputs and reversing the outputs
+
+		//process the evens
+		let mut dct2_buffer = [
+			 *buffer.get_unchecked(0) - *buffer.get_unchecked(15),
+			-*buffer.get_unchecked(1) + *buffer.get_unchecked(14),
+			 *buffer.get_unchecked(2) - *buffer.get_unchecked(13),
+			-*buffer.get_unchecked(3) + *buffer.get_unchecked(12),
+			 *buffer.get_unchecked(4) - *buffer.get_unchecked(11),
+			-*buffer.get_unchecked(5) + *buffer.get_unchecked(10),
+			 *buffer.get_unchecked(6) - *buffer.get_unchecked(9),
+			-*buffer.get_unchecked(7) + *buffer.get_unchecked(8),
+		];
+		self.butterfly8.process_inplace_dct2(&mut dct2_buffer);
+
+		//process the odds
+		let differences = [
+			 *buffer.get_unchecked(0) + *buffer.get_unchecked(15),
+			-*buffer.get_unchecked(7) - *buffer.get_unchecked(8),
+			-*buffer.get_unchecked(1) - *buffer.get_unchecked(14),
+			 *buffer.get_unchecked(6) + *buffer.get_unchecked(9),
+			 *buffer.get_unchecked(2) + *buffer.get_unchecked(13),
+			-*buffer.get_unchecked(5) - *buffer.get_unchecked(10),
+			-*buffer.get_unchecked(3) - *buffer.get_unchecked(12),
+			 *buffer.get_unchecked(4) + *buffer.get_unchecked(11),
+		];
+
+		let mut dct4_even_buffer = [
+			differences[0] * self.twiddles[0].re + differences[1] * self.twiddles[0].im,
+			differences[2] * self.twiddles[1].re + differences[3] * self.twiddles[1].im,
+			differences[4] * self.twiddles[2].re + differences[5] * self.twiddles[2].im,
+			differences[6] * self.twiddles[3].re + differences[7] * self.twiddles[3].im,
+		];
+		let mut dct4_odd_buffer = [
+			differences[7] * self.twiddles[3].re - differences[6] * self.twiddles[3].im,
+			differences[5] * self.twiddles[2].re - differences[4] * self.twiddles[2].im,
+			differences[3] * self.twiddles[1].re - differences[2] * self.twiddles[1].im,
+			differences[1] * self.twiddles[0].re - differences[0] * self.twiddles[0].im,
+		];
+
+		self.butterfly4.process_inplace_dct2(&mut dct4_even_buffer);
+		self.butterfly4.process_inplace_dst2(&mut dct4_odd_buffer);
+
+		// combine the results
+		*buffer.get_unchecked_mut(15) =  dct2_buffer[0];
+		*buffer.get_unchecked_mut(14) =  dct4_even_buffer[0];
+		*buffer.get_unchecked_mut(13) =  dct2_buffer[1];
+		*buffer.get_unchecked_mut(12) =  dct4_even_buffer[1] - dct4_odd_buffer[0];
+		*buffer.get_unchecked_mut(11) =  dct2_buffer[2];
+		*buffer.get_unchecked_mut(10) =  dct4_even_buffer[1] + dct4_odd_buffer[0];
+		*buffer.get_unchecked_mut(9) =  dct2_buffer[3];
+		*buffer.get_unchecked_mut(8) =  dct4_even_buffer[2] + dct4_odd_buffer[1];
+		*buffer.get_unchecked_mut(7) =  dct2_buffer[4];
+		*buffer.get_unchecked_mut(6) =  dct4_even_buffer[2] - dct4_odd_buffer[1];
+		*buffer.get_unchecked_mut(5) = dct2_buffer[5];
+		*buffer.get_unchecked_mut(4) = dct4_even_buffer[3] - dct4_odd_buffer[2];
+		*buffer.get_unchecked_mut(3) = dct2_buffer[6];
+		*buffer.get_unchecked_mut(2) = dct4_even_buffer[3] + dct4_odd_buffer[2];
+		*buffer.get_unchecked_mut(1) = dct2_buffer[7];
+		*buffer.get_unchecked_mut(0) = dct4_odd_buffer[3];
+	}
+    pub unsafe fn process_inplace_dct3(&self, buffer: &mut [T]) {
+		// perform a step of split radix -- derived from DCT3SplitRadix with n = 16
+
+		//process the evens
+		let mut dct3_buffer = [
+			*buffer.get_unchecked(0),
+			*buffer.get_unchecked(2),
+			*buffer.get_unchecked(4),
+			*buffer.get_unchecked(6),
+			*buffer.get_unchecked(8),
+			*buffer.get_unchecked(10),
+			*buffer.get_unchecked(12),
+			*buffer.get_unchecked(14)
+		];
+		self.butterfly8.process_inplace_dct3(&mut dct3_buffer);
+
+		//process the odds
+		let mut recursive_buffer_n1 = [
+			*buffer.get_unchecked(1) * T::from_usize(2).unwrap(),
+			*buffer.get_unchecked(3) + *buffer.get_unchecked(5),
+			*buffer.get_unchecked(7) + *buffer.get_unchecked(9),
+			*buffer.get_unchecked(11) + *buffer.get_unchecked(13),
+		];
+		let mut recursive_buffer_n3 = [
+            *buffer.get_unchecked(3) - *buffer.get_unchecked(5),
+            *buffer.get_unchecked(7) - *buffer.get_unchecked(9),
+            *buffer.get_unchecked(11) - *buffer.get_unchecked(13),
+			*buffer.get_unchecked(15) * T::from_usize(2).unwrap(),
+		];
+		self.butterfly4.process_inplace_dct3(&mut recursive_buffer_n1);
+		self.butterfly4.process_inplace_dst3(&mut recursive_buffer_n3);
+
+		// merge the temp buffers into the final output
+		for i in 0..4 {
+            let lower_dct4 = recursive_buffer_n1[i] * self.twiddles[i].re + recursive_buffer_n3[i] * self.twiddles[i].im;
+            let upper_dct4 = recursive_buffer_n1[i] * self.twiddles[i].im - recursive_buffer_n3[i] * self.twiddles[i].re;
+
+            let lower_dct3 = dct3_buffer[i];
+            let upper_dct3 = dct3_buffer[7 - i];
+
+            *buffer.get_unchecked_mut(i) =     lower_dct3 + lower_dct4;
+            *buffer.get_unchecked_mut(15 - i) = lower_dct3 - lower_dct4;
+
+            *buffer.get_unchecked_mut(7 - i) = upper_dct3 + upper_dct4;
+            *buffer.get_unchecked_mut(8 + i) = upper_dct3 - upper_dct4;
+		}
+	}
+    pub unsafe fn process_inplace_dst3(&self, buffer: &mut [T]) {
+		// Derived from process_inplace_dct3, reversing the inputs and negating the odd outputs
+
+		//process the evens
+		let mut dct3_buffer = [
+			*buffer.get_unchecked(15),
+			*buffer.get_unchecked(13),
+			*buffer.get_unchecked(11),
+			*buffer.get_unchecked(9),
+			*buffer.get_unchecked(7),
+			*buffer.get_unchecked(5),
+			*buffer.get_unchecked(3),
+			*buffer.get_unchecked(1)
+		];
+		self.butterfly8.process_inplace_dct3(&mut dct3_buffer);
+
+		//process the odds
+		let mut recursive_buffer_n1 = [
+			*buffer.get_unchecked(14) * T::from_usize(2).unwrap(),
+			*buffer.get_unchecked(12) + *buffer.get_unchecked(10),
+			*buffer.get_unchecked(8) + *buffer.get_unchecked(6),
+			*buffer.get_unchecked(4) + *buffer.get_unchecked(2),
+		];
+		let mut recursive_buffer_n3 = [
+            *buffer.get_unchecked(12) - *buffer.get_unchecked(10),
+            *buffer.get_unchecked(8) - *buffer.get_unchecked(6),
+            *buffer.get_unchecked(4) - *buffer.get_unchecked(2),
+			*buffer.get_unchecked(0) * T::from_usize(2).unwrap(),
+		];
+		self.butterfly4.process_inplace_dct3(&mut recursive_buffer_n1);
+		self.butterfly4.process_inplace_dst3(&mut recursive_buffer_n3);
+
+		let merged_odds = [
+            recursive_buffer_n1[0] * self.twiddles[0].re + recursive_buffer_n3[0] * self.twiddles[0].im,
+            recursive_buffer_n1[0] * self.twiddles[0].im - recursive_buffer_n3[0] * self.twiddles[0].re,
+            recursive_buffer_n1[1] * self.twiddles[1].re + recursive_buffer_n3[1] * self.twiddles[1].im,
+            recursive_buffer_n1[1] * self.twiddles[1].im - recursive_buffer_n3[1] * self.twiddles[1].re,
+            recursive_buffer_n1[2] * self.twiddles[2].re + recursive_buffer_n3[2] * self.twiddles[2].im,
+            recursive_buffer_n1[2] * self.twiddles[2].im - recursive_buffer_n3[2] * self.twiddles[2].re,
+            recursive_buffer_n1[3] * self.twiddles[3].re + recursive_buffer_n3[3] * self.twiddles[3].im,
+            recursive_buffer_n1[3] * self.twiddles[3].im - recursive_buffer_n3[3] * self.twiddles[3].re,
+        ];
+
+		// merge the temp buffers into the final output
+        *buffer.get_unchecked_mut(0) =      dct3_buffer[0] + merged_odds[0];
+        *buffer.get_unchecked_mut(15) =     merged_odds[0] - dct3_buffer[0];
+
+        *buffer.get_unchecked_mut(7) =      -(dct3_buffer[7] + merged_odds[1]);
+        *buffer.get_unchecked_mut(8) =      dct3_buffer[7] - merged_odds[1];
+
+        *buffer.get_unchecked_mut(1) =      -(dct3_buffer[1] + merged_odds[2]);
+        *buffer.get_unchecked_mut(14) =     dct3_buffer[1] - merged_odds[2];
+
+        *buffer.get_unchecked_mut(6) =      dct3_buffer[6] + merged_odds[3];
+        *buffer.get_unchecked_mut(9) =      merged_odds[3] - dct3_buffer[6];
+
+        *buffer.get_unchecked_mut(2) =      dct3_buffer[2] + merged_odds[4];
+        *buffer.get_unchecked_mut(13) =     merged_odds[4] - dct3_buffer[2];
+
+        *buffer.get_unchecked_mut(5) =      -(dct3_buffer[5] + merged_odds[5]);
+        *buffer.get_unchecked_mut(10) =     dct3_buffer[5] - merged_odds[5];
+
+        *buffer.get_unchecked_mut(3) =      -(dct3_buffer[3] + merged_odds[6]);
+        *buffer.get_unchecked_mut(12) =     dct3_buffer[3] - merged_odds[6];
+
+        *buffer.get_unchecked_mut(4) =      dct3_buffer[4] + merged_odds[7];
+        *buffer.get_unchecked_mut(11) =     merged_odds[7] - dct3_buffer[4];
+	}
+}
+butterfly_boilerplate!(Butterfly16_Type2and3, 16);
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -534,4 +795,5 @@ mod test {
     test_butterfly_func!(test_butterfly2_type2and3, Butterfly2_Type2and3, 2);
     test_butterfly_func!(test_butterfly4_type2and3, Butterfly4_Type2and3, 4);
     test_butterfly_func!(test_butterfly8_type2and3, Butterfly8_Type2and3, 8);
+    test_butterfly_func!(test_butterfly16_type2and3, Butterfly16_Type2and3, 16);
 }

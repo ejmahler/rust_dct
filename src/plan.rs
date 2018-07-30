@@ -9,7 +9,7 @@ use mdct::*;
 use algorithm::*;
 use algorithm::butterflies_type2and3::*;
 
-const DCT2_BUTTERFLIES: [usize; 3] = [2, 4, 8];
+const DCT2_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 
 /// The DCT planner is used to make new DCT algorithm instances.
 ///
@@ -117,7 +117,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             2 => Arc::new(Butterfly2_Type2and3::new()),
             4 => Arc::new(Butterfly4_Type2and3::new()),
             8 => Arc::new(Butterfly8_Type2and3::new()),
-            //16 => Arc::new(DCT2Butterfly16::new()),
+            16 => Arc::new(Butterfly16_Type2and3::new()),
             _ => panic!("Invalid butterfly size for DCT2: {}", len)
         }
     }
