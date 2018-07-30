@@ -6,12 +6,9 @@ use std::sync::Arc;
 
 use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
-use rustdct::{DCT1, DCT2, DCT3, DCT4};
+use rustdct::{DCT1, DCT2, DCT3, DCT4, Type2and3};
 use rustdct::algorithm::*;
-use rustdct::dct2::DCT2SplitRadix;
-use rustdct::dct2::dct2_butterflies::*;
-use rustdct::dct3::DCT3SplitRadix;
-use rustdct::dct3::dct3_butterflies::*;
+use rustdct::algorithm::butterflies_type2and3::*;
 use rustdct::dct4::DCT4ViaDCT3;
 use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
 
@@ -89,14 +86,14 @@ fn bench_dct2_split(b: &mut Bencher, len: usize) {
 
     let power = len.trailing_zeros() as usize;
     let mut instances = vec![
-        Arc::new(NaiveType2And3::new(1)) as Arc<DCT2<f32>>,
-        Arc::new(DCT2Butterfly2::new()) as Arc<DCT2<f32>>,
-        Arc::new(DCT2Butterfly4::new()) as Arc<DCT2<f32>>,
-        Arc::new(DCT2Butterfly8::new()) as Arc<DCT2<f32>>,
-        Arc::new(DCT2Butterfly16::new()) as Arc<DCT2<f32>>,
+        Arc::new(NaiveType2And3::new(1)) as Arc<Type2and3<f32>>,
+        Arc::new(Butterfly2_Type2and3::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Butterfly4_Type2and3::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Butterfly8_Type2and3::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Butterfly16_Type2and3::new()) as Arc<Type2and3<f32>>,
     ];
     for i in instances.len()..(power + 1) {
-        let dct = Arc::new(DCT2SplitRadix::new(instances[i - 1].clone(), instances[i - 2].clone()));
+        let dct = Arc::new(SplitRadix23::new(instances[i - 1].clone(), instances[i - 2].clone()));
         instances.push(dct);
     }
 
@@ -208,14 +205,14 @@ fn bench_dct3_split(b: &mut Bencher, len: usize) {
 
     let power = len.trailing_zeros() as usize;
     let mut instances = vec![
-        Arc::new(NaiveType2And3::new(1)) as Arc<DCT3<f32>>,
-        Arc::new(DCT3Butterfly2::new()) as Arc<DCT3<f32>>,
-        Arc::new(DCT3Butterfly4::new()) as Arc<DCT3<f32>>,
-        Arc::new(DCT3Butterfly8::new()) as Arc<DCT3<f32>>,
-        Arc::new(DCT3Butterfly16::new()) as Arc<DCT3<f32>>,
+        Arc::new(NaiveType2And3::new(1)) as Arc<Type2and3<f32>>,
+        Arc::new(Butterfly2_Type2and3::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Butterfly4_Type2and3::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Butterfly8_Type2and3::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Butterfly16_Type2and3::new()) as Arc<Type2and3<f32>>,
     ];
     for i in instances.len()..(power + 1) {
-        let dct = Arc::new(DCT3SplitRadix::new(instances[i - 1].clone(), instances[i - 2].clone()));
+        let dct = Arc::new(SplitRadix23::new(instances[i - 1].clone(), instances[i - 2].clone()));
         instances.push(dct);
     }
 
