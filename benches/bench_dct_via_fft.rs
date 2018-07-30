@@ -7,13 +7,12 @@ use std::sync::Arc;
 use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
 use rustdct::{DCT1, DCT2, DCT3, DCT4};
-use rustdct::algorithm::{NaiveType2And3, ConvertToFFT_Type2and3};
-use rustdct::dct1::DCT1ViaFFT;
-use rustdct::dct2::{DCT2ViaFFT, DCT2SplitRadix};
+use rustdct::algorithm::*;
+use rustdct::dct2::DCT2SplitRadix;
 use rustdct::dct2::dct2_butterflies::*;
-use rustdct::dct3::{DCT3ViaFFT, DCT3SplitRadix};
+use rustdct::dct3::DCT3SplitRadix;
 use rustdct::dct3::dct3_butterflies::*;
-use rustdct::dct4::{DCT4ViaDCT3, DCT4ViaFFTOdd};
+use rustdct::dct4::DCT4ViaDCT3;
 use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
 
 use test::Bencher;
@@ -23,7 +22,7 @@ use test::Bencher;
 fn bench_dct1_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let dct = DCT1ViaFFT::new(planner.plan_fft((len - 1) * 2));
+    let dct = ConvertToFFT_DCT1::new(planner.plan_fft((len - 1) * 2));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -304,7 +303,7 @@ fn bench_dct4_via_fft_odd(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
     let inner_fft = planner.plan_fft(len);
-    let dct = DCT4ViaFFTOdd::new(inner_fft);
+    let dct = ConvertToFFT_Type4_Odd::new(inner_fft);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();

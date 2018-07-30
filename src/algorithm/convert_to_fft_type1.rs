@@ -24,7 +24,7 @@ use ::{DCT1, DST1};
 ///
 /// let dct = ConvertToFFT_DCT1::new(fft);
 /// dct.process_dct1(&mut input, &mut output);
-/// ~~~
+#[allow(non_camel_case_types)]
 pub struct ConvertToFFT_DCT1<T> {
     fft: Arc<FFT<T>>,
 }
@@ -110,6 +110,7 @@ impl<T> Length for ConvertToFFT_DCT1<T> {
 /// let dct = ConvertToFFT_DST1::new(fft);
 /// dct.process_dst1(&mut input, &mut output);
 /// ~~~
+#[allow(non_camel_case_types)]
 pub struct ConvertToFFT_DST1<T> {
     fft: Arc<FFT<T>>,
 }

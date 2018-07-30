@@ -5,7 +5,7 @@ use rustfft::Length;
 
 use twiddles;
 use common;
-use ::{DCT3, DCT4};
+use ::{DCT4, Type2and3};
 
 /// DCT Type 4 implementation that converts the problem into two DCT type 3 of half size. If the inner DCT3 is 
 /// O(nlogn), then so is this.
@@ -30,13 +30,13 @@ use ::{DCT3, DCT4};
 /// dct.process_dct4(&mut input, &mut output);
 /// ~~~
 pub struct DCT4ViaDCT3<T> {
-    inner_dct: Arc<DCT3<T>>,
+    inner_dct: Arc<Type2and3<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: common::DCTnum> DCT4ViaDCT3<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_dct.len() * 2`.
-    pub fn new(inner_dct: Arc<DCT3<T>>) -> Self {
+    pub fn new(inner_dct: Arc<Type2and3<T>>) -> Self {
         let inner_len = inner_dct.len();
         let len = inner_len * 2;
 
