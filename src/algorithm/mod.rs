@@ -5,6 +5,7 @@ mod naive_type4;
 mod convert_to_fft_type1;
 mod convert_to_fft_type2and3;
 mod convert_to_fft_type4;
+mod type4_convert_to_type3;
 mod splitradix_type2and3;
 pub mod butterflies_type2and3;
 
@@ -16,6 +17,8 @@ pub use self::naive_type4::NaiveType4;
 pub use self::convert_to_fft_type1::ConvertToFFT_DCT1;
 pub use self::convert_to_fft_type1::ConvertToFFT_DST1;
 pub use self::convert_to_fft_type2and3::ConvertToFFT_Type2and3;
+
 pub use self::convert_to_fft_type4::ConvertToFFT_Type4_Odd;
+pub use self::type4_convert_to_type3::Type4_ConvertToType3_Even;
 
 pub use self::splitradix_type2and3::SplitRadix23;

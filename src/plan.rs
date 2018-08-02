@@ -3,8 +3,7 @@ use std::sync::Arc;
 
 use rustfft::FFTplanner;
 use common;
-use ::{DCT1, DCT4, Type2and3};
-use dct4::*;
+use ::{DCT1, Type4, Type2and3};
 use mdct::*;
 use algorithm::*;
 use algorithm::butterflies_type2and3::*;
@@ -43,7 +42,7 @@ pub struct DCTplanner<T> {
     fft_planner: FFTplanner<T>,
     dct1_cache: HashMap<usize, Arc<DCT1<T>>>,
     dct23_cache: HashMap<usize, Arc<Type2and3<T>>>,
-    dct4_cache: HashMap<usize, Arc<DCT4<T>>>,
+    dct4_cache: HashMap<usize, Arc<Type4<T>>>,
     mdct_cache: HashMap<usize, Arc<MDCT<T>>>,
     imdct_cache: HashMap<usize, Arc<IMDCT<T>>>,
 }
@@ -133,7 +132,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
     
     /// Returns a DCT Type 4 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct4(&mut self, len: usize) -> Arc<DCT4<T>> {
+    pub fn plan_dct4(&mut self, len: usize) -> Arc<Type4<T>> {
         if self.dct4_cache.contains_key(&len) {
             Arc::clone(self.dct4_cache.get(&len).unwrap())
         } else {
@@ -143,7 +142,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         }
     }
 
-    fn plan_new_dct4(&mut self, len: usize) -> Arc<DCT4<T>> {
+    fn plan_new_dct4(&mut self, len: usize) -> Arc<Type4<T>> {
         //if we have an even size, we can use the DCT4 Via DCT3 algorithm
         if len % 2 == 0 {
             //benchmarking shows that below 6, it's faster to just use the naive DCT4 algorithm
@@ -151,7 +150,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
                 Arc::new(NaiveType4::new(len))
             } else {
                 let inner_dct = self.plan_dct3(len / 2);
-                Arc::new(DCT4ViaDCT3::new(inner_dct))
+                Arc::new(Type4_ConvertToType3_Even::new(inner_dct))
             }
         } else {
             //odd size, so we can use the "DCT4 via FFT odd" algorithm

@@ -9,7 +9,6 @@ use rustdct::DCTplanner;
 use rustdct::{DCT1, DCT2, DCT3, DCT4, Type2and3};
 use rustdct::algorithm::*;
 use rustdct::algorithm::butterflies_type2and3::*;
-use rustdct::dct4::DCT4ViaDCT3;
 use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
 
 use test::Bencher;
@@ -260,7 +259,7 @@ fn bench_dct4_via_dct3(b: &mut Bencher, len: usize) {
 
     let mut planner = DCTplanner::new();
     let inner_dct3 = planner.plan_dct3(len / 2);
-    let dct = DCT4ViaDCT3::new(inner_dct3);
+    let dct = Type4_ConvertToType3_Even::new(inner_dct3);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
