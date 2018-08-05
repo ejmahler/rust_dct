@@ -11,7 +11,7 @@ use ::{DCT2, DST2, DCT3, DST3, Type2and3};
 ///
 /// ~~~
 /// // Computes a DCT Type 2 of size 1024
-/// use rustdct::algorithm::SplitRadix23;
+/// use rustdct::algorithm::Type2And3SplitRadix;
 /// use rustdct::DCT2;
 /// use rustdct::DCTplanner;
 ///
@@ -23,16 +23,16 @@ use ::{DCT2, DST2, DCT3, DST3, Type2and3};
 /// let quarter_dct = planner.plan_dct2(len / 4);
 /// let half_dct = planner.plan_dct2(len / 2);
 ///
-/// let dct = SplitRadix23::new(half_dct, quarter_dct);
+/// let dct = Type2And3SplitRadix::new(half_dct, quarter_dct);
 /// dct.process_dct2(&mut input, &mut output);
 /// ~~~
-pub struct SplitRadix23<T> {
+pub struct Type2And3SplitRadix<T> {
     half_dct: Arc<Type2and3<T>>,
     quarter_dct: Arc<Type2and3<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DCTnum> SplitRadix23<T> {
+impl<T: common::DCTnum> Type2And3SplitRadix<T> {
     /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `half_dct.len() * 2`
     pub fn new(half_dct: Arc<Type2and3<T>>, quarter_dct: Arc<Type2and3<T>>) -> Self {
         let len = half_dct.len() * 2;
@@ -45,7 +45,7 @@ impl<T: common::DCTnum> SplitRadix23<T> {
             .map(|i| twiddles::single_twiddle(2 * i + 1, len * 4).conj())
             .collect();
 
-        Self {
+        Type2And3SplitRadix {
             half_dct: half_dct,
             quarter_dct: quarter_dct,
             twiddles: twiddles.into_boxed_slice(),
@@ -53,7 +53,7 @@ impl<T: common::DCTnum> SplitRadix23<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT2<T> for SplitRadix23<T> {
+impl<T: common::DCTnum> DCT2<T> for Type2And3SplitRadix<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -132,7 +132,7 @@ impl<T: common::DCTnum> DCT2<T> for SplitRadix23<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST2<T> for SplitRadix23<T> {
+impl<T: common::DCTnum> DST2<T> for Type2And3SplitRadix<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         
         for i in 0..(self.len() / 2) {
@@ -144,7 +144,7 @@ impl<T: common::DCTnum> DST2<T> for SplitRadix23<T> {
         output.reverse();
     }
 }
-impl<T: common::DCTnum> DCT3<T> for SplitRadix23<T> {
+impl<T: common::DCTnum> DCT3<T> for Type2And3SplitRadix<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -223,7 +223,7 @@ impl<T: common::DCTnum> DCT3<T> for SplitRadix23<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST3<T> for SplitRadix23<T> {
+impl<T: common::DCTnum> DST3<T> for Type2And3SplitRadix<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         
         input.reverse();
@@ -235,8 +235,8 @@ impl<T: common::DCTnum> DST3<T> for SplitRadix23<T> {
         }
     }
 }
-impl<T: common::DCTnum> Type2and3<T> for SplitRadix23<T>{}
-impl<T> Length for SplitRadix23<T> {
+impl<T: common::DCTnum> Type2and3<T> for Type2And3SplitRadix<T>{}
+impl<T> Length for Type2And3SplitRadix<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 4
     }
@@ -248,7 +248,7 @@ impl<T> Length for SplitRadix23<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::NaiveType2And3;
+    use algorithm::Type2And3Naive;
 
     use test_utils::{compare_float_vectors, random_signal};
 
@@ -266,13 +266,13 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let naive_dct = NaiveType2And3::new(size);
+            let naive_dct = Type2And3Naive::new(size);
             naive_dct.process_dct2(&mut expected_input, &mut expected_output);
 
-            let quarter_dct = Arc::new(NaiveType2And3::new(size/4));
-            let half_dct = Arc::new(NaiveType2And3::new(size/2));
+            let quarter_dct = Arc::new(Type2And3Naive::new(size/4));
+            let half_dct = Arc::new(Type2And3Naive::new(size/2));
 
-            let dct = SplitRadix23::new(half_dct, quarter_dct);
+            let dct = Type2And3SplitRadix::new(half_dct, quarter_dct);
             dct.process_dct2(&mut actual_input, &mut actual_output);
 
             println!("input:       {:?}", expected_input);

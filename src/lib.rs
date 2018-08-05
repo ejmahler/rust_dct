@@ -33,13 +33,13 @@
 //! ```rust
 //! // Compute a DCT type 2 of size 8, and then compute a DCT type 3 of size 8 on the output.
 //! use rustdct::{DCT2, DCT3};
-//! use rustdct::algorithm::butterflies_type2and3::Butterfly8_Type2and3;
+//! use rustdct::algorithm::type2and3_butterflies::Type2and3Butterfly8;
 //! 
 //! let mut input = [0f32; 8];
 //! let mut intermediate = [0f32; 8];
 //! let mut output = [0f32; 8];
 //! 
-//! let dct = Butterfly8_Type2and3::new();
+//! let dct = Type2and3Butterfly8::new();
 //! 
 //! dct.process_dct2(&mut input, &mut intermediate);
 //! dct.process_dct3(&mut intermediate, &mut output);

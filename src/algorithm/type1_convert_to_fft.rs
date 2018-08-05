@@ -12,7 +12,7 @@ use ::{DCT1, DST1};
 /// ~~~
 /// // Computes a DCT Type 1 of size 1234
 /// use rustdct::DCT1;
-/// use rustdct::algorithm::ConvertToFFT_DCT1;
+/// use rustdct::algorithm::DCT1ConvertToFFT;
 /// use rustdct::rustfft::FFTplanner;
 ///
 /// let len = 1234;
@@ -22,14 +22,13 @@ use ::{DCT1, DST1};
 /// let mut planner = FFTplanner::new(false);
 /// let fft = planner.plan_fft(2 * (len - 1));
 ///
-/// let dct = ConvertToFFT_DCT1::new(fft);
+/// let dct = DCT1ConvertToFFT::new(fft);
 /// dct.process_dct1(&mut input, &mut output);
-#[allow(non_camel_case_types)]
-pub struct ConvertToFFT_DCT1<T> {
+pub struct DCT1ConvertToFFT<T> {
     fft: Arc<FFT<T>>,
 }
 
-impl<T: common::DCTnum> ConvertToFFT_DCT1<T> {
+impl<T: common::DCTnum> DCT1ConvertToFFT<T> {
     /// Creates a new DCT1 context that will process signals of length `inner_fft.len() / 2 + 1`.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
@@ -45,13 +44,13 @@ impl<T: common::DCTnum> ConvertToFFT_DCT1<T> {
                  was provided"
         );
 
-        Self {
+        DCT1ConvertToFFT {
             fft: inner_fft,
         }
     }
 }
 
-impl<T: common::DCTnum> DCT1<T> for ConvertToFFT_DCT1<T> {
+impl<T: common::DCTnum> DCT1<T> for DCT1ConvertToFFT<T> {
     fn process_dct1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -86,7 +85,7 @@ impl<T: common::DCTnum> DCT1<T> for ConvertToFFT_DCT1<T> {
         }
     }
 }
-impl<T> Length for ConvertToFFT_DCT1<T> {
+impl<T> Length for DCT1ConvertToFFT<T> {
     fn len(&self) -> usize {
         self.fft.len() / 2 + 1
     }
@@ -97,7 +96,7 @@ impl<T> Length for ConvertToFFT_DCT1<T> {
 /// ~~~
 /// // Computes a DST Type 1 of size 1234
 /// use rustdct::DST1;
-/// use rustdct::algorithm::ConvertToFFT_DST1;
+/// use rustdct::algorithm::DST1ConvertToFFT;
 /// use rustdct::rustfft::FFTplanner;
 ///
 /// let len = 1234;
@@ -107,15 +106,14 @@ impl<T> Length for ConvertToFFT_DCT1<T> {
 /// let mut planner = FFTplanner::new(false);
 /// let fft = planner.plan_fft(2 * (len + 1));
 ///
-/// let dct = ConvertToFFT_DST1::new(fft);
+/// let dct = DST1ConvertToFFT::new(fft);
 /// dct.process_dst1(&mut input, &mut output);
 /// ~~~
-#[allow(non_camel_case_types)]
-pub struct ConvertToFFT_DST1<T> {
+pub struct DST1ConvertToFFT<T> {
     fft: Arc<FFT<T>>,
 }
 
-impl<T: common::DCTnum> ConvertToFFT_DST1<T> {
+impl<T: common::DCTnum> DST1ConvertToFFT<T> {
     /// Creates a new DCT1 context that will process signals of length `inner_fft.len() / 2 - 1`.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         let inner_len = inner_fft.len();
@@ -131,13 +129,13 @@ impl<T: common::DCTnum> ConvertToFFT_DST1<T> {
                  was provided"
         );
 
-        Self {
+        DST1ConvertToFFT {
             fft: inner_fft,
         }
     }
 }
 
-impl<T: common::DCTnum> DST1<T> for ConvertToFFT_DST1<T> {
+impl<T: common::DCTnum> DST1<T> for DST1ConvertToFFT<T> {
     fn process_dst1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -165,7 +163,7 @@ impl<T: common::DCTnum> DST1<T> for ConvertToFFT_DST1<T> {
         }
     }
 }
-impl<T> Length for ConvertToFFT_DST1<T> {
+impl<T> Length for DST1ConvertToFFT<T> {
     fn len(&self) -> usize {
         self.fft.len() / 2 - 1
     }
@@ -175,7 +173,7 @@ impl<T> Length for ConvertToFFT_DST1<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::{NaiveDCT1, NaiveDST1};
+    use algorithm::{DCT1Naive, DST1Naive};
 
     use test_utils::{compare_float_vectors, random_signal};
     use rustfft::FFTplanner;
@@ -192,7 +190,7 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = NaiveDCT1::new(size);
+            let mut naive_dct = DCT1Naive::new(size);
             naive_dct.process_dct1(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
@@ -201,7 +199,7 @@ mod test {
             println!("inner fft len: {}", inner_fft.len());
             
 
-            let mut dct = ConvertToFFT_DCT1::new(inner_fft);
+            let mut dct = DCT1ConvertToFFT::new(inner_fft);
             println!("dct len: {}", dct.len());
             dct.process_dct1(&mut actual_input, &mut actual_output);
 
@@ -224,7 +222,7 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = NaiveDST1::new(size);
+            let mut naive_dct = DST1Naive::new(size);
             naive_dct.process_dst1(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
@@ -232,7 +230,7 @@ mod test {
             println!("size: {}", size);
             println!("inner fft len: {}", inner_fft.len());
 
-            let mut dct = ConvertToFFT_DST1::new(inner_fft);
+            let mut dct = DST1ConvertToFFT::new(inner_fft);
             println!("dst len: {}", dct.len());
             dct.process_dst1(&mut actual_input, &mut actual_output);
 

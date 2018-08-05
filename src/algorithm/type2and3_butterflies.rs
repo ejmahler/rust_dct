@@ -50,13 +50,12 @@ macro_rules! butterfly_boilerplate {
     )
 }
 
-#[allow(non_camel_case_types)]
-pub struct Butterfly2_Type2and3<T> {
+pub struct Type2and3Butterfly2<T> {
     _phantom: PhantomData<T>
 }
-impl<T: common::DCTnum> Butterfly2_Type2and3<T> {
+impl<T: common::DCTnum> Type2and3Butterfly2<T> {
 	pub fn new() -> Self {
-		Self {
+		Type2and3Butterfly2 {
             _phantom: PhantomData,
         }
 	}
@@ -101,7 +100,7 @@ impl<T: common::DCTnum> Butterfly2_Type2and3<T> {
         *buffer.get_unchecked_mut(1) = frac_0 - half_1;
 	}
 }
-impl<T: common::DCTnum> DCT2<T> for Butterfly2_Type2and3<T> {
+impl<T: common::DCTnum> DCT2<T> for Type2and3Butterfly2<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -109,7 +108,7 @@ impl<T: common::DCTnum> DCT2<T> for Butterfly2_Type2and3<T> {
         output[1] = (input[0] - input[1]) * T::FRAC_1_SQRT_2();      
     }
 }
-impl<T: common::DCTnum> DCT3<T> for Butterfly2_Type2and3<T> {
+impl<T: common::DCTnum> DCT3<T> for Type2and3Butterfly2<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -120,7 +119,7 @@ impl<T: common::DCTnum> DCT3<T> for Butterfly2_Type2and3<T> {
 		output[1] = half_0 - frac_1;  
     }
 }
-impl<T: common::DCTnum> DST2<T> for Butterfly2_Type2and3<T> {
+impl<T: common::DCTnum> DST2<T> for Type2and3Butterfly2<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -128,7 +127,7 @@ impl<T: common::DCTnum> DST2<T> for Butterfly2_Type2and3<T> {
         output[1] = input[0] - input[1];      
     }
 }
-impl<T: common::DCTnum> DST3<T> for Butterfly2_Type2and3<T> {
+impl<T: common::DCTnum> DST3<T> for Type2and3Butterfly2<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -139,20 +138,19 @@ impl<T: common::DCTnum> DST3<T> for Butterfly2_Type2and3<T> {
         output[1] = frac_0 - half_1;
     }
 }
-impl<T: common::DCTnum> Type2and3<T> for Butterfly2_Type2and3<T>{}
-impl<T> Length for Butterfly2_Type2and3<T> {
+impl<T: common::DCTnum> Type2and3<T> for Type2and3Butterfly2<T>{}
+impl<T> Length for Type2and3Butterfly2<T> {
     fn len(&self) -> usize {
         2
     }
 }
 
-#[allow(non_camel_case_types)]
-pub struct Butterfly4_Type2and3<T> {
+pub struct Type2and3Butterfly4<T> {
 	twiddle: Complex<T>,
 }
-impl<T: common::DCTnum> Butterfly4_Type2and3<T> {
+impl<T: common::DCTnum> Type2and3Butterfly4<T> {
 	pub fn new() -> Self {
-		Self {
+		Type2and3Butterfly4 {
 			twiddle: twiddles::single_twiddle(1,16).conj()
 		}
 	}
@@ -165,7 +163,7 @@ impl<T: common::DCTnum> Butterfly4_Type2and3<T> {
 		*buffer.get_unchecked_mut(0) = *buffer.get_unchecked(0) + *buffer.get_unchecked(3);
 		*buffer.get_unchecked_mut(2) = *buffer.get_unchecked(2) + *buffer.get_unchecked(1);
 
-        Butterfly2_Type2and3::process_scattered_dct2(buffer, 0, 2);
+        Type2and3Butterfly2::process_scattered_dct2(buffer, 0, 2);
 
         *buffer.get_unchecked_mut(1) = lower_dct4 * self.twiddle.re - upper_dct4 * self.twiddle.im;
         *buffer.get_unchecked_mut(3) = upper_dct4 * self.twiddle.re + lower_dct4 * self.twiddle.im;
@@ -174,7 +172,7 @@ impl<T: common::DCTnum> Butterfly4_Type2and3<T> {
 		// perform a step of split radix -- derived from DCT3SplitRadix with n = 4
 
 		// inner DCT3 of size 2
-		Butterfly2_Type2and3::process_scattered_dct3(buffer, 0, 2);
+		Type2and3Butterfly2::process_scattered_dct3(buffer, 0, 2);
 
 		// inner DCT3 of size 1, then sclared by twiddle factors
 		let lower_dct4 = *buffer.get_unchecked(1) * self.twiddle.re + *buffer.get_unchecked(3) * self.twiddle.im;
@@ -195,7 +193,7 @@ impl<T: common::DCTnum> Butterfly4_Type2and3<T> {
 		*buffer.get_unchecked_mut(3) = *buffer.get_unchecked(0) - *buffer.get_unchecked(3);
 		*buffer.get_unchecked_mut(1) = *buffer.get_unchecked(2) - *buffer.get_unchecked(1);
 
-        Butterfly2_Type2and3::process_scattered_dct2(buffer, 3, 1);
+        Type2and3Butterfly2::process_scattered_dct2(buffer, 3, 1);
 
         *buffer.get_unchecked_mut(2) = lower_dct4 * self.twiddle.re - upper_dct4 * self.twiddle.im;
         *buffer.get_unchecked_mut(0) = upper_dct4 * self.twiddle.re + lower_dct4 * self.twiddle.im;
@@ -204,7 +202,7 @@ impl<T: common::DCTnum> Butterfly4_Type2and3<T> {
 		// Derived from process_inplace_dst3 by reversing the inputs, and negating the odd outputs
 
 		// inner DCT3 of size 2
-		Butterfly2_Type2and3::process_scattered_dct3(buffer, 3, 1);
+		Type2and3Butterfly2::process_scattered_dct3(buffer, 3, 1);
 
 		// inner DCT3 of size 1, then sclared by twiddle factors
 		let lower_dct4 = *buffer.get_unchecked(2) * self.twiddle.re + *buffer.get_unchecked(0) * self.twiddle.im;
@@ -217,19 +215,18 @@ impl<T: common::DCTnum> Butterfly4_Type2and3<T> {
 		*buffer.get_unchecked_mut(3) = lower_dct4 - *buffer.get_unchecked(3);
 	}
 }
-butterfly_boilerplate!(Butterfly4_Type2and3, 4);
+butterfly_boilerplate!(Type2and3Butterfly4, 4);
 
-#[allow(non_camel_case_types)]
-pub struct Butterfly8_Type2and3<T> {
-	butterfly4: Butterfly4_Type2and3<T>,
-	butterfly2: Butterfly2_Type2and3<T>,
+pub struct Type2and3Butterfly8<T> {
+	butterfly4: Type2and3Butterfly4<T>,
+	butterfly2: Type2and3Butterfly2<T>,
     twiddles: [Complex<T>; 2],
 }
-impl<T: common::DCTnum> Butterfly8_Type2and3<T> {
+impl<T: common::DCTnum> Type2and3Butterfly8<T> {
 	pub fn new() -> Self {
-		Self {
-			butterfly4: Butterfly4_Type2and3::new(),
-			butterfly2: Butterfly2_Type2and3::new(),
+		Type2and3Butterfly8 {
+			butterfly4: Type2and3Butterfly4::new(),
+			butterfly2: Type2and3Butterfly2::new(),
 			twiddles: [
                 twiddles::single_twiddle(1,32).conj(),
 			    twiddles::single_twiddle(3,32).conj(),
@@ -409,19 +406,18 @@ impl<T: common::DCTnum> Butterfly8_Type2and3<T> {
         *buffer.get_unchecked_mut(5) = merged_odds[3] - dct3_buffer[2];
     }
 }
-butterfly_boilerplate!(Butterfly8_Type2and3, 8);
+butterfly_boilerplate!(Type2and3Butterfly8, 8);
 
-#[allow(non_camel_case_types)]
-pub struct Butterfly16_Type2and3<T> {
-	butterfly8: Butterfly8_Type2and3<T>,
-	butterfly4: Butterfly4_Type2and3<T>,
+pub struct Type2and3Butterfly16<T> {
+	butterfly8: Type2and3Butterfly8<T>,
+	butterfly4: Type2and3Butterfly4<T>,
     twiddles: [Complex<T>; 4],
 }
-impl<T: common::DCTnum> Butterfly16_Type2and3<T> {
+impl<T: common::DCTnum> Type2and3Butterfly16<T> {
 	pub fn new() -> Self {
-		Self {
-			butterfly8: Butterfly8_Type2and3::new(),
-			butterfly4: Butterfly4_Type2and3::new(),
+		Type2and3Butterfly16 {
+			butterfly8: Type2and3Butterfly8::new(),
+			butterfly4: Type2and3Butterfly4::new(),
             twiddles: [
                 twiddles::single_twiddle(1,64).conj(),
                 twiddles::single_twiddle(3,64).conj(),
@@ -670,7 +666,7 @@ impl<T: common::DCTnum> Butterfly16_Type2and3<T> {
         *buffer.get_unchecked_mut(11) =     merged_odds[7] - dct3_buffer[4];
 	}
 }
-butterfly_boilerplate!(Butterfly16_Type2and3, 16);
+butterfly_boilerplate!(Type2and3Butterfly16, 16);
 
 #[cfg(test)]
 mod test {
@@ -682,14 +678,14 @@ mod test {
         ($test_name:ident, $struct_name:ident, $size:expr) => (
             mod $test_name {
                 use super::*;
-                use algorithm::NaiveType2And3;
+                use algorithm::Type2And3Naive;
                 use test_utils::{compare_float_vectors, random_signal};
                 #[test]
                 fn $test_name() {
                     let size = $size;
                     println!("{}", size);
 
-                    let naive = NaiveType2And3::new(size);
+                    let naive = Type2And3Naive::new(size);
                     let butterfly = $struct_name::new();
 
                     check_dct2(&butterfly, &naive);
@@ -698,7 +694,7 @@ mod test {
                     check_dst3(&butterfly, &naive);
                 }
 
-                fn check_dct2(butterfly_instance: &$struct_name<f32>, naive_instance: &NaiveType2And3<f32>) {
+                fn check_dct2(butterfly_instance: &$struct_name<f32>, naive_instance: &dyn DCT2<f32>) {
                     // set up buffers
                     let expected_input = random_signal($size);
                     
@@ -721,7 +717,7 @@ mod test {
                     assert!(compare_float_vectors(&expected_output, &actual_output), "process_dct2() failed, length = {}", $size);
                 }
 
-                fn check_dct3(butterfly_instance: &$struct_name<f32>, naive_instance: &NaiveType2And3<f32>) {
+                fn check_dct3(butterfly_instance: &$struct_name<f32>, naive_instance: &dyn DCT3<f32>) {
                     // set up buffers
                     let expected_input = random_signal($size);
                     
@@ -744,7 +740,7 @@ mod test {
                     assert!(compare_float_vectors(&expected_output, &actual_output), "process_dct3() failed, length = {}", $size);
                 }
 
-                fn check_dst2(butterfly_instance: &$struct_name<f32>, naive_instance: &NaiveType2And3<f32>) {
+                fn check_dst2(butterfly_instance: &$struct_name<f32>, naive_instance: &dyn DST2<f32>) {
                     // set up buffers
                     let expected_input = random_signal($size);
                     
@@ -767,7 +763,7 @@ mod test {
                     assert!(compare_float_vectors(&expected_output, &actual_output), "process_dst2() failed, length = {}", $size);
                 }
 
-                fn check_dst3(butterfly_instance: &$struct_name<f32>, naive_instance: &NaiveType2And3<f32>) {
+                fn check_dst3(butterfly_instance: &$struct_name<f32>, naive_instance: &dyn DST3<f32>) {
                     // set up buffers
                     let expected_input = random_signal($size);
                     
@@ -792,8 +788,8 @@ mod test {
             }
         )
     }
-    test_butterfly_func!(test_butterfly2_type2and3, Butterfly2_Type2and3, 2);
-    test_butterfly_func!(test_butterfly4_type2and3, Butterfly4_Type2and3, 4);
-    test_butterfly_func!(test_butterfly8_type2and3, Butterfly8_Type2and3, 8);
-    test_butterfly_func!(test_butterfly16_type2and3, Butterfly16_Type2and3, 16);
+    test_butterfly_func!(test_butterfly2_type2and3, Type2and3Butterfly2, 2);
+    test_butterfly_func!(test_butterfly4_type2and3, Type2and3Butterfly4, 4);
+    test_butterfly_func!(test_butterfly8_type2and3, Type2and3Butterfly8, 8);
+    test_butterfly_func!(test_butterfly16_type2and3, Type2and3Butterfly16, 16);
 }

@@ -1,24 +1,27 @@
 
-mod naive_type1;
-mod naive_type2and3;
-mod naive_type4;
-mod convert_to_fft_type1;
-mod convert_to_fft_type2and3;
-mod convert_to_fft_type4;
+mod type1_naive;
+mod type1_convert_to_fft;
+
+pub mod type2and3_butterflies;
+mod type2and3_convert_to_fft;
+mod type2and3_naive;
+mod type2and3_splitradix;
+
+mod type4_convert_to_fft;
 mod type4_convert_to_type3;
-mod splitradix_type2and3;
-pub mod butterflies_type2and3;
+mod type4_naive;
 
-pub use self::naive_type1::NaiveDCT1;
-pub use self::naive_type1::NaiveDST1;
-pub use self::naive_type2and3::NaiveType2And3;
-pub use self::naive_type4::NaiveType4;
 
-pub use self::convert_to_fft_type1::ConvertToFFT_DCT1;
-pub use self::convert_to_fft_type1::ConvertToFFT_DST1;
-pub use self::convert_to_fft_type2and3::ConvertToFFT_Type2and3;
+pub use self::type1_naive::DCT1Naive;
+pub use self::type1_naive::DST1Naive;
+pub use self::type1_convert_to_fft::DCT1ConvertToFFT;
+pub use self::type1_convert_to_fft::DST1ConvertToFFT;
 
-pub use self::convert_to_fft_type4::ConvertToFFT_Type4_Odd;
-pub use self::type4_convert_to_type3::Type4_ConvertToType3_Even;
+pub use self::type2and3_convert_to_fft::Type2and3ConvertToFFT;
+pub use self::type2and3_naive::Type2And3Naive;
+pub use self::type2and3_splitradix::Type2And3SplitRadix;
 
-pub use self::splitradix_type2and3::SplitRadix23;
+pub use self::type4_convert_to_fft::Type4ConvertToFFTOdd;
+pub use self::type4_convert_to_type3::Type4ConvertToType3Even;
+pub use self::type4_naive::Type4Naive;
+

@@ -14,13 +14,13 @@ use ::{DCT4, DST4, Type4};
 /// ~~~
 /// // Computes a DCT Type 4 and DST Type 4 of size 1233
 /// use rustdct::{DCT4, DST4};
-/// use rustdct::algorithm::ConvertToFFT_Type4_Odd;
+/// use rustdct::algorithm::Type4ConvertToFFTOdd;
 /// use rustdct::rustfft::FFTplanner;
 /// 
 /// let len = 1233;
 /// let mut planner = FFTplanner::new(false);
 /// let fft = planner.plan_fft(len);
-/// let dct = ConvertToFFT_Type4_Odd::new(fft);
+/// let dct = Type4ConvertToFFTOdd::new(fft);
 ///
 /// let mut dct4_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct4_output: Vec<f32> = vec![0f32; len];
@@ -30,29 +30,28 @@ use ::{DCT4, DST4, Type4};
 /// let mut dst4_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dst4(&mut dst4_input, &mut dst4_output);
 /// ~~~
-#[allow(non_camel_case_types)]
-pub struct ConvertToFFT_Type4_Odd<T> {
+pub struct Type4ConvertToFFTOdd<T> {
     fft: Arc<FFT<T>>,
 }
 
-impl<T: common::DCTnum> ConvertToFFT_Type4_Odd<T> {
+impl<T: common::DCTnum> Type4ConvertToFFTOdd<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_fft.len()`. `inner_fft.len()` must be odd.
     pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
         assert!(
             !inner_fft.is_inverse(),
-            "ConvertToFFT_Type4_Odd requires a forward FFT, but an inverse FFT was provided");
+            "Type4ConvertToFFTOdd requires a forward FFT, but an inverse FFT was provided");
 
         let len = inner_fft.len();
 
-        assert!(len % 2 == 1, "ConvertToFFT_Type4_Odd size must be odd. Got {}", len);
+        assert!(len % 2 == 1, "Type4ConvertToFFTOdd size must be odd. Got {}", len);
 
-        Self {
+        Type4ConvertToFFTOdd {
             fft: inner_fft,
         }
     }
 }
 
-impl<T: common::DCTnum> DCT4<T> for ConvertToFFT_Type4_Odd<T> {
+impl<T: common::DCTnum> DCT4<T> for Type4ConvertToFFTOdd<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -141,7 +140,7 @@ impl<T: common::DCTnum> DCT4<T> for ConvertToFFT_Type4_Odd<T> {
         
     }
 }
-impl<T: common::DCTnum> DST4<T> for ConvertToFFT_Type4_Odd<T> {
+impl<T: common::DCTnum> DST4<T> for Type4ConvertToFFTOdd<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -232,8 +231,8 @@ impl<T: common::DCTnum> DST4<T> for ConvertToFFT_Type4_Odd<T> {
         
     }
 }
-impl<T: common::DCTnum> Type4<T> for ConvertToFFT_Type4_Odd<T>{}
-impl<T> Length for ConvertToFFT_Type4_Odd<T> {
+impl<T: common::DCTnum> Type4<T> for Type4ConvertToFFTOdd<T>{}
+impl<T> Length for Type4ConvertToFFTOdd<T> {
     fn len(&self) -> usize {
         self.fft.len()
     }
@@ -243,7 +242,7 @@ impl<T> Length for ConvertToFFT_Type4_Odd<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::NaiveType4;
+    use algorithm::Type4Naive;
 
     use test_utils::{compare_float_vectors, random_signal};
     use rustfft::FFTplanner;
@@ -263,11 +262,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = NaiveType4::new(size);
+            let mut naive_dct = Type4Naive::new(size);
             naive_dct.process_dct4(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
-            let mut dct = ConvertToFFT_Type4_Odd::new(fft_planner.plan_fft(size));
+            let mut dct = Type4ConvertToFFTOdd::new(fft_planner.plan_fft(size));
             dct.process_dct4(&mut actual_input, &mut actual_output);
 
             println!("expected: {:?}", expected_output);
@@ -296,11 +295,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = NaiveType4::new(size);
+            let mut naive_dct = Type4Naive::new(size);
             naive_dct.process_dst4(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
-            let mut dct = ConvertToFFT_Type4_Odd::new(fft_planner.plan_fft(size));
+            let mut dct = Type4ConvertToFFTOdd::new(fft_planner.plan_fft(size));
             dct.process_dst4(&mut actual_input, &mut actual_output);
 
             println!("expected: {:?}", expected_output);

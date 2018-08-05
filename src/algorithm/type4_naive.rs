@@ -10,10 +10,10 @@ use common;
 /// ~~~
 /// // Computes a naive DCT4 of size 23
 /// use rustdct::{DCT4, DST4};
-/// use rustdct::algorithm::NaiveType4;
+/// use rustdct::algorithm::Type4Naive;
 ///
 /// let len = 23;
-/// let naive = NaiveType4::new(len);
+/// let naive = Type4Naive::new(len);
 /// 
 /// let mut dct4_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct4_output: Vec<f32> = vec![0f32; len];
@@ -23,22 +23,22 @@ use common;
 /// let mut dst4_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dst4(&mut dst4_input, &mut dst4_output);
 /// ~~~
-pub struct NaiveType4<T> {
+pub struct Type4Naive<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DCTnum> NaiveType4<T> {
+impl<T: common::DCTnum> Type4Naive<T> {
     /// Creates a new DCT4 and DTS4 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let twiddles: Vec<Complex<T>> = (0..len * 4)
             .map(|i| twiddles::single_twiddle_halfoffset(i, len * 4))
             .collect();
 
-        Self { twiddles: twiddles.into_boxed_slice() }
+        Type4Naive { twiddles: twiddles.into_boxed_slice() }
     }
 }
 
-impl<T: common::DCTnum> DCT4<T> for NaiveType4<T> {
+impl<T: common::DCTnum> DCT4<T> for Type4Naive<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -62,7 +62,7 @@ impl<T: common::DCTnum> DCT4<T> for NaiveType4<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST4<T> for NaiveType4<T> {
+impl<T: common::DCTnum> DST4<T> for Type4Naive<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -86,8 +86,8 @@ impl<T: common::DCTnum> DST4<T> for NaiveType4<T> {
         }
     }
 }
-impl<T: common::DCTnum> Type4<T> for NaiveType4<T>{}
-impl<T> Length for NaiveType4<T> {
+impl<T: common::DCTnum> Type4<T> for Type4Naive<T>{}
+impl<T> Length for Type4Naive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 4
     }

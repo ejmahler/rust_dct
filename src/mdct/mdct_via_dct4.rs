@@ -125,7 +125,7 @@ impl<T> Length for MDCTViaDCT4<T> {
 mod unit_tests {
     use super::*;
 
-    use algorithm::NaiveType4;
+    use algorithm::Type4Naive;
     use mdct::MDCTNaive;
     use mdct::window_fn;
     use test_utils::{compare_float_vectors, random_signal};
@@ -146,7 +146,7 @@ mod unit_tests {
 
                 let mut naive_mdct = MDCTNaive::new(output_len, current_window_fn);
 
-                let inner_dct4 = Arc::new(NaiveType4::new(output_len));
+                let inner_dct4 = Arc::new(Type4Naive::new(output_len));
                 let mut fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
 
                 naive_mdct.process_mdct(&input, &mut naive_output);

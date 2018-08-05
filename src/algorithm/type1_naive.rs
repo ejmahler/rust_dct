@@ -14,20 +14,20 @@ use common;
 /// ~~~
 /// // Computes a naive DCT1 of size 23
 /// use rustdct::DCT1;
-/// use rustdct::algorithm::NaiveDCT1;
+/// use rustdct::algorithm::DCT1Naive;
 ///
 /// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let dct = NaiveDCT1::new(len);
+/// let dct = DCT1Naive::new(len);
 /// dct.process_dct1(&mut input, &mut output);
 /// ~~~
-pub struct NaiveDCT1<T> {
+pub struct DCT1Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> NaiveDCT1<T> {
+impl<T: common::DCTnum> DCT1Naive<T> {
     pub fn new(len: usize) -> Self {
         assert_ne!(len, 1, "DCT Type 1 is undefined for len == 1");
 
@@ -38,11 +38,11 @@ impl<T: common::DCTnum> NaiveDCT1<T> {
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        Self { twiddles: twiddles.into_boxed_slice() }
+        DCT1Naive { twiddles: twiddles.into_boxed_slice() }
     }
 }
 
-impl<T: common::DCTnum> DCT1<T> for NaiveDCT1<T> {
+impl<T: common::DCTnum> DCT1<T> for DCT1Naive<T> {
     fn process_dct1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -71,7 +71,7 @@ impl<T: common::DCTnum> DCT1<T> for NaiveDCT1<T> {
 
     }
 }
-impl<T> Length for NaiveDCT1<T> {
+impl<T> Length for DCT1Naive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 2 + 1
     }
@@ -85,20 +85,20 @@ impl<T> Length for NaiveDCT1<T> {
 /// ~~~
 /// // Computes a naive DST1 of size 23
 /// use rustdct::DST1;
-/// use rustdct::algorithm::NaiveDST1;
+/// use rustdct::algorithm::DST1Naive;
 ///
 /// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let dst = NaiveDST1::new(len);
+/// let dst = DST1Naive::new(len);
 /// dst.process_dst1(&mut input, &mut output);
 /// ~~~
-pub struct NaiveDST1<T> {
+pub struct DST1Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> NaiveDST1<T> {
+impl<T: common::DCTnum> DST1Naive<T> {
     /// Creates a new DST1 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
 
@@ -109,11 +109,11 @@ impl<T: common::DCTnum> NaiveDST1<T> {
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        Self { twiddles: twiddles.into_boxed_slice() }
+        DST1Naive { twiddles: twiddles.into_boxed_slice() }
     }
 }
 
-impl<T: common::DCTnum> DST1<T> for NaiveDST1<T> {
+impl<T: common::DCTnum> DST1<T> for DST1Naive<T> {
     fn process_dst1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -137,7 +137,7 @@ impl<T: common::DCTnum> DST1<T> for NaiveDST1<T> {
         }
     }
 }
-impl<T> Length for NaiveDST1<T> {
+impl<T> Length for DST1Naive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 2 - 1
     }

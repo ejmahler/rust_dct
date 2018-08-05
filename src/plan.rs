@@ -6,7 +6,7 @@ use common;
 use ::{DCT1, Type4, Type2and3};
 use mdct::*;
 use algorithm::*;
-use algorithm::butterflies_type2and3::*;
+use algorithm::type2and3_butterflies::*;
 
 const DCT2_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 
@@ -73,10 +73,10 @@ impl<T: common::DCTnum> DCTplanner<T> {
     fn plan_new_dct1(&mut self, len: usize) -> Arc<DCT1<T>> {
         //benchmarking shows that below about 25, it's faster to just use the naive DCT1 algorithm
         if len < 25 {
-            Arc::new(NaiveDCT1::new(len))
+            Arc::new(DCT1Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft((len - 1) * 2);
-            Arc::new(ConvertToFFT_DCT1::new(fft))
+            Arc::new(DCT1ConvertToFFT::new(fft))
         }
     }
 
@@ -101,22 +101,22 @@ impl<T: common::DCTnum> DCTplanner<T> {
         } else if len.is_power_of_two() && len > 2 {
             let half_dct = self.plan_dct2(len / 2);
             let quarter_dct = self.plan_dct2(len / 4);
-            Arc::new(SplitRadix23::new(half_dct, quarter_dct))
+            Arc::new(Type2And3SplitRadix::new(half_dct, quarter_dct))
         } else if len < 16 {
             //benchmarking shows that below about 16, it's faster to just use the naive DCT2 algorithm
-            Arc::new(NaiveType2And3::new(len))
+            Arc::new(Type2And3Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
-            Arc::new(ConvertToFFT_Type2and3::new(fft))
+            Arc::new(Type2and3ConvertToFFT::new(fft))
         }
     }
 
     fn plan_dct2_butterfly(&mut self, len: usize) -> Arc<Type2and3<T>> {
         match len {
-            2 => Arc::new(Butterfly2_Type2and3::new()),
-            4 => Arc::new(Butterfly4_Type2and3::new()),
-            8 => Arc::new(Butterfly8_Type2and3::new()),
-            16 => Arc::new(Butterfly16_Type2and3::new()),
+            2 => Arc::new(Type2and3Butterfly2::new()),
+            4 => Arc::new(Type2and3Butterfly4::new()),
+            8 => Arc::new(Type2and3Butterfly8::new()),
+            16 => Arc::new(Type2and3Butterfly16::new()),
             _ => panic!("Invalid butterfly size for DCT2: {}", len)
         }
     }
@@ -147,19 +147,19 @@ impl<T: common::DCTnum> DCTplanner<T> {
         if len % 2 == 0 {
             //benchmarking shows that below 6, it's faster to just use the naive DCT4 algorithm
             if len < 6 {
-                Arc::new(NaiveType4::new(len))
+                Arc::new(Type4Naive::new(len))
             } else {
                 let inner_dct = self.plan_dct3(len / 2);
-                Arc::new(Type4_ConvertToType3_Even::new(inner_dct))
+                Arc::new(Type4ConvertToType3Even::new(inner_dct))
             }
         } else {
             //odd size, so we can use the "DCT4 via FFT odd" algorithm
             //benchmarking shows that below about 7, it's faster to just use the naive DCT4 algorithm
             if len < 7 {
-                Arc::new(NaiveType4::new(len))
+                Arc::new(Type4Naive::new(len))
             } else {
                 let fft = self.fft_planner.plan_fft(len);
-                Arc::new(ConvertToFFT_Type4_Odd::new(fft))
+                Arc::new(Type4ConvertToFFTOdd::new(fft))
             }
         }
     }

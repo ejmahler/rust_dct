@@ -16,7 +16,7 @@ use ::{DCT4, DST4, Type2and3, Type4};
 /// // Computes a DCT Type 4 of size 1234
 /// use std::sync::Arc;
 /// use rustdct::DCT4;
-/// use rustdct::algorithm::Type4_ConvertToType3_Even;
+/// use rustdct::algorithm::Type4ConvertToType3Even;
 /// use rustdct::DCTplanner;
 ///
 /// let len = 1234;
@@ -26,16 +26,15 @@ use ::{DCT4, DST4, Type2and3, Type4};
 /// let mut planner = DCTplanner::new();
 /// let inner_dct3 = planner.plan_dct3(len / 2);
 /// 
-/// let dct = Type4_ConvertToType3_Even::new(inner_dct3);
+/// let dct = Type4ConvertToType3Even::new(inner_dct3);
 /// dct.process_dct4(&mut input, &mut output);
 /// ~~~
-#[allow(non_camel_case_types)]
-pub struct Type4_ConvertToType3_Even<T> {
+pub struct Type4ConvertToType3Even<T> {
     inner_dct: Arc<Type2and3<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DCTnum> Type4_ConvertToType3_Even<T> {
+impl<T: common::DCTnum> Type4ConvertToType3Even<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_dct.len() * 2`.
     pub fn new(inner_dct: Arc<Type2and3<T>>) -> Self {
         let inner_len = inner_dct.len();
@@ -46,13 +45,13 @@ impl<T: common::DCTnum> Type4_ConvertToType3_Even<T> {
             .map(|i| twiddles::single_twiddle(2 * i + 1, len * 8).conj())
             .collect();
 
-        Self {
+        Type4ConvertToType3Even {
             inner_dct: inner_dct,
             twiddles: twiddles.into_boxed_slice(),
         }
     }
 }
-impl<T: common::DCTnum> DCT4<T> for Type4_ConvertToType3_Even<T> {
+impl<T: common::DCTnum> DCT4<T> for Type4ConvertToType3Even<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -86,7 +85,7 @@ impl<T: common::DCTnum> DCT4<T> for Type4_ConvertToType3_Even<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST4<T> for Type4_ConvertToType3_Even<T> {
+impl<T: common::DCTnum> DST4<T> for Type4ConvertToType3Even<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -120,8 +119,8 @@ impl<T: common::DCTnum> DST4<T> for Type4_ConvertToType3_Even<T> {
         }
     }
 }
-impl<T: common::DCTnum> Type4<T> for Type4_ConvertToType3_Even<T>{}
-impl<T> Length for Type4_ConvertToType3_Even<T> {
+impl<T: common::DCTnum> Type4<T> for Type4ConvertToType3Even<T>{}
+impl<T> Length for Type4ConvertToType3Even<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 2
     }
@@ -132,7 +131,7 @@ impl<T> Length for Type4_ConvertToType3_Even<T> {
 mod test {
     use super::*;
     use test_utils::{compare_float_vectors, random_signal};
-    use algorithm::{NaiveType2And3, NaiveType4};
+    use algorithm::{Type2And3Naive, Type4Naive};
 
     #[test]
     fn unittest_dct4_via_type3() {
@@ -146,11 +145,11 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             
-            let mut naive_dct4 = NaiveType4::new(size);
+            let mut naive_dct4 = Type4Naive::new(size);
             naive_dct4.process_dct4(&mut expected_input, &mut expected_output);
 
-            let inner_dct3 = Arc::new(NaiveType2And3::new(inner_size));
-            let mut dct = Type4_ConvertToType3_Even::new(inner_dct3);
+            let inner_dct3 = Arc::new(Type2And3Naive::new(inner_size));
+            let mut dct = Type4ConvertToType3Even::new(inner_dct3);
             dct.process_dct4(&mut actual_input, &mut actual_output);
 
             println!("");
@@ -177,11 +176,11 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             
-            let mut naive_dst4 = NaiveType4::new(size);
+            let mut naive_dst4 = Type4Naive::new(size);
             naive_dst4.process_dst4(&mut expected_input, &mut expected_output);
 
-            let inner_dct3 = Arc::new(NaiveType2And3::new(inner_size));
-            let mut dct = Type4_ConvertToType3_Even::new(inner_dct3);
+            let inner_dct3 = Arc::new(Type2And3Naive::new(inner_size));
+            let mut dct = Type4ConvertToType3Even::new(inner_dct3);
             dct.process_dst4(&mut actual_input, &mut actual_output);
 
             println!("");
