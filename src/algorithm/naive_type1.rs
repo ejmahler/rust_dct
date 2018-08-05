@@ -46,7 +46,7 @@ impl<T: common::DCTnum> DCT1<T> for NaiveDCT1<T> {
     fn process_dct1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
-        let half = T::from_f32(0.5f32).unwrap();
+        let half = T::half();
         input[0] = input[0] * half;
         input[self.len() - 1] = input[self.len() - 1] * half;
 

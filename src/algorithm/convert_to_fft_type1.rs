@@ -80,7 +80,7 @@ impl<T: common::DCTnum> DCT1<T> for ConvertToFFT_DCT1<T> {
         self.fft.process(&mut fft_input, &mut fft_output);
 
         // apply a correction factor to the result
-        let half = T::from_f32(0.5f32).unwrap();
+        let half = T::half();
         for (fft_entry, output_val) in fft_output.iter().zip(output.iter_mut()) {
             *output_val = fft_entry.re * half;
         }
@@ -159,7 +159,7 @@ impl<T: common::DCTnum> DST1<T> for ConvertToFFT_DST1<T> {
         self.fft.process(&mut fft_input, &mut fft_output);
 
         // apply a correction factor to the result
-        let half = T::from_f32(0.5f32).unwrap();
+        let half = T::half();
         for (fft_entry, output_val) in fft_output.iter().rev().zip(output.iter_mut()) {
             *output_val = fft_entry.im * half;
         }

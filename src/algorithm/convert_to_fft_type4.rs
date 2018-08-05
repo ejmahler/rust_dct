@@ -109,7 +109,7 @@ impl<T: common::DCTnum> DCT4<T> for ConvertToFFT_Type4_Odd<T> {
         // run the fft
         self.fft.process(&mut fft_input, &mut fft_output);
 
-        let result_scale = T::SQRT_2() * T::from_f32(0.5f32).unwrap();
+        let result_scale = T::SQRT_2() * T::half();
         let second_half_sign = if len % 4 == 1 { T::one() } else { -T::one() };
 
         //post-process the results 4 at a time
@@ -200,7 +200,7 @@ impl<T: common::DCTnum> DST4<T> for ConvertToFFT_Type4_Odd<T> {
         // run the fft
         self.fft.process(&mut fft_input, &mut fft_output);
 
-        let result_scale = T::SQRT_2() * T::from_f32(0.5f32).unwrap();
+        let result_scale = T::SQRT_2() * T::half();
         let second_half_sign = if len % 4 == 1 { T::one() } else { -T::one() };
 
         //post-process the results 4 at a time

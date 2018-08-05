@@ -98,7 +98,7 @@ impl<T: common::DCTnum> DCT3<T> for NaiveType2And3<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
-        let half_first = T::from_f32(0.5f32).unwrap() * input[0];
+        let half_first = T::half() * input[0];
 
         for k in 0..output.len() {
             let output_cell = output.get_mut(k).unwrap();
@@ -125,7 +125,7 @@ impl<T: common::DCTnum> DST3<T> for NaiveType2And3<T> {
         common::verify_length(input, output, self.len());
 
         // scale the last input value by half before going into the loop
-        input[input.len() - 1] = input[input.len() - 1] * T::from_f64(0.5).unwrap();
+        input[input.len() - 1] = input[input.len() - 1] * T::half();
 
         for k in 0..output.len() {
             let output_cell = output.get_mut(k).unwrap();

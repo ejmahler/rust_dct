@@ -72,14 +72,14 @@ impl<T: common::DCTnum> Butterfly2_Type2and3<T> {
 	}
 
 	pub unsafe fn process_inplace_dct3(&self, buffer: &mut [T]) {
-		let half_0 = *buffer.get_unchecked(0) * T::from_f32(0.5).unwrap();
+		let half_0 = *buffer.get_unchecked(0) * T::half();
 		let frac_1 = *buffer.get_unchecked(1) * T::FRAC_1_SQRT_2();
 
         *buffer.get_unchecked_mut(0) = half_0 + frac_1;
         *buffer.get_unchecked_mut(1) = half_0 - frac_1;
 	}
 	unsafe fn process_scattered_dct3(buffer: &mut [T], zero: usize, one: usize) {
-		let half_0 = *buffer.get_unchecked(zero) * T::from_f32(0.5).unwrap();
+		let half_0 = *buffer.get_unchecked(zero) * T::half();
 		let frac_1 = *buffer.get_unchecked(one) * T::FRAC_1_SQRT_2();
 
         *buffer.get_unchecked_mut(zero) = half_0 + frac_1;
@@ -95,7 +95,7 @@ impl<T: common::DCTnum> Butterfly2_Type2and3<T> {
     pub unsafe fn process_inplace_dst3(&self, buffer: &mut [T]) {
 		
 		let frac_0 = *buffer.get_unchecked(0) * T::FRAC_1_SQRT_2();
-        let half_1 = *buffer.get_unchecked(1) * T::from_f32(0.5).unwrap();
+        let half_1 = *buffer.get_unchecked(1) * T::half();
 
         *buffer.get_unchecked_mut(0) = frac_0 + half_1;
         *buffer.get_unchecked_mut(1) = frac_0 - half_1;
@@ -113,7 +113,7 @@ impl<T: common::DCTnum> DCT3<T> for Butterfly2_Type2and3<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
-		let half_0 = input[0] * T::from_f32(0.5).unwrap();
+		let half_0 = input[0] * T::half();
 		let frac_1 = input[1] * T::FRAC_1_SQRT_2();
 
 		output[0] = half_0 + frac_1;
@@ -133,7 +133,7 @@ impl<T: common::DCTnum> DST3<T> for Butterfly2_Type2and3<T> {
         common::verify_length(input, output, self.len());
 
         let frac_0 = input[0] * T::FRAC_1_SQRT_2();
-		let half_1 = input[1] * T::from_f32(0.5).unwrap();
+		let half_1 = input[1] * T::half();
 
 		output[0] = frac_0 + half_1;  
         output[1] = frac_0 - half_1;
@@ -293,12 +293,12 @@ impl<T: common::DCTnum> Butterfly8_Type2and3<T> {
 
 		//process the odds
 		let mut recursive_buffer_n1 = [
-			*buffer.get_unchecked(1) * T::from_usize(2).unwrap(),
+			*buffer.get_unchecked(1) * T::two(),
 			*buffer.get_unchecked(3) + *buffer.get_unchecked(5),
 		];
 		let mut recursive_buffer_n3 = [
 			*buffer.get_unchecked(3) - *buffer.get_unchecked(5),
-            *buffer.get_unchecked(7) * T::from_usize(2).unwrap(),
+            *buffer.get_unchecked(7) * T::two(),
 		];
 		self.butterfly2.process_inplace_dct3(&mut recursive_buffer_n1);
 		self.butterfly2.process_inplace_dst3(&mut recursive_buffer_n3);
@@ -378,12 +378,12 @@ impl<T: common::DCTnum> Butterfly8_Type2and3<T> {
 
 		//process the odds
 		let mut recursive_buffer_n1 = [
-			*buffer.get_unchecked(6) * T::from_usize(2).unwrap(),
+			*buffer.get_unchecked(6) * T::two(),
 			*buffer.get_unchecked(4) + *buffer.get_unchecked(2),
 		];
 		let mut recursive_buffer_n3 = [
 			*buffer.get_unchecked(4) - *buffer.get_unchecked(2),
-            *buffer.get_unchecked(0) * T::from_usize(2).unwrap(),
+            *buffer.get_unchecked(0) * T::two(),
 		];
 		self.butterfly2.process_inplace_dct3(&mut recursive_buffer_n1);
 		self.butterfly2.process_inplace_dst3(&mut recursive_buffer_n3);
@@ -572,7 +572,7 @@ impl<T: common::DCTnum> Butterfly16_Type2and3<T> {
 
 		//process the odds
 		let mut recursive_buffer_n1 = [
-			*buffer.get_unchecked(1) * T::from_usize(2).unwrap(),
+			*buffer.get_unchecked(1) * T::two(),
 			*buffer.get_unchecked(3) + *buffer.get_unchecked(5),
 			*buffer.get_unchecked(7) + *buffer.get_unchecked(9),
 			*buffer.get_unchecked(11) + *buffer.get_unchecked(13),
@@ -581,7 +581,7 @@ impl<T: common::DCTnum> Butterfly16_Type2and3<T> {
             *buffer.get_unchecked(3) - *buffer.get_unchecked(5),
             *buffer.get_unchecked(7) - *buffer.get_unchecked(9),
             *buffer.get_unchecked(11) - *buffer.get_unchecked(13),
-			*buffer.get_unchecked(15) * T::from_usize(2).unwrap(),
+			*buffer.get_unchecked(15) * T::two(),
 		];
 		self.butterfly4.process_inplace_dct3(&mut recursive_buffer_n1);
 		self.butterfly4.process_inplace_dst3(&mut recursive_buffer_n3);
@@ -619,7 +619,7 @@ impl<T: common::DCTnum> Butterfly16_Type2and3<T> {
 
 		//process the odds
 		let mut recursive_buffer_n1 = [
-			*buffer.get_unchecked(14) * T::from_usize(2).unwrap(),
+			*buffer.get_unchecked(14) * T::two(),
 			*buffer.get_unchecked(12) + *buffer.get_unchecked(10),
 			*buffer.get_unchecked(8) + *buffer.get_unchecked(6),
 			*buffer.get_unchecked(4) + *buffer.get_unchecked(2),
@@ -628,7 +628,7 @@ impl<T: common::DCTnum> Butterfly16_Type2and3<T> {
             *buffer.get_unchecked(12) - *buffer.get_unchecked(10),
             *buffer.get_unchecked(8) - *buffer.get_unchecked(6),
             *buffer.get_unchecked(4) - *buffer.get_unchecked(2),
-			*buffer.get_unchecked(0) * T::from_usize(2).unwrap(),
+			*buffer.get_unchecked(0) * T::two(),
 		];
 		self.butterfly4.process_inplace_dct3(&mut recursive_buffer_n1);
 		self.butterfly4.process_inplace_dst3(&mut recursive_buffer_n3);

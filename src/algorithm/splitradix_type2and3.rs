@@ -161,8 +161,8 @@ impl<T: common::DCTnum> DCT3<T> for SplitRadix23<T> {
             // to also set up the corresponding evens cells
             recursive_input_evens[0] = input[0];
             recursive_input_evens[1] = input[2];
-            recursive_input_n1[0] = input[1] * T::from_usize(2).unwrap();
-            recursive_input_n3[0] = input[len - 1] * T::from_usize(2).unwrap();
+            recursive_input_n1[0] = input[1] * T::two();
+            recursive_input_n3[0] = input[len - 1] * T::two();
 
             // populate the recursive input arrays
             for i in 1..quarter_len {

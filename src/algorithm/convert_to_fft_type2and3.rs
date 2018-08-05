@@ -130,7 +130,7 @@ impl<T: common::DCTnum> DCT3<T> for ConvertToFFT_Type2and3<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
-        let half = T::from_f32(0.5).unwrap();
+        let half = T::half();
 
         let mut buffer = vec![Complex::zero(); self.len() * 2];
         let (mut fft_input, mut fft_output) = buffer.split_at_mut(self.len());
@@ -166,7 +166,7 @@ impl<T: common::DCTnum> DST3<T> for ConvertToFFT_Type2and3<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
-        let half = T::from_f32(0.5).unwrap();
+        let half = T::half();
         
         let mut buffer = vec![Complex::zero(); self.len() * 2];
         let (mut fft_input, mut fft_output) = buffer.split_at_mut(self.len());

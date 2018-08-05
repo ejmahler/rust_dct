@@ -62,12 +62,12 @@ impl<T: common::DCTnum> DCT4<T> for Type4_ConvertToType3_Even<T> {
         //pre-process the input by splitting into into two arrays, one for the inner DCT3, and the other for the DST3
         let (mut output_left, mut output_right) = output.split_at_mut(inner_len);
 
-        output_left[0] = input[0] * T::from_usize(2).unwrap();
+        output_left[0] = input[0] * T::two();
         for k in 1..inner_len {
             output_left[k] =        input[2 * k - 1] + input[2 * k];
             output_right[k - 1] =   input[2 * k - 1] - input[2 * k];
         }
-        output_right[inner_len - 1] = input[len - 1] * T::from_usize(2).unwrap();
+        output_right[inner_len - 1] = input[len - 1] * T::two();
 
         //run the two inner DCTs on our separated arrays
         let (mut inner_result_cos, mut inner_result_sin) = input.split_at_mut(inner_len);
@@ -96,12 +96,12 @@ impl<T: common::DCTnum> DST4<T> for Type4_ConvertToType3_Even<T> {
         //pre-process the input by splitting into into two arrays, one for the inner DCT3, and the other for the DST3
         let (mut output_left, mut output_right) = output.split_at_mut(inner_len);
 
-        output_right[0] = input[0] * T::from_usize(2).unwrap();
+        output_right[0] = input[0] * T::two();
         for k in 1..inner_len {
             output_left[k - 1] =  input[2 * k - 1] + input[2 * k];
             output_right[k] =     input[2 * k] - input[2 * k - 1];
         }
-        output_left[inner_len - 1] = input[len - 1] * T::from_usize(2).unwrap();
+        output_left[inner_len - 1] = input[len - 1] * T::two();
 
         //run the two inner DCTs on our separated arrays
         let (mut inner_result_cos, mut inner_result_sin) = input.split_at_mut(inner_len);

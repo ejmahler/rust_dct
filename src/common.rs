@@ -4,9 +4,26 @@ use rustfft::num_traits::FloatConst;
 
 
 /// Generic floating point number, implemented for f32 and f64
-pub trait DCTnum: FFTnum + FloatConst + Debug {}
-impl DCTnum for f32 {}
-impl DCTnum for f64 {}
+pub trait DCTnum: FFTnum + FloatConst + Debug {
+	fn half() -> Self;
+	fn two() -> Self;
+}
+impl DCTnum for f32 {
+	fn half() -> Self {
+		0.5
+	}
+	fn two() -> Self {
+		2.0
+	}
+}
+impl DCTnum for f64 {
+	fn half() -> Self {
+		0.5
+	}
+	fn two() -> Self {
+		2.0
+	}
+}
 
 #[inline(always)]
 pub fn verify_length<T>(input: &[T], output: &[T], expected: usize) {
