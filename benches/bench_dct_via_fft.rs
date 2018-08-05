@@ -8,7 +8,7 @@ use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
 use rustdct::{DCT1, DCT2, DCT3, DCT4, Type2and3};
 use rustdct::algorithm::*;
-use rustdct::algorithm::butterflies_type2and3::*;
+use rustdct::algorithm::type2and3_butterflies::*;
 use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
 
 use test::Bencher;
@@ -18,7 +18,7 @@ use test::Bencher;
 fn bench_dct1_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let dct = ConvertToFFT_DCT1::new(planner.plan_fft((len - 1) * 2));
+    let dct = DCT1ConvertToFFT::new(planner.plan_fft((len - 1) * 2));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -45,7 +45,7 @@ fn dct1_fft_0026(b: &mut Bencher) {
 fn bench_dct2_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let dct = ConvertToFFT_Type2and3::new(planner.plan_fft(len));
+    let dct = Type2and3ConvertToFFT::new(planner.plan_fft(len));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -85,14 +85,14 @@ fn bench_dct2_split(b: &mut Bencher, len: usize) {
 
     let power = len.trailing_zeros() as usize;
     let mut instances = vec![
-        Arc::new(NaiveType2And3::new(1)) as Arc<Type2and3<f32>>,
-        Arc::new(Butterfly2_Type2and3::new()) as Arc<Type2and3<f32>>,
-        Arc::new(Butterfly4_Type2and3::new()) as Arc<Type2and3<f32>>,
-        Arc::new(Butterfly8_Type2and3::new()) as Arc<Type2and3<f32>>,
-        Arc::new(Butterfly16_Type2and3::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Type2And3Naive::new(1)) as Arc<Type2and3<f32>>,
+        Arc::new(Type2and3Butterfly2::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Type2and3Butterfly4::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Type2and3Butterfly8::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Type2and3Butterfly16::new()) as Arc<Type2and3<f32>>,
     ];
     for i in instances.len()..(power + 1) {
-        let dct = Arc::new(SplitRadix23::new(instances[i - 1].clone(), instances[i - 2].clone()));
+        let dct = Arc::new(Type2And3SplitRadix::new(instances[i - 1].clone(), instances[i - 2].clone()));
         instances.push(dct);
     }
 
@@ -141,7 +141,7 @@ fn dct2_power2_split_065536(b: &mut Bencher) {
 fn bench_dct3_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
-    let dct = ConvertToFFT_Type2and3::new(planner.plan_fft(len));
+    let dct = Type2and3ConvertToFFT::new(planner.plan_fft(len));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -204,14 +204,14 @@ fn bench_dct3_split(b: &mut Bencher, len: usize) {
 
     let power = len.trailing_zeros() as usize;
     let mut instances = vec![
-        Arc::new(NaiveType2And3::new(1)) as Arc<Type2and3<f32>>,
-        Arc::new(Butterfly2_Type2and3::new()) as Arc<Type2and3<f32>>,
-        Arc::new(Butterfly4_Type2and3::new()) as Arc<Type2and3<f32>>,
-        Arc::new(Butterfly8_Type2and3::new()) as Arc<Type2and3<f32>>,
-        Arc::new(Butterfly16_Type2and3::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Type2And3Naive::new(1)) as Arc<Type2and3<f32>>,
+        Arc::new(Type2and3Butterfly2::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Type2and3Butterfly4::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Type2and3Butterfly8::new()) as Arc<Type2and3<f32>>,
+        Arc::new(Type2and3Butterfly16::new()) as Arc<Type2and3<f32>>,
     ];
     for i in instances.len()..(power + 1) {
-        let dct = Arc::new(SplitRadix23::new(instances[i - 1].clone(), instances[i - 2].clone()));
+        let dct = Arc::new(Type2And3SplitRadix::new(instances[i - 1].clone(), instances[i - 2].clone()));
         instances.push(dct);
     }
 
@@ -259,7 +259,7 @@ fn bench_dct4_via_dct3(b: &mut Bencher, len: usize) {
 
     let mut planner = DCTplanner::new();
     let inner_dct3 = planner.plan_dct3(len / 2);
-    let dct = Type4_ConvertToType3_Even::new(inner_dct3);
+    let dct = Type4ConvertToType3Even::new(inner_dct3);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -299,7 +299,7 @@ fn bench_dct4_via_fft_odd(b: &mut Bencher, len: usize) {
 
     let mut planner = FFTplanner::new(false);
     let inner_fft = planner.plan_fft(len);
-    let dct = ConvertToFFT_Type4_Odd::new(inner_fft);
+    let dct = Type4ConvertToFFTOdd::new(inner_fft);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
