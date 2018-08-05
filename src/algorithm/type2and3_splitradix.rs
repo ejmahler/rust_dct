@@ -5,7 +5,7 @@ use rustfft::Length;
 
 use common;
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, Type2and3};
+use ::{DCT2, DST2, DCT3, DST3, Type2And3};
 
 /// DCT Type 2, DCT Type 3, DST Type 2, and DST Type 3 implemention that recursively divides the problem in half. The problem size must be 2^n, n > 1
 ///
@@ -27,14 +27,14 @@ use ::{DCT2, DST2, DCT3, DST3, Type2and3};
 /// dct.process_dct2(&mut input, &mut output);
 /// ~~~
 pub struct Type2And3SplitRadix<T> {
-    half_dct: Arc<Type2and3<T>>,
-    quarter_dct: Arc<Type2and3<T>>,
+    half_dct: Arc<Type2And3<T>>,
+    quarter_dct: Arc<Type2And3<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: common::DCTnum> Type2And3SplitRadix<T> {
     /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `half_dct.len() * 2`
-    pub fn new(half_dct: Arc<Type2and3<T>>, quarter_dct: Arc<Type2and3<T>>) -> Self {
+    pub fn new(half_dct: Arc<Type2And3<T>>, quarter_dct: Arc<Type2And3<T>>) -> Self {
         let len = half_dct.len() * 2;
         assert!(
             len.is_power_of_two() && len > 2,
@@ -235,7 +235,7 @@ impl<T: common::DCTnum> DST3<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DCTnum> Type2and3<T> for Type2And3SplitRadix<T>{}
+impl<T: common::DCTnum> Type2And3<T> for Type2And3SplitRadix<T>{}
 impl<T> Length for Type2And3SplitRadix<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 4

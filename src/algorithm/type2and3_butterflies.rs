@@ -4,7 +4,7 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, Type2and3};
+use ::{DCT2, DST2, DCT3, DST3, Type2And3};
 use common;
 
 macro_rules! butterfly_boilerplate {
@@ -41,7 +41,7 @@ macro_rules! butterfly_boilerplate {
                 unsafe { self.process_inplace_dst3(output); }
             }
         }
-        impl<T: common::DCTnum> Type2and3<T> for $struct_name<T>{}
+        impl<T: common::DCTnum> Type2And3<T> for $struct_name<T>{}
         impl<T> Length for $struct_name<T> {
             fn len(&self) -> usize {
                 $size
@@ -50,12 +50,12 @@ macro_rules! butterfly_boilerplate {
     )
 }
 
-pub struct Type2and3Butterfly2<T> {
+pub struct Type2And3Butterfly2<T> {
     _phantom: PhantomData<T>
 }
-impl<T: common::DCTnum> Type2and3Butterfly2<T> {
+impl<T: common::DCTnum> Type2And3Butterfly2<T> {
 	pub fn new() -> Self {
-		Type2and3Butterfly2 {
+		Type2And3Butterfly2 {
             _phantom: PhantomData,
         }
 	}
@@ -100,7 +100,7 @@ impl<T: common::DCTnum> Type2and3Butterfly2<T> {
         *buffer.get_unchecked_mut(1) = frac_0 - half_1;
 	}
 }
-impl<T: common::DCTnum> DCT2<T> for Type2and3Butterfly2<T> {
+impl<T: common::DCTnum> DCT2<T> for Type2And3Butterfly2<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -108,7 +108,7 @@ impl<T: common::DCTnum> DCT2<T> for Type2and3Butterfly2<T> {
         output[1] = (input[0] - input[1]) * T::FRAC_1_SQRT_2();      
     }
 }
-impl<T: common::DCTnum> DCT3<T> for Type2and3Butterfly2<T> {
+impl<T: common::DCTnum> DCT3<T> for Type2And3Butterfly2<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -119,7 +119,7 @@ impl<T: common::DCTnum> DCT3<T> for Type2and3Butterfly2<T> {
 		output[1] = half_0 - frac_1;  
     }
 }
-impl<T: common::DCTnum> DST2<T> for Type2and3Butterfly2<T> {
+impl<T: common::DCTnum> DST2<T> for Type2And3Butterfly2<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -127,7 +127,7 @@ impl<T: common::DCTnum> DST2<T> for Type2and3Butterfly2<T> {
         output[1] = input[0] - input[1];      
     }
 }
-impl<T: common::DCTnum> DST3<T> for Type2and3Butterfly2<T> {
+impl<T: common::DCTnum> DST3<T> for Type2And3Butterfly2<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -138,19 +138,19 @@ impl<T: common::DCTnum> DST3<T> for Type2and3Butterfly2<T> {
         output[1] = frac_0 - half_1;
     }
 }
-impl<T: common::DCTnum> Type2and3<T> for Type2and3Butterfly2<T>{}
-impl<T> Length for Type2and3Butterfly2<T> {
+impl<T: common::DCTnum> Type2And3<T> for Type2And3Butterfly2<T>{}
+impl<T> Length for Type2And3Butterfly2<T> {
     fn len(&self) -> usize {
         2
     }
 }
 
-pub struct Type2and3Butterfly4<T> {
+pub struct Type2And3Butterfly4<T> {
 	twiddle: Complex<T>,
 }
-impl<T: common::DCTnum> Type2and3Butterfly4<T> {
+impl<T: common::DCTnum> Type2And3Butterfly4<T> {
 	pub fn new() -> Self {
-		Type2and3Butterfly4 {
+		Type2And3Butterfly4 {
 			twiddle: twiddles::single_twiddle(1,16).conj()
 		}
 	}
@@ -163,7 +163,7 @@ impl<T: common::DCTnum> Type2and3Butterfly4<T> {
 		*buffer.get_unchecked_mut(0) = *buffer.get_unchecked(0) + *buffer.get_unchecked(3);
 		*buffer.get_unchecked_mut(2) = *buffer.get_unchecked(2) + *buffer.get_unchecked(1);
 
-        Type2and3Butterfly2::process_scattered_dct2(buffer, 0, 2);
+        Type2And3Butterfly2::process_scattered_dct2(buffer, 0, 2);
 
         *buffer.get_unchecked_mut(1) = lower_dct4 * self.twiddle.re - upper_dct4 * self.twiddle.im;
         *buffer.get_unchecked_mut(3) = upper_dct4 * self.twiddle.re + lower_dct4 * self.twiddle.im;
@@ -172,7 +172,7 @@ impl<T: common::DCTnum> Type2and3Butterfly4<T> {
 		// perform a step of split radix -- derived from DCT3SplitRadix with n = 4
 
 		// inner DCT3 of size 2
-		Type2and3Butterfly2::process_scattered_dct3(buffer, 0, 2);
+		Type2And3Butterfly2::process_scattered_dct3(buffer, 0, 2);
 
 		// inner DCT3 of size 1, then sclared by twiddle factors
 		let lower_dct4 = *buffer.get_unchecked(1) * self.twiddle.re + *buffer.get_unchecked(3) * self.twiddle.im;
@@ -193,7 +193,7 @@ impl<T: common::DCTnum> Type2and3Butterfly4<T> {
 		*buffer.get_unchecked_mut(3) = *buffer.get_unchecked(0) - *buffer.get_unchecked(3);
 		*buffer.get_unchecked_mut(1) = *buffer.get_unchecked(2) - *buffer.get_unchecked(1);
 
-        Type2and3Butterfly2::process_scattered_dct2(buffer, 3, 1);
+        Type2And3Butterfly2::process_scattered_dct2(buffer, 3, 1);
 
         *buffer.get_unchecked_mut(2) = lower_dct4 * self.twiddle.re - upper_dct4 * self.twiddle.im;
         *buffer.get_unchecked_mut(0) = upper_dct4 * self.twiddle.re + lower_dct4 * self.twiddle.im;
@@ -202,7 +202,7 @@ impl<T: common::DCTnum> Type2and3Butterfly4<T> {
 		// Derived from process_inplace_dst3 by reversing the inputs, and negating the odd outputs
 
 		// inner DCT3 of size 2
-		Type2and3Butterfly2::process_scattered_dct3(buffer, 3, 1);
+		Type2And3Butterfly2::process_scattered_dct3(buffer, 3, 1);
 
 		// inner DCT3 of size 1, then sclared by twiddle factors
 		let lower_dct4 = *buffer.get_unchecked(2) * self.twiddle.re + *buffer.get_unchecked(0) * self.twiddle.im;
@@ -215,18 +215,18 @@ impl<T: common::DCTnum> Type2and3Butterfly4<T> {
 		*buffer.get_unchecked_mut(3) = lower_dct4 - *buffer.get_unchecked(3);
 	}
 }
-butterfly_boilerplate!(Type2and3Butterfly4, 4);
+butterfly_boilerplate!(Type2And3Butterfly4, 4);
 
-pub struct Type2and3Butterfly8<T> {
-	butterfly4: Type2and3Butterfly4<T>,
-	butterfly2: Type2and3Butterfly2<T>,
+pub struct Type2And3Butterfly8<T> {
+	butterfly4: Type2And3Butterfly4<T>,
+	butterfly2: Type2And3Butterfly2<T>,
     twiddles: [Complex<T>; 2],
 }
-impl<T: common::DCTnum> Type2and3Butterfly8<T> {
+impl<T: common::DCTnum> Type2And3Butterfly8<T> {
 	pub fn new() -> Self {
-		Type2and3Butterfly8 {
-			butterfly4: Type2and3Butterfly4::new(),
-			butterfly2: Type2and3Butterfly2::new(),
+		Type2And3Butterfly8 {
+			butterfly4: Type2And3Butterfly4::new(),
+			butterfly2: Type2And3Butterfly2::new(),
 			twiddles: [
                 twiddles::single_twiddle(1,32).conj(),
 			    twiddles::single_twiddle(3,32).conj(),
@@ -406,18 +406,18 @@ impl<T: common::DCTnum> Type2and3Butterfly8<T> {
         *buffer.get_unchecked_mut(5) = merged_odds[3] - dct3_buffer[2];
     }
 }
-butterfly_boilerplate!(Type2and3Butterfly8, 8);
+butterfly_boilerplate!(Type2And3Butterfly8, 8);
 
-pub struct Type2and3Butterfly16<T> {
-	butterfly8: Type2and3Butterfly8<T>,
-	butterfly4: Type2and3Butterfly4<T>,
+pub struct Type2And3Butterfly16<T> {
+	butterfly8: Type2And3Butterfly8<T>,
+	butterfly4: Type2And3Butterfly4<T>,
     twiddles: [Complex<T>; 4],
 }
-impl<T: common::DCTnum> Type2and3Butterfly16<T> {
+impl<T: common::DCTnum> Type2And3Butterfly16<T> {
 	pub fn new() -> Self {
-		Type2and3Butterfly16 {
-			butterfly8: Type2and3Butterfly8::new(),
-			butterfly4: Type2and3Butterfly4::new(),
+		Type2And3Butterfly16 {
+			butterfly8: Type2And3Butterfly8::new(),
+			butterfly4: Type2And3Butterfly4::new(),
             twiddles: [
                 twiddles::single_twiddle(1,64).conj(),
                 twiddles::single_twiddle(3,64).conj(),
@@ -666,7 +666,7 @@ impl<T: common::DCTnum> Type2and3Butterfly16<T> {
         *buffer.get_unchecked_mut(11) =     merged_odds[7] - dct3_buffer[4];
 	}
 }
-butterfly_boilerplate!(Type2and3Butterfly16, 16);
+butterfly_boilerplate!(Type2And3Butterfly16, 16);
 
 #[cfg(test)]
 mod test {
@@ -788,8 +788,8 @@ mod test {
             }
         )
     }
-    test_butterfly_func!(test_butterfly2_type2and3, Type2and3Butterfly2, 2);
-    test_butterfly_func!(test_butterfly4_type2and3, Type2and3Butterfly4, 4);
-    test_butterfly_func!(test_butterfly8_type2and3, Type2and3Butterfly8, 8);
-    test_butterfly_func!(test_butterfly16_type2and3, Type2and3Butterfly16, 16);
+    test_butterfly_func!(test_butterfly2_type2and3, Type2And3Butterfly2, 2);
+    test_butterfly_func!(test_butterfly4_type2and3, Type2And3Butterfly4, 4);
+    test_butterfly_func!(test_butterfly8_type2and3, Type2And3Butterfly8, 8);
+    test_butterfly_func!(test_butterfly16_type2and3, Type2And3Butterfly16, 16);
 }

@@ -33,13 +33,13 @@
 //! ```rust
 //! // Compute a DCT type 2 of size 8, and then compute a DCT type 3 of size 8 on the output.
 //! use rustdct::{DCT2, DCT3};
-//! use rustdct::algorithm::type2and3_butterflies::Type2and3Butterfly8;
+//! use rustdct::algorithm::type2and3_butterflies::Type2And3Butterfly8;
 //! 
 //! let mut input = [0f32; 8];
 //! let mut intermediate = [0f32; 8];
 //! let mut output = [0f32; 8];
 //! 
-//! let dct = Type2and3Butterfly8::new();
+//! let dct = Type2And3Butterfly8::new();
 //! 
 //! dct.process_dct2(&mut input, &mut intermediate);
 //! dct.process_dct3(&mut intermediate, &mut output);
@@ -139,7 +139,7 @@ pub trait DST4<T: common::DCTnum>: rustfft::Length {
 }
 
 /// A trait for algorithms that can compute all of DCT2, DCT3, DST2, DST3, all in one struct
-pub trait Type2and3<T: common::DCTnum> : DCT2<T> + DCT3<T> + DST2<T> + DST3<T> {}
+pub trait Type2And3<T: common::DCTnum> : DCT2<T> + DCT3<T> + DST2<T> + DST3<T> {}
 
 /// A trait for algorithms that can compute all of DCT2, DCT3, DST2, DST3, all in one struct
 pub trait Type4<T: common::DCTnum> : DCT4<T> + DST4<T> {}

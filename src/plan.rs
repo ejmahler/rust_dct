@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use rustfft::FFTplanner;
 use common;
-use ::{DCT1, Type4, Type2and3};
+use ::{DCT1, Type4, Type2And3};
 use mdct::*;
 use algorithm::*;
 use algorithm::type2and3_butterflies::*;
@@ -41,7 +41,7 @@ const DCT2_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 pub struct DCTplanner<T> {
     fft_planner: FFTplanner<T>,
     dct1_cache: HashMap<usize, Arc<DCT1<T>>>,
-    dct23_cache: HashMap<usize, Arc<Type2and3<T>>>,
+    dct23_cache: HashMap<usize, Arc<Type2And3<T>>>,
     dct4_cache: HashMap<usize, Arc<Type4<T>>>,
     mdct_cache: HashMap<usize, Arc<MDCT<T>>>,
     imdct_cache: HashMap<usize, Arc<IMDCT<T>>>,
@@ -85,7 +85,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
 
     /// Returns a DCT Type 2 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct2(&mut self, len: usize) -> Arc<Type2and3<T>> {
+    pub fn plan_dct2(&mut self, len: usize) -> Arc<Type2And3<T>> {
         if self.dct23_cache.contains_key(&len) {
             Arc::clone(self.dct23_cache.get(&len).unwrap())
         } else {
@@ -95,7 +95,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         }
     }
 
-    fn plan_new_dct2(&mut self, len: usize) -> Arc<Type2and3<T>> {
+    fn plan_new_dct2(&mut self, len: usize) -> Arc<Type2And3<T>> {
         if DCT2_BUTTERFLIES.contains(&len) {
             self.plan_dct2_butterfly(len)
         } else if len.is_power_of_two() && len > 2 {
@@ -107,16 +107,16 @@ impl<T: common::DCTnum> DCTplanner<T> {
             Arc::new(Type2And3Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft(len);
-            Arc::new(Type2and3ConvertToFFT::new(fft))
+            Arc::new(Type2And3ConvertToFFT::new(fft))
         }
     }
 
-    fn plan_dct2_butterfly(&mut self, len: usize) -> Arc<Type2and3<T>> {
+    fn plan_dct2_butterfly(&mut self, len: usize) -> Arc<Type2And3<T>> {
         match len {
-            2 => Arc::new(Type2and3Butterfly2::new()),
-            4 => Arc::new(Type2and3Butterfly4::new()),
-            8 => Arc::new(Type2and3Butterfly8::new()),
-            16 => Arc::new(Type2and3Butterfly16::new()),
+            2 => Arc::new(Type2And3Butterfly2::new()),
+            4 => Arc::new(Type2And3Butterfly4::new()),
+            8 => Arc::new(Type2And3Butterfly8::new()),
+            16 => Arc::new(Type2And3Butterfly16::new()),
             _ => panic!("Invalid butterfly size for DCT2: {}", len)
         }
     }
@@ -126,7 +126,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
 
     /// Returns DCT Type 3 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct3(&mut self, len: usize) -> Arc<Type2and3<T>> {
+    pub fn plan_dct3(&mut self, len: usize) -> Arc<Type2And3<T>> {
         self.plan_dct2(len)
     }
     

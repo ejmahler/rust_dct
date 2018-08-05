@@ -2,7 +2,7 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, Type2and3};
+use ::{DCT2, DST2, DCT3, DST3, Type2And3};
 use common;
 
 /// Naive O(n^2 ) DCT Type 2, DST Type 2, DCT Type 3, and DST Type 3 implementation
@@ -147,7 +147,7 @@ impl<T: common::DCTnum> DST3<T> for Type2And3Naive<T> {
         }
     }
 }
-impl<T: common::DCTnum> Type2and3<T> for Type2And3Naive<T>{}
+impl<T: common::DCTnum> Type2And3<T> for Type2And3Naive<T>{}
 impl<T> Length for Type2And3Naive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 4

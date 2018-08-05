@@ -17,7 +17,7 @@ pub use self::type1_naive::DST1Naive;
 pub use self::type1_convert_to_fft::DCT1ConvertToFFT;
 pub use self::type1_convert_to_fft::DST1ConvertToFFT;
 
-pub use self::type2and3_convert_to_fft::Type2and3ConvertToFFT;
+pub use self::type2and3_convert_to_fft::Type2And3ConvertToFFT;
 pub use self::type2and3_naive::Type2And3Naive;
 pub use self::type2and3_splitradix::Type2And3SplitRadix;
 
