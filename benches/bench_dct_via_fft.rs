@@ -9,7 +9,7 @@ use rustdct::DCTplanner;
 use rustdct::{DCT1, DCT2, DCT3, DCT4, Type2And3};
 use rustdct::algorithm::*;
 use rustdct::algorithm::type2and3_butterflies::*;
-use rustdct::mdct::{MDCT, IMDCT, MDCTViaDCT4, IMDCTViaDCT4, window_fn};
+use rustdct::mdct::{MDCT, MDCTViaDCT4, window_fn};
 
 use test::Bencher;
 
@@ -378,7 +378,7 @@ fn mdct_fft_12(b: &mut Bencher) {
 fn bench_imdct_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = DCTplanner::new();
-    let dct = IMDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
+    let dct = MDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len * 2];

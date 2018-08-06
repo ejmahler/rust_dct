@@ -5,8 +5,6 @@ use common;
 mod mdct_naive;
 mod mdct_via_dct4;
 
-mod imdct_naive;
-mod imdct_via_dct4;
 pub mod window_fn;
 
 /// An umbrella trait for algorithms which compute the Modified Discrete Cosine Transform (MDCT)
@@ -25,30 +23,26 @@ pub trait MDCT<T: common::DCTnum>: Length {
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
     fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]);
-}
 
-/// An umbrella trait for algorithms which compute the Inverse Modified Discrete Cosine Transform (IMDCT)
-pub trait IMDCT<T: common::DCTnum>: Length {
-    /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
+    /// Computes the IMDCT on the `input` buffer and places the result in the `output` buffer.
     ///
-    /// To make overlapping array segments easier, this method DOES NOT zero out the output buffer, instead it adds
-    /// (via operator+) the result of the IMDCT to what's already in the buffer.
+    /// Since the IMDCT is designed with overlapping output segments in mind, this method DOES NOT zero
+    /// out the output buffer before writing like most other DCT algorithms. Instead, it sums
+    /// the result of the IMDCT with what's already in the output buffer.
     fn process_imdct(&self, input: &[T], output: &mut [T]) {
         let (output_a, output_b) = output.split_at_mut(input.len());
 
         self.process_imdct_split(input, output_a, output_b);
     }
 
-    /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
+    /// Computes the IMDCT on the `input` buffer and places the result in the `output` buffer.
     /// Puts the first half of the output in `output_a`, and puts the first half of the output in `output_b`.
     ///
-    /// To make overlapping array segments easier, this method DOES NOT zero out the output buffer, instead it adds
-    /// (via operator+) the result of the IMDCT to what's already in the buffer.
+    /// Since the IMDCT is designed with overlapping output segments in mind, this method DOES NOT zero
+    /// out the output buffer before writing like most other DCT algorithms. Instead, it sums
+    /// the result of the IMDCT with what's already in the output buffer.
     fn process_imdct_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]);
 }
 
 pub use self::mdct_naive::MDCTNaive;
 pub use self::mdct_via_dct4::MDCTViaDCT4;
-
-pub use self::imdct_naive::IMDCTNaive;
-pub use self::imdct_via_dct4::IMDCTViaDCT4;

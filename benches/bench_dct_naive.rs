@@ -4,7 +4,7 @@ extern crate rustdct;
 
 use rustdct::{DCT1, DCT2, DCT3, DCT4};
 use rustdct::algorithm::{DCT1Naive, Type2And3Naive, Type4Naive};
-use rustdct::mdct::{MDCT, IMDCT, MDCTNaive, IMDCTNaive, window_fn};
+use rustdct::mdct::{MDCT, MDCTNaive, window_fn};
 
 use test::Bencher;
 
@@ -209,7 +209,7 @@ fn mdct_naive_12(b: &mut Bencher) {
 /// for a given length
 fn bench_imdct_naive(b: &mut Bencher, len: usize) {
 
-    let dct = IMDCTNaive::new(len, window_fn::mp3);
+    let dct = MDCTNaive::new(len, window_fn::mp3);
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len * 2];

@@ -9,7 +9,7 @@ use rustdct::algorithm::{DCT1Naive, DST1Naive, Type2And3Naive, Type4Naive};
 use rustdct::mdct::window_fn;
 use rustdct::DCTplanner;
 
-use common::macros::{test_mdct, test_imdct};
+use common::macros::test_mdct;
 use common::known_data::*;
 use common::slow_fns::*;
 use common::{random_signal, compare_float_vectors};
@@ -107,19 +107,6 @@ fn test_mdct_tdac() {
             let len = i * 2;
             println!("name: {}, len: {}", test_data.name, len);
             test_mdct::test_tdac(len, (test_data.scale_fn)(len), test_data.window);
-        }
-    }
-}
-
-
-#[test]
-fn test_imdct_accuracy() {
-    for curent_window_fn in &[window_fn::one, window_fn::mp3, window_fn::vorbis] {
-        for len in 1..10 {
-            test_imdct::planned_matches_naive(len * 2, curent_window_fn);
-        }
-        for &len in &[50, 52] {
-            test_imdct::planned_matches_naive(len * 2, curent_window_fn);
         }
     }
 }

@@ -109,6 +109,61 @@ impl<T: common::DCTnum> MDCT<T> for MDCTViaDCT4<T> {
 
         self.dct.process_dct4(&mut dct_buffer, output);
     }
+
+    fn process_imdct_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
+        common::verify_length(input, output_a, self.len());
+        assert_eq!(output_a.len(), output_b.len());
+
+        let mut buffer = vec![T::zero(); self.len() * 2];
+        let (mut dct_input, mut dct_output) = buffer.split_at_mut(self.len());
+        dct_input.copy_from_slice(input);
+
+        self.dct.process_dct4(&mut dct_input, &mut dct_output);
+
+        let group_size = self.len() / 2;
+
+        //copy the second half of the DCT output into the result
+        for ((output, window_val), val) in
+            output_a
+                .iter_mut()
+                .zip(&self.window[..])
+                .zip(dct_output[group_size..].iter())
+        {
+            *output = *output + *val * *window_val;
+        }
+
+        //copy the second half of the DCT output again, but this time reversed and negated
+        for ((output, window_val), val) in
+            output_a
+                .iter_mut()
+                .zip(&self.window[..])
+                .skip(group_size)
+                .zip(dct_output[group_size..].iter().rev())
+        {
+            *output = *output - *val * *window_val;
+        }
+
+        //copy the first half of the DCT output into the result, reversde+negated
+        for ((output, window_val), val) in
+            output_b
+                .iter_mut()
+                .zip(&self.window[self.len()..])
+                .zip( dct_output[..group_size].iter().rev())
+        {
+            *output = *output - *val * *window_val;
+        }
+
+        //copy the first half of the DCT output again, but this time not reversed
+        for ((output, window_val), val) in
+            output_b
+                .iter_mut()
+                .zip(&self.window[self.len()..])
+                .skip(group_size)
+                .zip(dct_output[..group_size].iter())
+        {
+            *output = *output - *val * *window_val;
+        }
+    }
 }
 impl<T> Length for MDCTViaDCT4<T> {
     fn len(&self) -> usize {
@@ -151,6 +206,38 @@ mod unit_tests {
 
                 naive_mdct.process_mdct(&input, &mut naive_output);
                 fast_mdct.process_mdct(&input, &mut fast_output);
+
+                assert!(
+                    compare_float_vectors(&naive_output, &fast_output),
+                    "i = {}",
+                    i
+                );
+
+            }
+        }
+    }
+
+    /// Verify that our fast implementation of the MDCT and IMDCT gives the same output as the slow version, for many different inputs
+    #[test]
+    fn test_imdct_via_dct4() {
+        for current_window_fn in &[window_fn::one, window_fn::mp3, window_fn::vorbis] {
+            for i in 1..11 {
+                let input_len = i * 2;
+                let output_len = i * 4;
+
+                let input = random_signal(input_len);
+
+                let mut naive_output = vec![0f32; output_len];
+                let mut fast_output = vec![0f32; output_len];
+
+
+                let mut naive_mdct = MDCTNaive::new(input_len, current_window_fn);
+
+                let inner_dct4 = Arc::new(Type4Naive::new(input_len));
+                let mut fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
+
+                naive_mdct.process_imdct(&input, &mut naive_output);
+                fast_mdct.process_imdct(&input, &mut fast_output);
 
                 assert!(
                     compare_float_vectors(&naive_output, &fast_output),

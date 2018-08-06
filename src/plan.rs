@@ -44,7 +44,6 @@ pub struct DCTplanner<T> {
     dct23_cache: HashMap<usize, Arc<Type2And3<T>>>,
     dct4_cache: HashMap<usize, Arc<Type4<T>>>,
     mdct_cache: HashMap<usize, Arc<MDCT<T>>>,
-    imdct_cache: HashMap<usize, Arc<IMDCT<T>>>,
 }
 impl<T: common::DCTnum> DCTplanner<T> {
     pub fn new() -> Self {
@@ -54,7 +53,6 @@ impl<T: common::DCTnum> DCTplanner<T> {
             dct23_cache: HashMap::new(),
             dct4_cache: HashMap::new(),
             mdct_cache: HashMap::new(),
-            imdct_cache: HashMap::new(),
         }
     }
 
@@ -186,29 +184,5 @@ impl<T: common::DCTnum> DCTplanner<T> {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
         Arc::new(MDCTViaDCT4::new(inner_dct4, window_fn))
-    }
-
-    /// Returns an IMDCT instance which processes input of size `len` and produces outputs of size `len * 2`.
-    ///
-    /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
-    /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
-    ///
-    /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_imdct<F>(&mut self, len: usize, window_fn: F) -> Arc<IMDCT<T>>
-    where F: (FnOnce(usize) -> Vec<T>) {
-        if self.imdct_cache.contains_key(&len) {
-            Arc::clone(self.imdct_cache.get(&len).unwrap())
-        } else {
-            let result = self.plan_new_imdct(len, window_fn);
-            self.imdct_cache.insert(len, Arc::clone(&result));
-            result
-        }
-    }
-
-    fn plan_new_imdct<F>(&mut self, len: usize, window_fn: F) -> Arc<IMDCT<T>>
-    where F: (FnOnce(usize) -> Vec<T>) {
-        //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
-        let inner_dct4 = self.plan_dct4(len);
-        Arc::new(IMDCTViaDCT4::new(inner_dct4, window_fn))
     }
 }

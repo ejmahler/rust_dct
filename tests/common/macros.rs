@@ -106,8 +106,7 @@ pub mod test_mdct {
         F: Fn(usize) -> Vec<f32>,
     {
         let mut planner = DCTplanner::new();
-        let forward_dct = planner.plan_mdct(len, &window_fn);
-        let inverse_dct = planner.plan_imdct(len, window_fn);
+        let mdct = planner.plan_mdct(len, &window_fn);
 
         const NUM_SEGMENTS: usize = 5;
 
@@ -119,13 +118,13 @@ pub mod test_mdct {
             let input_chunk = &input[len * i..(len * (i + 2))];
             let output_chunk = &mut output[len * i..(len * (i + 1))];
 
-            forward_dct.process_mdct(input_chunk, output_chunk);
+            mdct.process_mdct(input_chunk, output_chunk);
         }
         for i in 0..NUM_SEGMENTS {
             let input_chunk = &output[len * i..(len * (i + 1))];
             let output_chunk = &mut inverse[len * i..(len * (i + 2))];
 
-            inverse_dct.process_imdct(input_chunk, output_chunk);
+            mdct.process_imdct(input_chunk, output_chunk);
         }
 
         //we have to scale the inverse by 1/len
@@ -142,47 +141,6 @@ pub mod test_mdct {
                 &input[len..input.len() - len],
                 &inverse[len..inverse.len() - len],
             ),
-            "len = {}",
-            len
-        );
-    }
-}
-
-pub mod test_imdct {
-    use super::*;
-    use rustdct::mdct::{IMDCT, IMDCTNaive};
-
-    pub fn planned_matches_naive<F>(len: usize, window_fn: F)
-    where
-        F: Fn(usize) -> Vec<f32>,
-    {
-        let mut naive_input = random_signal(len);
-        let mut actual_input = naive_input.clone();
-
-        println!("input:          {:?}", naive_input);
-
-        let mut naive_output = vec![0f32; len * 2];
-        let mut actual_output = vec![0f32; len * 2];
-
-        let naive_dct = IMDCTNaive::new(len, &window_fn);
-
-        let mut planner = DCTplanner::new();
-        let actual_dct = planner.plan_imdct(len, window_fn);
-
-        assert_eq!(
-            actual_dct.len(),
-            len,
-            "Planner created a DCT of incorrect length"
-        );
-
-        naive_dct.process_imdct(&mut naive_input, &mut naive_output);
-        actual_dct.process_imdct(&mut actual_input, &mut actual_output);
-
-        println!("Naive output:   {:?}", naive_output);
-        println!("Planned output: {:?}", actual_output);
-
-        assert!(
-            compare_float_vectors(&naive_output, &actual_output),
             "len = {}",
             len
         );
