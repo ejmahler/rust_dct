@@ -7,7 +7,9 @@ use common;
 use twiddles;
 use ::{DCT2, DST2, DCT3, DST3, Type2And3};
 
-/// DCT Type 2, DCT Type 3, DST Type 2, and DST Type 3 implemention that recursively divides the problem in half. The problem size must be 2^n, n > 1
+/// DCT2, DCT3, DST2, and DST3 implemention that recursively divides the problem in half.
+/// 
+/// The problem size must be 2^n, n > 1
 ///
 /// ~~~
 /// // Computes a DCT Type 2 of size 1024

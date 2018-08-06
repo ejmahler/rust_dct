@@ -8,7 +8,7 @@ use common;
 use twiddles;
 use ::{DCT2, DST2, DCT3, DST3, Type2And3};
 
-/// DCT Type 2, DST Type 2, DCT Type 3, and DST Type 3 implementation that converts the problem into a FFT of the same size
+/// DCT2, DST2, DCT3, and DST3 implementation that converts the problem into a FFT of the same size
 ///
 /// ~~~
 /// // Computes a O(NlogN) DCT2, DST2, DCT3, and DST3 of size 1234 by converting them to FFTs

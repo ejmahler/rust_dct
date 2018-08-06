@@ -7,10 +7,9 @@ use twiddles;
 use common;
 use ::{DCT4, DST4, Type2And3, Type4};
 
-/// DCT Type 4 implementation that converts the problem into two DCT type 3 of half size. If the inner DCT3 is 
-/// O(nlogn), then so is this.
-///
-/// This algorithm can only be used if the problem size is even.
+/// DCT4 and DST4 implementation that converts the problem into two DCT3 of half size.
+/// 
+/// If the inner DCT3 is  O(nlogn), then so is this. This algorithm can only be used if the problem size is even.
 ///
 /// ~~~
 /// // Computes a DCT Type 4 of size 1234
