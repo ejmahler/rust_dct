@@ -5,11 +5,9 @@
 
 RustDCT is a pure-Rust signal processing library that computes the most common Discrete Cosine Transforms: 
 
-* DCT Type 1
-* DCT Type 2 (Often called "the" DCT - by far the most common algorithm, used by JPEG image compression and others)
-* DCT Type 3 (the inverse of the DCT type 2, also used in JPEG)
-* DCT Type 4
-* MDCT (Used in audio and video compression such as Ogg and MP3)
+ * Discrete Cosine Transform (DCT) Types 1, 2, 3, 4
+ * Discrete Sine Transform (DST) Types 1, 2, 3, 4
+ * Modified Discrete Cosine Transform (MDCT)
 
 ## Example
 ```rust
