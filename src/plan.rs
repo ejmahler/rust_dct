@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use rustfft::FFTplanner;
 use common;
-use ::{DCT1, Type4, Type2And3};
+use ::{DCT1, DST1, Type4, Type2And3};
 use mdct::*;
 use algorithm::*;
 use algorithm::type2and3_butterflies::*;
@@ -41,6 +41,7 @@ const DCT2_BUTTERFLIES: [usize; 4] = [2, 4, 8, 16];
 pub struct DCTplanner<T> {
     fft_planner: FFTplanner<T>,
     dct1_cache: HashMap<usize, Arc<DCT1<T>>>,
+    dst1_cache: HashMap<usize, Arc<DST1<T>>>,
     dct23_cache: HashMap<usize, Arc<Type2And3<T>>>,
     dct4_cache: HashMap<usize, Arc<Type4<T>>>,
     mdct_cache: HashMap<usize, Arc<MDCT<T>>>,
@@ -50,6 +51,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         Self {
             fft_planner: FFTplanner::new(false),
             dct1_cache: HashMap::new(),
+            dst1_cache: HashMap::new(),
             dct23_cache: HashMap::new(),
             dct4_cache: HashMap::new(),
             mdct_cache: HashMap::new(),
@@ -161,6 +163,47 @@ impl<T: common::DCTnum> DCTplanner<T> {
             }
         }
     }
+
+    /// Returns a DST Type 1 instance which processes signals of size `len`.
+    /// If this is called multiple times, it will attempt to re-use internal data between instances
+    pub fn plan_dst1(&mut self, len: usize) -> Arc<DST1<T>> {
+        if self.dst1_cache.contains_key(&len) {
+            Arc::clone(self.dst1_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_dst1(len);
+            self.dst1_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
+
+    fn plan_new_dst1(&mut self, len: usize) -> Arc<DST1<T>> {
+        //benchmarking shows that below about 25, it's faster to just use the naive DCT1 algorithm
+        if len < 25 {
+            Arc::new(DST1Naive::new(len))
+        } else {
+            let fft = self.fft_planner.plan_fft((len + 1) * 2);
+            Arc::new(DST1ConvertToFFT::new(fft))
+        }
+    }
+
+    /// Returns DST Type 2 instance which processes signals of size `len`.
+    /// If this is called multiple times, it will attempt to re-use internal data between instances
+    pub fn plan_dst2(&mut self, len: usize) -> Arc<Type2And3<T>> {
+        self.plan_dct2(len)
+    }
+
+    /// Returns DST Type 3 instance which processes signals of size `len`.
+    /// If this is called multiple times, it will attempt to re-use internal data between instances
+    pub fn plan_dst3(&mut self, len: usize) -> Arc<Type2And3<T>> {
+        self.plan_dct2(len)
+    }
+
+    /// Returns DST Type 4 instance which processes signals of size `len`.
+    /// If this is called multiple times, it will attempt to re-use internal data between instances
+    pub fn plan_dst4(&mut self, len: usize) -> Arc<Type4<T>> {
+        self.plan_dct4(len)
+    }
+
 
     /// Returns a MDCT instance which processes inputs of size ` len * 2` and produces outputs of size `len`.
     ///
