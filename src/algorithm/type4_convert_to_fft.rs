@@ -5,7 +5,7 @@ use rustfft::num_complex::Complex;
 use rustfft::{FFT, Length};
 
 use common;
-use ::{DCT4, DST4, Type4};
+use ::{DCT4, DST4, TransformType4};
 
 /// DCT Type 4 and DST Type 4 implementation that converts the problem into a FFT of the same size. 
 ///
@@ -231,7 +231,7 @@ impl<T: common::DCTnum> DST4<T> for Type4ConvertToFFTOdd<T> {
         
     }
 }
-impl<T: common::DCTnum> Type4<T> for Type4ConvertToFFTOdd<T>{}
+impl<T: common::DCTnum> TransformType4<T> for Type4ConvertToFFTOdd<T>{}
 impl<T> Length for Type4ConvertToFFTOdd<T> {
     fn len(&self) -> usize {
         self.fft.len()

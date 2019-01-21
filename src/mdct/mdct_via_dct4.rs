@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use rustfft::Length;
 
-use ::Type4;
+use ::TransformType4;
 use mdct::MDCT;
 use common;
 
@@ -27,18 +27,18 @@ use common;
 /// dct.process_mdct(&input, &mut output);
 /// ~~~
 pub struct MDCTViaDCT4<T> {
-    dct: Arc<Type4<T>>,
+    dct: Arc<TransformType4<T>>,
     window: Box<[T]>,
 }
 
 impl<T: common::DCTnum> MDCTViaDCT4<T> {
-    /// Creates a new MDCT context that will process signals of length `inner_dct.len() * 2`, resulting in outputs of length `inner_dct.len()`
+    /// Creates a new MDCT context that will process signals of length `inner_dct.len() * 2`, with an output of length `inner_dct.len()`
     ///
     /// `inner_dct.len()` must be even.
     ///
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
-    pub fn new<F>(inner_dct: Arc<Type4<T>>, window_fn: F) -> Self
+    pub fn new<F>(inner_dct: Arc<TransformType4<T>>, window_fn: F) -> Self
     where
         F: FnOnce(usize) -> Vec<T>,
     {

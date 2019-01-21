@@ -4,7 +4,7 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, Type2And3};
+use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 use common;
 
 macro_rules! butterfly_boilerplate {
@@ -41,7 +41,7 @@ macro_rules! butterfly_boilerplate {
                 unsafe { self.process_inplace_dst3(output); }
             }
         }
-        impl<T: common::DCTnum> Type2And3<T> for $struct_name<T>{}
+        impl<T: common::DCTnum> TransformType2And3<T> for $struct_name<T>{}
         impl<T> Length for $struct_name<T> {
             fn len(&self) -> usize {
                 $size
@@ -138,7 +138,7 @@ impl<T: common::DCTnum> DST3<T> for Type2And3Butterfly2<T> {
         output[1] = frac_0 - half_1;
     }
 }
-impl<T: common::DCTnum> Type2And3<T> for Type2And3Butterfly2<T>{}
+impl<T: common::DCTnum> TransformType2And3<T> for Type2And3Butterfly2<T>{}
 impl<T> Length for Type2And3Butterfly2<T> {
     fn len(&self) -> usize {
         2

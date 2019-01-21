@@ -5,7 +5,7 @@ use rustfft::Length;
 
 use common;
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, Type2And3};
+use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 
 /// DCT2, DCT3, DST2, and DST3 implemention that recursively divides the problem in half.
 /// 
@@ -29,18 +29,24 @@ use ::{DCT2, DST2, DCT3, DST3, Type2And3};
 /// dct.process_dct2(&mut input, &mut output);
 /// ~~~
 pub struct Type2And3SplitRadix<T> {
-    half_dct: Arc<Type2And3<T>>,
-    quarter_dct: Arc<Type2And3<T>>,
+    half_dct: Arc<TransformType2And3<T>>,
+    quarter_dct: Arc<TransformType2And3<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: common::DCTnum> Type2And3SplitRadix<T> {
     /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `half_dct.len() * 2`
-    pub fn new(half_dct: Arc<Type2And3<T>>, quarter_dct: Arc<Type2And3<T>>) -> Self {
-        let len = half_dct.len() * 2;
+    pub fn new(half_dct: Arc<TransformType2And3<T>>, quarter_dct: Arc<TransformType2And3<T>>) -> Self {
+        let half_len = half_dct.len();
+        let quarter_len = quarter_dct.len();
+        let len = half_len * 2;
+
         assert!(
             len.is_power_of_two() && len > 2,
             "The DCT2SplitRadix algorithm requires a power-of-two input size greater than two. Got {}", len 
+        );
+        assert_eq!(half_len, quarter_len * 2,
+            "half_dct.len() must be 2 * quarter_dct.len(). Got half_dct.len()={}, quarter_dct.len()={}", half_len, quarter_len
         );
 
         let twiddles: Vec<Complex<T>> = (0..(len/4))
@@ -237,7 +243,7 @@ impl<T: common::DCTnum> DST3<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DCTnum> Type2And3<T> for Type2And3SplitRadix<T>{}
+impl<T: common::DCTnum> TransformType2And3<T> for Type2And3SplitRadix<T>{}
 impl<T> Length for Type2And3SplitRadix<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 4

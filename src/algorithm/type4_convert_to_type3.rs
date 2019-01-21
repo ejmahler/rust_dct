@@ -5,7 +5,7 @@ use rustfft::Length;
 
 use twiddles;
 use common;
-use ::{DCT4, DST4, Type2And3, Type4};
+use ::{DCT4, DST4, TransformType2And3, TransformType4};
 
 /// DCT4 and DST4 implementation that converts the problem into two DCT3 of half size.
 /// 
@@ -29,13 +29,13 @@ use ::{DCT4, DST4, Type2And3, Type4};
 /// dct.process_dct4(&mut input, &mut output);
 /// ~~~
 pub struct Type4ConvertToType3Even<T> {
-    inner_dct: Arc<Type2And3<T>>,
+    inner_dct: Arc<TransformType2And3<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: common::DCTnum> Type4ConvertToType3Even<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_dct.len() * 2`.
-    pub fn new(inner_dct: Arc<Type2And3<T>>) -> Self {
+    pub fn new(inner_dct: Arc<TransformType2And3<T>>) -> Self {
         let inner_len = inner_dct.len();
         let len = inner_len * 2;
 
@@ -118,7 +118,7 @@ impl<T: common::DCTnum> DST4<T> for Type4ConvertToType3Even<T> {
         }
     }
 }
-impl<T: common::DCTnum> Type4<T> for Type4ConvertToType3Even<T>{}
+impl<T: common::DCTnum> TransformType4<T> for Type4ConvertToType3Even<T>{}
 impl<T> Length for Type4ConvertToType3Even<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 2

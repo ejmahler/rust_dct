@@ -6,7 +6,7 @@ use rustfft::{FFT, Length};
 
 use common;
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, Type2And3};
+use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 
 /// DCT2, DST2, DCT3, and DST3 implementation that converts the problem into a FFT of the same size
 ///
@@ -197,7 +197,7 @@ impl<T: common::DCTnum> DST3<T> for Type2And3ConvertToFFT<T> {
         }
     }
 }
-impl<T: common::DCTnum> Type2And3<T> for Type2And3ConvertToFFT<T>{}
+impl<T: common::DCTnum> TransformType2And3<T> for Type2And3ConvertToFFT<T>{}
 impl<T> Length for Type2And3ConvertToFFT<T> {
     fn len(&self) -> usize {
         self.twiddles.len()

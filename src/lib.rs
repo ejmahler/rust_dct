@@ -137,7 +137,7 @@ pub trait DST4<T: common::DCTnum>: rustfft::Length {
 }
 
 /// A trait for algorithms that can compute all of DCT2, DCT3, DST2, DST3, all in one struct
-pub trait Type2And3<T: common::DCTnum> : DCT2<T> + DCT3<T> + DST2<T> + DST3<T> {}
+pub trait TransformType2And3<T: common::DCTnum> : DCT2<T> + DCT3<T> + DST2<T> + DST3<T> {}
 
-/// A trait for algorithms that can compute all of DCT2, DCT3, DST2, DST3, all in one struct
-pub trait Type4<T: common::DCTnum> : DCT4<T> + DST4<T> {}
+/// A trait for algorithms that can compute both DCT4 and DST4, all in one struct
+pub trait TransformType4<T: common::DCTnum> : DCT4<T> + DST4<T> {}
