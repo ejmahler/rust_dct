@@ -87,7 +87,7 @@ pub fn known_values_dct4() -> Vec<KnownTestValues> {
 
 // known input/output values for DST Type 1
 pub fn known_values_dst1() -> Vec<KnownTestValues> {
-    vec![/*
+    vec![
         KnownTestValues { input: vec![0.0], expected_output: vec![0.0] },
         KnownTestValues { input: vec![0.0, 0.0], expected_output: vec![0.0, 0.0] },
         KnownTestValues { input: vec![0.0, 0.0, 0.0], expected_output: vec![0.0, 0.0, 0.0] },
@@ -96,7 +96,7 @@ pub fn known_values_dst1() -> Vec<KnownTestValues> {
         KnownTestValues { input: vec![1.0], expected_output: vec![1.0] },
         KnownTestValues { input: vec![1.0, 1.0], expected_output: vec![1.7321, 0.0] },
         KnownTestValues { input: vec![1.0, 1.0, 1.0], expected_output: vec![2.4142, 0.0, 0.41421] },
-        KnownTestValues { input: vec![1.0, 1.0, 1.0, 1.0], expected_output: vec![3.0777, 0.0, 0.72654, 0.0] },*/
+        KnownTestValues { input: vec![1.0, 1.0, 1.0, 1.0], expected_output: vec![3.0777, 0.0, 0.72654, 0.0] },
         KnownTestValues { input: vec![1.0, 1.0, 1.0, 1.0, 1.0], expected_output: vec![3.7321, 0.0, 1.0, 0.0, 0.26795] },
         KnownTestValues { input: vec![3.3], expected_output: vec![3.3] },
         KnownTestValues { input: vec![3.3, 5.9], expected_output: vec![7.9674, -2.2517] },
