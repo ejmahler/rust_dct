@@ -145,6 +145,60 @@ impl<T> Length for Type2And3Butterfly2<T> {
     }
 }
 
+pub struct Type2And3Butterfly3<T> {
+	twiddle: T,
+}
+impl<T: common::DCTnum> Type2And3Butterfly3<T> {
+	pub fn new() -> Self {
+		Self {
+			twiddle: twiddles::single_twiddle_re(1,12),
+		}
+	}
+	pub unsafe fn process_inplace_dct2(&self, buffer: &mut [T]) {
+		// This algorithm is derived by hardcoding the dct2 naive algorithm for size 3
+		let buffer_0 = *buffer.get_unchecked(0);
+		let buffer_1 = *buffer.get_unchecked(1);
+		let buffer_2 = *buffer.get_unchecked(2);
+
+		*buffer.get_unchecked_mut(0) = buffer_0 + buffer_1 + buffer_2;
+        *buffer.get_unchecked_mut(1) = (buffer_0 - buffer_2) * self.twiddle;
+        *buffer.get_unchecked_mut(2) = (buffer_0 + buffer_2) * T::half() - buffer_1;
+	}
+    pub unsafe fn process_inplace_dct3(&self, buffer: &mut [T]) {
+    	// This algorithm is derived by hardcoding the dct3 naive algorithm for size 3
+    	let buffer0_half = *buffer.get_unchecked(0) * T::half();
+    	let buffer1 = *buffer.get_unchecked(1);
+    	let buffer2 = *buffer.get_unchecked(2);
+    	let buffer2_half = buffer2 * T::half();
+
+    	*buffer.get_unchecked_mut(0) = buffer0_half + buffer1 * self.twiddle + buffer2_half;
+    	*buffer.get_unchecked_mut(1) = buffer0_half - buffer2;
+    	*buffer.get_unchecked_mut(2) = buffer0_half + buffer1 * -self.twiddle + buffer2_half;
+	}
+    pub unsafe fn process_inplace_dst2(&self, buffer: &mut [T]) {
+    	// This algorithm is derived by hardcoding the dct2 naive algorithm for size 3, then negating the odd inputs and revering the outputs
+		let buffer_0 = *buffer.get_unchecked(0);
+		let buffer_1 = *buffer.get_unchecked(1);
+		let buffer_2 = *buffer.get_unchecked(2);
+
+		*buffer.get_unchecked_mut(2) = buffer_0 - buffer_1 + buffer_2;
+        *buffer.get_unchecked_mut(1) = (buffer_0 - buffer_2) * self.twiddle;
+        *buffer.get_unchecked_mut(0) = (buffer_0 + buffer_2) * T::half() + buffer_1;
+	}
+    pub unsafe fn process_inplace_dst3(&self, buffer: &mut [T]) {
+    	// This algorithm is derived by hardcoding the dct3 naive algorithm for size 3, then reversing the inputs and negating the odd outputs
+    	let buffer0_half = *buffer.get_unchecked(2) * T::half();
+    	let buffer1 = *buffer.get_unchecked(1);
+    	let buffer2 = *buffer.get_unchecked(0);
+    	let buffer2_half = buffer2 * T::half();
+
+    	*buffer.get_unchecked_mut(0) = buffer0_half + buffer1 * self.twiddle + buffer2_half;
+    	*buffer.get_unchecked_mut(1) = buffer2 - buffer0_half;
+    	*buffer.get_unchecked_mut(2) = buffer0_half + buffer1 * -self.twiddle + buffer2_half;
+	}
+}
+butterfly_boilerplate!(Type2And3Butterfly3, 3);
+
 pub struct Type2And3Butterfly4<T> {
 	twiddle: Complex<T>,
 }
@@ -789,6 +843,7 @@ mod test {
         )
     }
     test_butterfly_func!(test_butterfly2_type2and3, Type2And3Butterfly2, 2);
+    test_butterfly_func!(test_butterfly3_type2and3, Type2And3Butterfly3, 3);
     test_butterfly_func!(test_butterfly4_type2and3, Type2And3Butterfly4, 4);
     test_butterfly_func!(test_butterfly8_type2and3, Type2And3Butterfly8, 8);
     test_butterfly_func!(test_butterfly16_type2and3, Type2And3Butterfly16, 16);

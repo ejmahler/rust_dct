@@ -15,6 +15,16 @@ pub fn single_twiddle<T: common::DCTnum>(i: usize, fft_len: usize) -> Complex<T>
     }
 }
 
+// Same as above, but only return the real portion, not the imaginary portion
+#[inline(always)]
+pub fn single_twiddle_re<T: common::DCTnum>(i: usize, fft_len: usize) -> T {
+    let angle_constant = f64::consts::PI * -2f64 / fft_len as f64;
+
+    let c = (angle_constant * i as f64).cos();
+
+    T::from_f64(c).unwrap()
+}
+
 // Same as above, but we add 0.5 to 0 before 
 #[inline(always)]
 pub fn single_twiddle_halfoffset<T: common::DCTnum>(i: usize, fft_len: usize) -> Complex<T> {
