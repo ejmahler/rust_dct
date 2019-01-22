@@ -1,3 +1,8 @@
+# Release 0.4.0
+ - Renamed `Type2and3` to `TransformType2And3`
+ - Renamed `Type4` to `TransformType4`
+ - Upgraded rustfft version from ^2.1 to ^3
+ - Added a size-3 butterfly for TransformType2And3
 # Release 0.3.0
  - Merged each DCT2 and DCT3 algorithm into a single struct that implements both both DCT2 and DCT3 traits, and created a "Type2And3" trait to encompass both. They both require the same precomputed data, so we can save memory and setup time by computing both fro mthe same trait.
  - Also implemented DST2 and DST3 on the Type2And3 trait -- so a single call to "plan_dct2" or "plan_dct3" etc will let you compute a DCT2, DST3, DCT3, DST3 all from the same instance.
