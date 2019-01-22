@@ -8,7 +8,7 @@ use mdct::*;
 use algorithm::*;
 use algorithm::type2and3_butterflies::*;
 
-const DCT2_BUTTERFLIES: [usize; 4] = [2, 3, 4, 8, 16];
+const DCT2_BUTTERFLIES: [usize; 5] = [2, 3, 4, 8, 16];
 
 /// The DCT planner is used to make new DCT algorithm instances.
 ///
