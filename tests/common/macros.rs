@@ -3,8 +3,8 @@ use rustdct::DCTplanner;
 use common::{random_signal, compare_float_vectors};
 
 macro_rules! dct_test_with_known_data {
-    ($naive_struct:ident, $process_fn: ident, $slow_fn:ident, $known_data_fn:ident) => (
-        // Compare our naive struct and our slow_fn implementation against a bunch of known data
+    ($reference_fn:ident, $naive_struct:ident, $process_fn: ident, $known_data_fn:ident) => (
+        // Compare our naive struct and our reference_fn implementation against a bunch of known data
         let known_data = $known_data_fn();
         for entry in known_data {
             let len = entry.input.len();
@@ -16,7 +16,7 @@ macro_rules! dct_test_with_known_data {
             let naive_dct = $naive_struct::new(len);
             naive_dct.$process_fn(&mut naive_input, &mut naive_output);
 
-            let slow_output = $slow_fn(&entry.input);
+            let slow_output = $reference_fn(&entry.input);
 
             println!("input:          {:?}", entry.input);
             println!("expected output:{:?}", entry.expected_output);
@@ -30,11 +30,11 @@ macro_rules! dct_test_with_known_data {
 }
 
 macro_rules! dct_test_inverse {
-    ($slow_fn:ident, $inverse_fn:ident, $inverse_scale_fn:ident, $first_size:expr) => (
+    ($reference_fn:ident, $inverse_fn:ident, $inverse_scale_fn:ident, $first_size:expr) => (
         // Test that the slow fn, paired with the correct inverse fn, actually yields the original data
         for len in $first_size..20 {
             let input = random_signal(len);
-            let intermediate = $slow_fn(&input);
+            let intermediate = $reference_fn(&input);
             let inverse = $inverse_fn(&intermediate);
 
             let inverse_scale = $inverse_scale_fn(len);
@@ -49,7 +49,7 @@ macro_rules! dct_test_inverse {
 }
 
 macro_rules! dct_test_with_planner {
-    ($naive_struct:ident, $process_fn: ident, $planner_fn:ident, $first_size:expr) => (
+    ($reference_fn:ident, $naive_struct:ident, $process_fn: ident, $planner_fn:ident, $first_size:expr) => (
         // Compare our naive struct against the output from the planner
         for len in $first_size..20 {
             let input = random_signal(len);
@@ -57,8 +57,8 @@ macro_rules! dct_test_with_planner {
             let mut naive_input = input.clone();
             let mut actual_input = input.clone();
 
-            let mut naive_output = vec![0f32; len];
-            let mut actual_output = vec![0f32; len];
+            let mut naive_output = vec![0.0; len];
+            let mut actual_output = vec![0.0; len];
 
             let naive_dct = $naive_struct::new(len);
 
@@ -67,14 +67,17 @@ macro_rules! dct_test_with_planner {
 
             assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length. Expected {}, got {}", len, actual_dct.len());
 
+            let reference_output = $reference_fn(&input);
             naive_dct.$process_fn(&mut naive_input, &mut naive_output);
             actual_dct.$process_fn(&mut actual_input, &mut actual_output);
 
-            println!("input:          {:?}", input);
-            println!("expected output:{:?}", naive_output);
-            println!("actual output:  {:?}", actual_output);
+            println!("input:           {:?}", input);
+            println!("reference output:{:?}", reference_output);
+            println!("expected output: {:?}", naive_output);
+            println!("actual output:   {:?}", actual_output);
 
-            assert!(compare_float_vectors(&naive_output, &actual_output));
+            assert!(compare_float_vectors(&reference_output, &naive_output));
+            assert!(compare_float_vectors(&reference_output, &actual_output));
         }
     )
 }

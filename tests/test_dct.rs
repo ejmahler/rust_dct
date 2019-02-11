@@ -11,7 +11,7 @@ use rustdct::DCTplanner;
 
 use common::macros::test_mdct;
 use common::known_data::*;
-use common::slow_fns::*;
+use common::reference_impls::*;
 use common::{random_signal, compare_float_vectors};
 
 use std::f32;
@@ -34,86 +34,86 @@ fn inverse_scale_plushalf(len: usize) -> f64 {
 
 #[test]
 fn test_dct1_accuracy() {
-    dct_test_with_known_data!(DCT1Naive, process_dct1, slow_dct1, known_values_dct1);
-    dct_test_with_planner!(DCT1Naive, process_dct1, plan_dct1, 2);
-    dct_test_inverse!(slow_dct1, slow_dct1, inverse_scale_dct1, 2);
+    dct_test_with_known_data!(reference_dct1, DCT1Naive, process_dct1, known_values_dct1);
+    dct_test_with_planner!(reference_dct1, DCT1Naive, process_dct1, plan_dct1, 2);
+    dct_test_inverse!(reference_dct1, reference_dct1, inverse_scale_dct1, 2);
 }
 #[test]
 fn test_dct2_accuracy() {
-    dct_test_with_known_data!(Type2And3Naive, process_dct2, slow_dct2, known_values_dct2);
-    dct_test_with_planner!(Type2And3Naive, process_dct2, plan_dct2, 1);
-    dct_test_inverse!(slow_dct2, slow_dct3, inverse_scale_normal, 1);
+    dct_test_with_known_data!(reference_dct2, Type2And3Naive, process_dct2, known_values_dct2);
+    dct_test_with_planner!(reference_dct2, Type2And3Naive, process_dct2, plan_dct2, 1);
+    dct_test_inverse!(reference_dct2, reference_dct3, inverse_scale_normal, 1);
 }
 #[test]
 fn test_dct3_accuracy() {
-    dct_test_with_known_data!(Type2And3Naive, process_dct3, slow_dct3, known_values_dct3);
-    dct_test_with_planner!(Type2And3Naive, process_dct3, plan_dct3, 1);
-    dct_test_inverse!(slow_dct3, slow_dct2, inverse_scale_normal, 1);
+    dct_test_with_known_data!(reference_dct3, Type2And3Naive, process_dct3, known_values_dct3);
+    dct_test_with_planner!(reference_dct3, Type2And3Naive, process_dct3, plan_dct3, 1);
+    dct_test_inverse!(reference_dct3, reference_dct2, inverse_scale_normal, 1);
 }
 #[test]
 fn test_dct4_accuracy() {
-    dct_test_with_known_data!(Type4Naive, process_dct4, slow_dct4, known_values_dct4);
-    dct_test_with_planner!(Type4Naive, process_dct4, plan_dct4, 1);
-    dct_test_inverse!(slow_dct4, slow_dct4, inverse_scale_normal, 1);
+    dct_test_with_known_data!(reference_dct4, Type4Naive, process_dct4, known_values_dct4);
+    dct_test_with_planner!(reference_dct4, Type4Naive, process_dct4, plan_dct4, 1);
+    dct_test_inverse!(reference_dct4, reference_dct4, inverse_scale_normal, 1);
 }
 #[test]
 fn test_dct5_accuracy() {
-    dct_test_inverse!(slow_dct5, slow_dct5, inverse_scale_minushalf, 1);
+    dct_test_inverse!(reference_dct5, reference_dct5, inverse_scale_minushalf, 1);
 }
 #[test]
 fn test_dct6_accuracy() {
-    dct_test_inverse!(slow_dct6, slow_dct7, inverse_scale_minushalf, 1);
+    dct_test_inverse!(reference_dct6, reference_dct7, inverse_scale_minushalf, 1);
 }
 #[test]
 fn test_dct7_accuracy() {
-    dct_test_inverse!(slow_dct7, slow_dct6, inverse_scale_minushalf, 1);
+    dct_test_inverse!(reference_dct7, reference_dct6, inverse_scale_minushalf, 1);
 }
 #[test]
 fn test_dct8_accuracy() {
-    dct_test_inverse!(slow_dct8, slow_dct8, inverse_scale_plushalf, 1);
+    dct_test_inverse!(reference_dct8, reference_dct8, inverse_scale_plushalf, 1);
 }
 
 
 
 #[test]
 fn test_dst1_accuracy() {
-    dct_test_with_known_data!(DST1Naive, process_dst1, slow_dst1, known_values_dst1);
-    dct_test_with_planner!(DST1Naive, process_dst1, plan_dst1, 1);
-    dct_test_inverse!(slow_dst1, slow_dst1, inverse_scale_dst1, 1);
+    dct_test_with_known_data!(reference_dst1, DST1Naive, process_dst1, known_values_dst1);
+    dct_test_with_planner!(reference_dst1, DST1Naive, process_dst1, plan_dst1, 1);
+    dct_test_inverse!(reference_dst1, reference_dst1, inverse_scale_dst1, 1);
 }
 #[test]
 fn test_dst2_accuracy() {
-    dct_test_with_known_data!(Type2And3Naive, process_dst2, slow_dst2, known_values_dst2);
-    dct_test_with_planner!(Type2And3Naive, process_dst2, plan_dst2, 1);
-    dct_test_inverse!(slow_dst2, slow_dst3, inverse_scale_normal, 1);
+    dct_test_with_known_data!(reference_dst2, Type2And3Naive, process_dst2, known_values_dst2);
+    dct_test_with_planner!(reference_dst2, Type2And3Naive, process_dst2, plan_dst2, 1);
+    dct_test_inverse!(reference_dst2, reference_dst3, inverse_scale_normal, 1);
 }
 #[test]
 fn test_dst3_accuracy() {
-    dct_test_with_known_data!(Type2And3Naive, process_dst3, slow_dst3, known_values_dst3);
-    dct_test_with_planner!(Type2And3Naive, process_dst3, plan_dst3, 1);
-    dct_test_inverse!(slow_dst3, slow_dst2, inverse_scale_normal, 1);
+    dct_test_with_known_data!(reference_dst3, Type2And3Naive, process_dst3, known_values_dst3);
+    dct_test_with_planner!(reference_dst3, Type2And3Naive, process_dst3, plan_dst3, 1);
+    dct_test_inverse!(reference_dst3, reference_dst2, inverse_scale_normal, 1);
 }
 #[test]
 fn test_dst4_accuracy() {
-    dct_test_with_known_data!(Type4Naive, process_dst4, slow_dst4, known_values_dst4);
-    dct_test_with_planner!(Type4Naive, process_dst4, plan_dst4, 1);
-    dct_test_inverse!(slow_dst4, slow_dst4, inverse_scale_normal, 1);
+    dct_test_with_known_data!(reference_dst4, Type4Naive, process_dst4, known_values_dst4);
+    dct_test_with_planner!(reference_dst4, Type4Naive, process_dst4, plan_dst4, 1);
+    dct_test_inverse!(reference_dst4, reference_dst4, inverse_scale_normal, 1);
 }
 #[test]
 fn test_dst5_accuracy() {
-    dct_test_inverse!(slow_dst5, slow_dst5, inverse_scale_plushalf, 1);
+    dct_test_inverse!(reference_dst5, reference_dst5, inverse_scale_plushalf, 1);
 }
 #[test]
 fn test_dst6_accuracy() {
-    dct_test_inverse!(slow_dst6, slow_dst7, inverse_scale_plushalf, 1);
+    dct_test_inverse!(reference_dst6, reference_dst7, inverse_scale_plushalf, 1);
 }
 #[test]
 fn test_dst7_accuracy() {
-    dct_test_inverse!(slow_dst7, slow_dst6, inverse_scale_plushalf, 1);
+    dct_test_inverse!(reference_dst7, reference_dst6, inverse_scale_plushalf, 1);
 }
 #[test]
 fn test_dst8_accuracy() {
-    dct_test_inverse!(slow_dst8, slow_dst8, inverse_scale_minushalf, 1);
+    dct_test_inverse!(reference_dst8, reference_dst8, inverse_scale_minushalf, 1);
 }
 
 

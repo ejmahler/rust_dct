@@ -3,7 +3,7 @@ use rand::{StdRng, SeedableRng};
 use rand::distributions::{Normal, IndependentSample};
 
 pub mod known_data;
-pub mod slow_fns;
+pub mod reference_impls;
 
 #[macro_use]
 pub mod macros;

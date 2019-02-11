@@ -1,11 +1,11 @@
+/// This file contains reference implementations of all DCT and DST transforms.
+/// The goal of these implementations is not to be fast, but to match the mathematical definitions as closely as possible and to be easy to follow and debug
+/// The reference for the mathematical definitions was section 9 of "The Discrete W Transforms" by Wang and Hunt, but with the normalization/orthogonalization factors omitted.
+
 use std::f64;
 
-// This file contains "slow" versions of all DCT and DST transforms.
-// The goal of these implementations is not to be fast, but to match the mathematical definitions as closely as possible and to be easy to follow and debug
-// The reference for the mathematical definitions was section 9 of "The Discrete W Transforms" by Wang and Hunt, but with the normalization/orthogonalization factors omitted.
-
 /// Simplified version of DCT1
-pub fn slow_dct1(input: &[f64]) -> Vec<f64> {
+pub fn reference_dct1(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -22,7 +22,7 @@ pub fn slow_dct1(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DCT2
-pub fn slow_dct2(input: &[f64]) -> Vec<f64> {
+pub fn reference_dct2(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -39,7 +39,7 @@ pub fn slow_dct2(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DCT3
-pub fn slow_dct3(input: &[f64]) -> Vec<f64> {
+pub fn reference_dct3(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -57,7 +57,7 @@ pub fn slow_dct3(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DCT4
-pub fn slow_dct4(input: &[f64]) -> Vec<f64> {
+pub fn reference_dct4(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -74,7 +74,7 @@ pub fn slow_dct4(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DCT5
-pub fn slow_dct5(input: &[f64]) -> Vec<f64> {
+pub fn reference_dct5(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -92,7 +92,7 @@ pub fn slow_dct5(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DCT6
-pub fn slow_dct6(input: &[f64]) -> Vec<f64> {
+pub fn reference_dct6(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -110,7 +110,7 @@ pub fn slow_dct6(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DCT7
-pub fn slow_dct7(input: &[f64]) -> Vec<f64> {
+pub fn reference_dct7(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -128,7 +128,7 @@ pub fn slow_dct7(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DCT8
-pub fn slow_dct8(input: &[f64]) -> Vec<f64> {
+pub fn reference_dct8(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -146,7 +146,7 @@ pub fn slow_dct8(input: &[f64]) -> Vec<f64> {
 
 
 /// Simplified version of DST1
-pub fn slow_dst1(input: &[f64]) -> Vec<f64> {
+pub fn reference_dst1(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
     for output_index in 0..input.len() {
         let mut entry = 0.0;
@@ -161,7 +161,7 @@ pub fn slow_dst1(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DST2
-pub fn slow_dst2(input: &[f64]) -> Vec<f64> {
+pub fn reference_dst2(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
     for output_index in 0..input.len() {
         let mut entry = 0.0;
@@ -176,7 +176,7 @@ pub fn slow_dst2(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DST3
-pub fn slow_dst3(input: &[f64]) -> Vec<f64> {
+pub fn reference_dst3(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
     for output_index in 0..input.len() {
         let mut entry = 0.0;
@@ -192,7 +192,7 @@ pub fn slow_dst3(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DST4
-pub fn slow_dst4(input: &[f64]) -> Vec<f64> {
+pub fn reference_dst4(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
@@ -209,7 +209,7 @@ pub fn slow_dst4(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DST5
-pub fn slow_dst5(input: &[f64]) -> Vec<f64> {
+pub fn reference_dst5(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
     for output_index in 0..input.len() {
         let mut entry = 0.0;
@@ -224,7 +224,7 @@ pub fn slow_dst5(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DST6
-pub fn slow_dst6(input: &[f64]) -> Vec<f64> {
+pub fn reference_dst6(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
     for output_index in 0..input.len() {
         let mut entry = 0.0;
@@ -239,7 +239,7 @@ pub fn slow_dst6(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DST7
-pub fn slow_dst7(input: &[f64]) -> Vec<f64> {
+pub fn reference_dst7(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
     for output_index in 0..input.len() {
         let mut entry = 0.0;
@@ -254,7 +254,7 @@ pub fn slow_dst7(input: &[f64]) -> Vec<f64> {
 }
 
 /// Simplified version of DST8
-pub fn slow_dst8(input: &[f64]) -> Vec<f64> {
+pub fn reference_dst8(input: &[f64]) -> Vec<f64> {
     let mut result = Vec::new();
 
     for output_index in 0..input.len() {
