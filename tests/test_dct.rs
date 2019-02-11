@@ -4,8 +4,8 @@ extern crate rand;
 #[macro_use]
 mod common;
 
-use rustdct::{DCT1, DCT2, DCT3, DCT4, DST1, DST2, DST3, DST4};
-use rustdct::algorithm::{DCT1Naive, DST1Naive, Type2And3Naive, Type4Naive};
+use rustdct::{DCT1, DCT2, DCT3, DCT4, DCT5, DST1, DST2, DST3, DST4};
+use rustdct::algorithm::{DCT1Naive, DST1Naive, Type2And3Naive, Type4Naive, DCT5Naive};
 use rustdct::mdct::window_fn;
 use rustdct::DCTplanner;
 
@@ -58,6 +58,7 @@ fn test_dct4_accuracy() {
 }
 #[test]
 fn test_dct5_accuracy() {
+    dct_test_with_planner!(reference_dct5, DCT5Naive, process_dct5, plan_dct5, 1);
     dct_test_inverse!(reference_dct5, reference_dct5, inverse_scale_minushalf, 1);
 }
 #[test]

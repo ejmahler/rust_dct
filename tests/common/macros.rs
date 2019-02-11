@@ -73,8 +73,8 @@ macro_rules! dct_test_with_planner {
 
             println!("input:           {:?}", input);
             println!("reference output:{:?}", reference_output);
-            println!("expected output: {:?}", naive_output);
-            println!("actual output:   {:?}", actual_output);
+            println!("naive output:    {:?}", naive_output);
+            println!("planned output:  {:?}", actual_output);
 
             assert!(compare_float_vectors(&reference_output, &naive_output));
             assert!(compare_float_vectors(&reference_output, &actual_output));
