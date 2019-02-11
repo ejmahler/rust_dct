@@ -29,6 +29,25 @@ macro_rules! dct_test_with_known_data {
     )
 }
 
+macro_rules! dct_test_inverse {
+    ($slow_fn:ident, $inverse_fn:ident, $inverse_scale_fn:ident, $first_size:expr) => (
+        // Test that the slow fn, paired with the correct inverse fn, actually yields the original data
+        for len in $first_size..20 {
+            let input = random_signal(len);
+            let intermediate = $slow_fn(&input);
+            let inverse = $inverse_fn(&intermediate);
+
+            let inverse_scale = $inverse_scale_fn(len);
+            let scaled_inverse: Vec<f64> = inverse.into_iter().map(|entry| entry * inverse_scale).collect();
+
+            println!("input:          {:?}", input);
+            println!("scaled inverse: {:?}", scaled_inverse);
+
+            assert!(compare_float_vectors(&input, &scaled_inverse));
+        }
+    )
+}
+
 macro_rules! dct_test_with_planner {
     ($naive_struct:ident, $process_fn: ident, $planner_fn:ident, $first_size:expr) => (
         // Compare our naive struct against the output from the planner

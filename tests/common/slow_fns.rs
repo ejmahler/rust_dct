@@ -1,200 +1,272 @@
 use std::f64;
 
-/// Simplified version of DCT1 that doesn't precompute twiddles. slower but much easier to debug
+// This file contains "slow" versions of all DCT and DST transforms.
+// The goal of these implementations is not to be fast, but to match the mathematical definitions as closely as possible and to be easy to follow and debug
+// The reference for the mathematical definitions was section 9 of "The Discrete W Transforms" by Wang and Hunt, but with the normalization/orthogonalization factors omitted.
+
+/// Simplified version of DCT1
 pub fn slow_dct1(input: &[f64]) -> Vec<f64> {
-    let mut result = Vec::with_capacity(input.len());
-    let twiddle_constant = f64::consts::PI / ((input.len() - 1) as f64);
+    let mut result = Vec::new();
 
-    for k in 0..input.len() {
-        let mut current_value = if k % 2 == 0 {
-            (input[0] + input[input.len() - 1]) * 0.5
-        } else {
-            (input[0] - input[input.len() - 1]) * 0.5
-        };
-
-        let k_float = k as f64;
-
-        for i in 1..(input.len() - 1) {
-            let i_float = i as f64;
-
-            let twiddle = (k_float * i_float * twiddle_constant).cos();
-
-            current_value += input[i] * twiddle;
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let multiplier = if input_index == 0 || input_index == input.len() - 1 { 0.5 } else { 1.0 };
+            let cos_inner = (output_index as f64) * (input_index as f64) * f64::consts::PI / ((input.len() - 1) as f64);
+            let twiddle = cos_inner.cos();
+            entry += input[input_index] * twiddle * multiplier;
         }
-        result.push(current_value);
-
+        result.push(entry);
     }
-    return result;
+    result
 }
 
-/// Simplified version of DCT2 that doesn't precompute twiddles. slower but much easier to debug
+/// Simplified version of DCT2
 pub fn slow_dct2(input: &[f64]) -> Vec<f64> {
-    let mut result = Vec::with_capacity(input.len());
-    let size_float = input.len() as f64;
+    let mut result = Vec::new();
 
-    for k in 0..input.len() {
-        let mut current_value = 0.0;
-
-        let k_float = k as f64;
-
-        for i in 0..(input.len()) {
-            let i_float = i as f64;
-
-            let twiddle = (f64::consts::PI * k_float * (i_float + 0.5) / size_float).cos();
-
-            current_value += input[i] * twiddle;
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let cos_inner = (output_index as f64) * (input_index as f64 + 0.5) * f64::consts::PI / (input.len() as f64);
+            let twiddle = cos_inner.cos();
+            entry += input[input_index] * twiddle;
         }
-        result.push(current_value);
-
+        result.push(entry);
     }
-    return result;
+
+    result
 }
 
-/// Simplified version of DCT3 that doesn't precompute twiddles. slower but much easier to debug
+/// Simplified version of DCT3
 pub fn slow_dct3(input: &[f64]) -> Vec<f64> {
-    let mut result = Vec::with_capacity(input.len());
+    let mut result = Vec::new();
 
-    let size_float = input.len() as f64;
-
-    for k in 0..input.len() {
-        let mut current_value = input[0] * 0.5;
-
-        let k_float = k as f64;
-
-        for i in 1..(input.len()) {
-            let i_float = i as f64;
-
-            let twiddle = (f64::consts::PI * i_float * (k_float + 0.5) / size_float).cos();
-
-            current_value += input[i] * twiddle;
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let multiplier = if input_index == 0 { 0.5 } else { 1.0 };
+            let cos_inner = (output_index as f64 + 0.5) * (input_index as f64) * f64::consts::PI / (input.len() as f64);
+            let twiddle = cos_inner.cos();
+            entry += input[input_index] * twiddle * multiplier;
         }
-        result.push(current_value);
-
+        result.push(entry);
     }
 
-    return result;
+    result
 }
 
-/// Simplified version of DCT4 that doesn't precompute twiddles. slower but much easier to debug
+/// Simplified version of DCT4
 pub fn slow_dct4(input: &[f64]) -> Vec<f64> {
-    let mut result = Vec::with_capacity(input.len());
+    let mut result = Vec::new();
 
-    let size_float = input.len() as f64;
-
-
-    for k in 0..input.len() {
-        let mut current_value = 0.0;
-
-        let k_float = k as f64;
-
-        for i in 0..input.len() {
-            let i_float = i as f64;
-
-            current_value += input[i] *
-                (f64::consts::PI * (i_float + 0.5) * (k_float + 0.5) / size_float)
-                    .cos();
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let cos_inner = (output_index as f64 + 0.5) * (input_index as f64 + 0.5) * f64::consts::PI / (input.len() as f64);
+            let twiddle = cos_inner.cos();
+            entry += input[input_index] * twiddle;
         }
-        result.push(current_value);
-
+        result.push(entry);
     }
 
-    return result;
+    result
 }
 
-/// Simplified version of DST1 that doesn't precompute twiddles. slower but much easier to debug
+/// Simplified version of DCT5
+pub fn slow_dct5(input: &[f64]) -> Vec<f64> {
+    let mut result = Vec::new();
+
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let multiplier = if input_index == 0 { 0.5 } else { 1.0 };
+            let cos_inner = (output_index as f64) * (input_index as f64) * f64::consts::PI / (input.len() as f64 - 0.5);
+            let twiddle = cos_inner.cos();
+            entry += input[input_index] * twiddle * multiplier;
+        }
+        result.push(entry);
+    }
+
+    result
+}
+
+/// Simplified version of DCT6
+pub fn slow_dct6(input: &[f64]) -> Vec<f64> {
+    let mut result = Vec::new();
+
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let multiplier = if input_index == input.len() - 1 { 0.5 } else { 1.0 };
+            let cos_inner = (output_index as f64) * (input_index as f64 + 0.5) * f64::consts::PI / (input.len() as f64 - 0.5);
+            let twiddle = cos_inner.cos();
+            entry += input[input_index] * twiddle * multiplier;
+        }
+        result.push(entry);
+    }
+
+    result
+}
+
+/// Simplified version of DCT7
+pub fn slow_dct7(input: &[f64]) -> Vec<f64> {
+    let mut result = Vec::new();
+
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let multiplier = if input_index == 0 { 0.5 } else { 1.0 };
+            let cos_inner = (output_index as f64 + 0.5) * (input_index as f64) * f64::consts::PI / (input.len() as f64 - 0.5);
+            let twiddle = cos_inner.cos();
+            entry += input[input_index] * twiddle * multiplier;
+        }
+        result.push(entry);
+    }
+
+    result
+}
+
+/// Simplified version of DCT8
+pub fn slow_dct8(input: &[f64]) -> Vec<f64> {
+    let mut result = Vec::new();
+
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let cos_inner = (output_index as f64 + 0.5) * (input_index as f64 + 0.5) * f64::consts::PI / (input.len() as f64 + 0.5);
+            let twiddle = cos_inner.cos();
+            entry += input[input_index] * twiddle;
+        }
+        result.push(entry);
+    }
+
+    result
+}
+
+
+/// Simplified version of DST1
 pub fn slow_dst1(input: &[f64]) -> Vec<f64> {
-    let mut result = Vec::with_capacity(input.len());
-    let twiddle_constant = f64::consts::PI / ((input.len() + 1) as f64);
-
-    for k in 0..input.len() {
-        let mut current_value = 0.0;
-
-        let k_float = k as f64;
-
-        for i in 0..input.len() {
-            let i_float = i as f64;
-
-            let twiddle = ((k_float + 1.0) * (i_float + 1.0) * twiddle_constant).sin();
-
-            current_value += input[i] * twiddle;
+    let mut result = Vec::new();
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let sin_inner = (output_index as f64 + 1.0) * (input_index as f64 + 1.0) * f64::consts::PI / ((input.len() + 1) as f64);
+            let twiddle = sin_inner.sin();
+            entry += input[input_index] * twiddle;
         }
-        println!();
-        result.push(current_value);
-
+        result.push(entry);
     }
-    return result;
+    result
 }
 
-/// Simplified version of DST2 that doesn't precompute twiddles. slower but much easier to debug
+/// Simplified version of DST2
 pub fn slow_dst2(input: &[f64]) -> Vec<f64> {
-    let mut result = Vec::with_capacity(input.len());
-    let twiddle_constant = f64::consts::PI / (input.len() as f64);
-
-    for k in 0..input.len() {
-        let mut current_value = 0.0;
-
-        let k_float = k as f64;
-
-        for i in 0..input.len() {
-            let i_float = i as f64;
-            let twiddle = ((k_float + 1.0) * (i_float + 0.5) * twiddle_constant).sin();
-
-            current_value += input[i] * twiddle;
+    let mut result = Vec::new();
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let sin_inner = (output_index as f64 + 1.0) * (input_index as f64 + 0.5) * f64::consts::PI / (input.len() as f64);
+            let twiddle = sin_inner.sin();
+            entry += input[input_index] * twiddle;
         }
-        result.push(current_value);
-
+        result.push(entry);
     }
-    return result;
+    result
 }
 
-/// Simplified version of DST3 that doesn't precompute twiddles. slower but much easier to debug
+/// Simplified version of DST3
 pub fn slow_dst3(input: &[f64]) -> Vec<f64> {
-    let mut result = Vec::with_capacity(input.len());
-    let twiddle_constant = f64::consts::PI / (input.len() as f64);
-
-    for k in 0..input.len() {
-        let mut current_value = 0.0;
-
-        let k_float = k as f64;
-
-        for i in 0..input.len() {
-
-            let mut input_value = input[i];
-
-            if i == input.len() - 1 {
-                input_value *= 0.5;
-            }
-            
-            let i_float = i as f64;
-            let twiddle =  ((k_float + 0.5) * (i_float + 1.0) * twiddle_constant).sin();
-
-            current_value += input_value * twiddle;
+    let mut result = Vec::new();
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let multiplier = if input_index == input.len() - 1 { 0.5 } else { 1.0 };
+            let sin_inner = (output_index as f64 + 0.5) * (input_index as f64 + 1.0) * f64::consts::PI / (input.len() as f64);
+            let twiddle = sin_inner.sin();
+            entry += input[input_index] * twiddle * multiplier;
         }
-        result.push(current_value);
-
+        result.push(entry);
     }
-    return result;
+    result
 }
 
-/// Simplified version of DST4 that doesn't precompute twiddles. slower but much easier to debug
+/// Simplified version of DST4
 pub fn slow_dst4(input: &[f64]) -> Vec<f64> {
-    let mut result = Vec::with_capacity(input.len());
-    let twiddle_constant = f64::consts::PI / (input.len() as f64);
+    let mut result = Vec::new();
 
-    for k in 0..input.len() {
-        let mut current_value = 0.0;
-
-        let k_float = k as f64;
-
-        for i in 0..input.len() {
-            let i_float = i as f64;
-
-            let twiddle = ((k_float + 0.5) * (i_float + 0.5) * twiddle_constant).sin();
-
-            current_value += input[i] * twiddle;
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let sin_inner = (output_index as f64 + 0.5) * (input_index as f64 + 0.5) * f64::consts::PI / (input.len() as f64);
+            let twiddle = sin_inner.sin();
+            entry += input[input_index] * twiddle;
         }
-        result.push(current_value);
-
+        result.push(entry);
     }
-    return result;
+
+    result
+}
+
+/// Simplified version of DST5
+pub fn slow_dst5(input: &[f64]) -> Vec<f64> {
+    let mut result = Vec::new();
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let sin_inner = (output_index as f64 + 1.0) * (input_index as f64 + 1.0) * f64::consts::PI / ((input.len()) as f64 + 0.5);
+            let twiddle = sin_inner.sin();
+            entry += input[input_index] * twiddle;
+        }
+        result.push(entry);
+    }
+    result
+}
+
+/// Simplified version of DST6
+pub fn slow_dst6(input: &[f64]) -> Vec<f64> {
+    let mut result = Vec::new();
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let sin_inner = (output_index as f64 + 1.0) * (input_index as f64 + 0.5) * f64::consts::PI / (input.len() as f64 + 0.5);
+            let twiddle = sin_inner.sin();
+            entry += input[input_index] * twiddle;
+        }
+        result.push(entry);
+    }
+    result
+}
+
+/// Simplified version of DST7
+pub fn slow_dst7(input: &[f64]) -> Vec<f64> {
+    let mut result = Vec::new();
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let sin_inner = (output_index as f64 + 0.5) * (input_index as f64 + 1.0) * f64::consts::PI / (input.len() as f64 + 0.5);
+            let twiddle = sin_inner.sin();
+            entry += input[input_index] * twiddle;
+        }
+        result.push(entry);
+    }
+    result
+}
+
+/// Simplified version of DST8
+pub fn slow_dst8(input: &[f64]) -> Vec<f64> {
+    let mut result = Vec::new();
+
+    for output_index in 0..input.len() {
+        let mut entry = 0.0;
+        for input_index in 0..input.len() {
+            let multiplier = if input_index == input.len() - 1 { 0.5 } else { 1.0 };
+            let sin_inner = (output_index as f64 + 0.5) * (input_index as f64 + 0.5) * f64::consts::PI / (input.len() as f64 - 0.5);
+            let twiddle = sin_inner.sin();
+            entry += input[input_index] * twiddle * multiplier;
+        }
+        result.push(entry);
+    }
+
+    result
 }
