@@ -20,7 +20,7 @@ use common;
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let dct = DCT5Naive::new(len);
-/// dct.process_dct1(&mut input, &mut output);
+/// dct.process_dct5(&mut input, &mut output);
 /// ~~~
 pub struct DCT5Naive<T> {
     twiddles: Box<[T]>,

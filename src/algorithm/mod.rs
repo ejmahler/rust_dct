@@ -33,3 +33,4 @@ pub use self::type5_naive::DCT5Naive;
 pub use self::type5_naive::DST5Naive;
 
 pub use self::type6and7_naive::DCT6And7Naive;
+pub use self::type6and7_naive::DST6And7Naive;

@@ -215,3 +215,6 @@ pub trait TransformType4<T: common::DCTnum> : DCT4<T> + DST4<T> {}
 
 /// A trait for algorithms that can compute both DCT6 and DCT7, all in one struct
 pub trait DCT6And7<T: common::DCTnum> : DCT6<T> + DCT7<T> {}
+
+/// A trait for algorithms that can compute both DST6 and DST7, all in one struct
+pub trait DST6And7<T: common::DCTnum> : DST6<T> + DST7<T> {}
