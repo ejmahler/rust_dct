@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use rustfft::FFTplanner;
 use common;
-use ::{DCT1, DST1, TransformType4, TransformType2And3, DCT5};
+use ::{DCT1, DST1, TransformType4, TransformType2And3, DCT5, DST5};
 use mdct::*;
 use algorithm::*;
 use algorithm::type2and3_butterflies::*;
@@ -46,6 +46,7 @@ pub struct DCTplanner<T> {
     dct23_cache: HashMap<usize, Arc<TransformType2And3<T>>>,
     dct4_cache: HashMap<usize, Arc<TransformType4<T>>>,
     dct5_cache: HashMap<usize, Arc<DCT5<T>>>,
+    dst5_cache: HashMap<usize, Arc<DST5<T>>>,
 
     mdct_cache: HashMap<usize, Arc<MDCT<T>>>,
 }
@@ -58,6 +59,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             dct23_cache: HashMap::new(),
             dct4_cache: HashMap::new(),
             dct5_cache: HashMap::new(),
+            dst5_cache: HashMap::new(),
             mdct_cache: HashMap::new(),
         }
     }
@@ -223,6 +225,22 @@ impl<T: common::DCTnum> DCTplanner<T> {
 
     fn plan_new_dct5(&mut self, len: usize) -> Arc<DCT5<T>> {
         Arc::new(DCT5Naive::new(len))
+    }
+
+    /// Returns a DST Type 5 instance which processes signals of size `len`.
+    /// If this is called multiple times, it will attempt to re-use internal data between instances
+    pub fn plan_dst5(&mut self, len: usize) -> Arc<DST5<T>> {
+        if self.dst5_cache.contains_key(&len) {
+            Arc::clone(self.dst5_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_dst5(len);
+            self.dst5_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
+
+    fn plan_new_dst5(&mut self, len: usize) -> Arc<DST5<T>> {
+        Arc::new(DST5Naive::new(len))
     }
 
 

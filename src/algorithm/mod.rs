@@ -28,3 +28,4 @@ pub use self::type4_convert_to_type3::Type4ConvertToType3Even;
 pub use self::type4_naive::Type4Naive;
 
 pub use self::type5_naive::DCT5Naive;
+pub use self::type5_naive::DST5Naive;
