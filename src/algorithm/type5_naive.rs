@@ -35,7 +35,7 @@ impl<T: common::DCTnum> DCT5Naive<T> {
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        DCT5Naive { twiddles: twiddles.into_boxed_slice() }
+        Self { twiddles: twiddles.into_boxed_slice() }
     }
 }
 
@@ -105,7 +105,7 @@ impl<T: common::DCTnum> DST5Naive<T> {
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        DST5Naive { twiddles: twiddles.into_boxed_slice() }
+        Self { twiddles: twiddles.into_boxed_slice() }
     }
 }
 

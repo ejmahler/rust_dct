@@ -13,6 +13,8 @@ mod type4_naive;
 
 mod type5_naive;
 
+mod type6and7_naive;
+
 
 pub use self::type1_naive::DCT1Naive;
 pub use self::type1_naive::DST1Naive;
@@ -29,3 +31,5 @@ pub use self::type4_naive::Type4Naive;
 
 pub use self::type5_naive::DCT5Naive;
 pub use self::type5_naive::DST5Naive;
+
+pub use self::type6and7_naive::DCT6And7Naive;
