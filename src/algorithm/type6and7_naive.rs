@@ -26,7 +26,7 @@ pub struct DCT6And7Naive<T> {
 }
 
 impl<T: common::DCTnum> DCT6And7Naive<T> {
-    /// Creates a new DCT6, DCT7, DST6, and DST7 context that will process signals of length `len`
+    /// Creates a new DCT6 and DCT7 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 - 1) as f64;
 
@@ -122,7 +122,7 @@ pub struct DST6And7Naive<T> {
 }
 
 impl<T: common::DCTnum> DST6And7Naive<T> {
-    /// Creates a new DST6, DST7, DST6, and DST7 context that will process signals of length `len`
+    /// Creates a new DST6 and DST7 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 + 1) as f64;
 

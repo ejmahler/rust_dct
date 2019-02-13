@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use rustfft::FFTplanner;
 use common;
-use ::{DCT1, DST1, TransformType4, TransformType2And3, DCT5, DST5, DCT6And7, DST6And7};
+use ::{DCT1, DST1, TransformType4, TransformType2And3, DCT5, DST5, DCT6And7, DST6And7, DCT8, DST8};
 use mdct::*;
 use algorithm::*;
 use algorithm::type2and3_butterflies::*;
@@ -49,6 +49,8 @@ pub struct DCTplanner<T> {
     dst5_cache: HashMap<usize, Arc<DST5<T>>>,
     dct6_cache: HashMap<usize, Arc<DCT6And7<T>>>,
     dst6_cache: HashMap<usize, Arc<DST6And7<T>>>,
+    dct8_cache: HashMap<usize, Arc<DCT8<T>>>,
+    dst8_cache: HashMap<usize, Arc<DST8<T>>>,
 
     mdct_cache: HashMap<usize, Arc<MDCT<T>>>,
 }
@@ -64,6 +66,8 @@ impl<T: common::DCTnum> DCTplanner<T> {
             dst5_cache: HashMap::new(),
             dct6_cache: HashMap::new(),
             dst6_cache: HashMap::new(),
+            dct8_cache: HashMap::new(),
+            dst8_cache: HashMap::new(),
             mdct_cache: HashMap::new(),
         }
     }
@@ -213,6 +217,22 @@ impl<T: common::DCTnum> DCTplanner<T> {
         self.plan_dct6(len)
     }
 
+    /// Returns a DCT Type 8 instance which processes signals of size `len`.
+    /// If this is called multiple times, it will attempt to re-use internal data between instances
+    pub fn plan_dct8(&mut self, len: usize) -> Arc<DCT8<T>> {
+        if self.dct8_cache.contains_key(&len) {
+            Arc::clone(self.dct8_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_dct8(len);
+            self.dct8_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
+
+    fn plan_new_dct8(&mut self, len: usize) -> Arc<DCT8<T>> {
+        Arc::new(DCT8Naive::new(len))
+    }
+
 
     /// Returns a DST Type 1 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
@@ -290,6 +310,22 @@ impl<T: common::DCTnum> DCTplanner<T> {
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dst7(&mut self, len: usize) -> Arc<DST6And7<T>> {
         self.plan_dst6(len)
+    }
+
+     /// Returns a DST Type 8 instance which processes signals of size `len`.
+    /// If this is called multiple times, it will attempt to re-use internal data between instances
+    pub fn plan_dst8(&mut self, len: usize) -> Arc<DST8<T>> {
+        if self.dst8_cache.contains_key(&len) {
+            Arc::clone(self.dst8_cache.get(&len).unwrap())
+        } else {
+            let result = self.plan_new_dst8(len);
+            self.dst8_cache.insert(len, Arc::clone(&result));
+            result
+        }
+    }
+
+    fn plan_new_dst8(&mut self, len: usize) -> Arc<DST8<T>> {
+        Arc::new(DST8Naive::new(len))
     }
 
 

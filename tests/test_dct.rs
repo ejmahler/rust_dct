@@ -4,8 +4,8 @@ extern crate rand;
 #[macro_use]
 mod common;
 
-use rustdct::{DCT1, DCT2, DCT3, DCT4, DCT5, DCT6, DCT7, DST1, DST2, DST3, DST4, DST5, DST6, DST7};
-use rustdct::algorithm::{DCT1Naive, DST1Naive, Type2And3Naive, Type4Naive, DCT5Naive, DST5Naive, DCT6And7Naive, DST6And7Naive};
+use rustdct::{DCT1, DCT2, DCT3, DCT4, DCT5, DCT6, DCT7, DCT8, DST1, DST2, DST3, DST4, DST5, DST6, DST7, DST8};
+use rustdct::algorithm::{DCT1Naive, DST1Naive, Type2And3Naive, Type4Naive, DCT5Naive, DST5Naive, DCT6And7Naive, DST6And7Naive, DCT8Naive, DST8Naive};
 use rustdct::mdct::window_fn;
 use rustdct::DCTplanner;
 
@@ -73,6 +73,7 @@ fn test_dct7_accuracy() {
 }
 #[test]
 fn test_dct8_accuracy() {
+    dct_test_with_planner!(reference_dct8, DCT8Naive, process_dct8, plan_dct8, 6);
     dct_test_inverse!(reference_dct8, reference_dct8, inverse_scale_plushalf, 1);
 }
 
@@ -119,6 +120,7 @@ fn test_dst7_accuracy() {
 }
 #[test]
 fn test_dst8_accuracy() {
+    dct_test_with_planner!(reference_dst8, DST8Naive, process_dst8, plan_dst8, 6);
     dct_test_inverse!(reference_dst8, reference_dst8, inverse_scale_minushalf, 1);
 }
 
