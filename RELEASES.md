@@ -1,3 +1,6 @@
+# Release 0.5.0
+ - Upgraded rustfft version from 3 to 4
+ - Fixed warning spam from missing `dyn` keyword
 # Release 0.4.0
  - Renamed `Type2and3` to `TransformType2And3`
  - Renamed `Type4` to `TransformType4`
