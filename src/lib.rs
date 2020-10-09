@@ -224,42 +224,42 @@ pub trait DST6And7<T: common::DCTnum> : DST6<T> + DST7<T> {}
 fn test_send_sync_impls() {
     fn assert_send_sync<T: ?Sized>() where T: Send + Sync {}
     
-    assert_send_sync::<DCT1<f32>>();
-    assert_send_sync::<DCT2<f32>>();
-    assert_send_sync::<DCT3<f32>>();
-    assert_send_sync::<DCT4<f32>>();
-    assert_send_sync::<DCT5<f32>>();
-    assert_send_sync::<DCT6<f32>>();
-    assert_send_sync::<DCT7<f32>>();
-    assert_send_sync::<DCT8<f32>>();
+    assert_send_sync::<dyn DCT1<f32>>();
+    assert_send_sync::<dyn DCT2<f32>>();
+    assert_send_sync::<dyn DCT3<f32>>();
+    assert_send_sync::<dyn DCT4<f32>>();
+    assert_send_sync::<dyn DCT5<f32>>();
+    assert_send_sync::<dyn DCT6<f32>>();
+    assert_send_sync::<dyn DCT7<f32>>();
+    assert_send_sync::<dyn DCT8<f32>>();
 
-    assert_send_sync::<DCT1<f64>>();
-    assert_send_sync::<DCT2<f64>>();
-    assert_send_sync::<DCT3<f64>>();
-    assert_send_sync::<DCT4<f64>>();
-    assert_send_sync::<DCT5<f64>>();
-    assert_send_sync::<DCT6<f64>>();
-    assert_send_sync::<DCT7<f64>>();
-    assert_send_sync::<DCT8<f64>>();
+    assert_send_sync::<dyn DCT1<f64>>();
+    assert_send_sync::<dyn DCT2<f64>>();
+    assert_send_sync::<dyn DCT3<f64>>();
+    assert_send_sync::<dyn DCT4<f64>>();
+    assert_send_sync::<dyn DCT5<f64>>();
+    assert_send_sync::<dyn DCT6<f64>>();
+    assert_send_sync::<dyn DCT7<f64>>();
+    assert_send_sync::<dyn DCT8<f64>>();
 
-    assert_send_sync::<DST1<f32>>();
-    assert_send_sync::<DST2<f32>>();
-    assert_send_sync::<DST3<f32>>();
-    assert_send_sync::<DST4<f32>>();
-    assert_send_sync::<DST5<f32>>();
-    assert_send_sync::<DST6<f32>>();
-    assert_send_sync::<DST7<f32>>();
-    assert_send_sync::<DST8<f32>>();
+    assert_send_sync::<dyn DST1<f32>>();
+    assert_send_sync::<dyn DST2<f32>>();
+    assert_send_sync::<dyn DST3<f32>>();
+    assert_send_sync::<dyn DST4<f32>>();
+    assert_send_sync::<dyn DST5<f32>>();
+    assert_send_sync::<dyn DST6<f32>>();
+    assert_send_sync::<dyn DST7<f32>>();
+    assert_send_sync::<dyn DST8<f32>>();
 
-    assert_send_sync::<DST1<f64>>();
-    assert_send_sync::<DST2<f64>>();
-    assert_send_sync::<DST3<f64>>();
-    assert_send_sync::<DST4<f64>>();
-    assert_send_sync::<DST5<f64>>();
-    assert_send_sync::<DST6<f64>>();
-    assert_send_sync::<DST7<f64>>();
-    assert_send_sync::<DST8<f64>>();
+    assert_send_sync::<dyn DST1<f64>>();
+    assert_send_sync::<dyn DST2<f64>>();
+    assert_send_sync::<dyn DST3<f64>>();
+    assert_send_sync::<dyn DST4<f64>>();
+    assert_send_sync::<dyn DST5<f64>>();
+    assert_send_sync::<dyn DST6<f64>>();
+    assert_send_sync::<dyn DST7<f64>>();
+    assert_send_sync::<dyn DST8<f64>>();
 
-    assert_send_sync::<mdct::MDCT<f32>>();
-    assert_send_sync::<mdct::MDCT<f64>>();
+    assert_send_sync::<dyn mdct::MDCT<f32>>();
+    assert_send_sync::<dyn mdct::MDCT<f64>>();
 }

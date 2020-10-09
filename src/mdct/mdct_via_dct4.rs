@@ -27,7 +27,7 @@ use common;
 /// dct.process_mdct(&input, &mut output);
 /// ~~~
 pub struct MDCTViaDCT4<T> {
-    dct: Arc<TransformType4<T>>,
+    dct: Arc<dyn TransformType4<T>>,
     window: Box<[T]>,
 }
 
@@ -38,7 +38,7 @@ impl<T: common::DCTnum> MDCTViaDCT4<T> {
     ///
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
-    pub fn new<F>(inner_dct: Arc<TransformType4<T>>, window_fn: F) -> Self
+    pub fn new<F>(inner_dct: Arc<dyn TransformType4<T>>, window_fn: F) -> Self
     where
         F: FnOnce(usize) -> Vec<T>,
     {
@@ -199,10 +199,10 @@ mod unit_tests {
                 let mut fast_output = vec![0f32; output_len];
 
 
-                let mut naive_mdct = MDCTNaive::new(output_len, current_window_fn);
+                let naive_mdct = MDCTNaive::new(output_len, current_window_fn);
 
                 let inner_dct4 = Arc::new(Type4Naive::new(output_len));
-                let mut fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
+                let fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
 
                 naive_mdct.process_mdct(&input, &mut naive_output);
                 fast_mdct.process_mdct(&input, &mut fast_output);
@@ -231,10 +231,10 @@ mod unit_tests {
                 let mut fast_output = vec![0f32; output_len];
 
 
-                let mut naive_mdct = MDCTNaive::new(input_len, current_window_fn);
+                let naive_mdct = MDCTNaive::new(input_len, current_window_fn);
 
                 let inner_dct4 = Arc::new(Type4Naive::new(input_len));
-                let mut fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
+                let fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
 
                 naive_mdct.process_imdct(&input, &mut naive_output);
                 fast_mdct.process_imdct(&input, &mut fast_output);

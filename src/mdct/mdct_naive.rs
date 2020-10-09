@@ -261,7 +261,7 @@ mod unit_tests {
 
                 let mut fast_output = vec![0f32; output_len];
 
-                let mut dct = MDCTNaive::new(output_len, current_window_fn);
+                let dct = MDCTNaive::new(output_len, current_window_fn);
 
                 dct.process_mdct(&mut input, &mut fast_output);
 
@@ -352,7 +352,7 @@ mod unit_tests {
 
             let mut fast_output = vec![0f32; input.len() * 2];
 
-            let mut dct = MDCTNaive::new(input.len(), window_fn::one);
+            let dct = MDCTNaive::new(input.len(), window_fn::one);
             dct.process_imdct(&input, &mut fast_output);
 
             assert!(compare_float_vectors(&expected, &slow_output));
@@ -409,7 +409,7 @@ mod unit_tests {
 
             let mut fast_output = vec![0f32; input.len() * 2];
 
-            let mut dct = MDCTNaive::new(input.len(), window_fn::mp3);
+            let dct = MDCTNaive::new(input.len(), window_fn::mp3);
             dct.process_imdct(&input, &mut fast_output);
 
             assert!(compare_float_vectors(&expected, &slow_output));
@@ -430,7 +430,7 @@ mod unit_tests {
 
                 let mut fast_output = vec![0f32; output_len];
 
-                let mut dct = MDCTNaive::new(input_len, current_window_fn);
+                let dct = MDCTNaive::new(input_len, current_window_fn);
                 dct.process_imdct(&mut input, &mut fast_output);
 
                 assert!(

@@ -29,14 +29,14 @@ use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 /// dct.process_dct2(&mut input, &mut output);
 /// ~~~
 pub struct Type2And3SplitRadix<T> {
-    half_dct: Arc<TransformType2And3<T>>,
-    quarter_dct: Arc<TransformType2And3<T>>,
+    half_dct: Arc<dyn TransformType2And3<T>>,
+    quarter_dct: Arc<dyn TransformType2And3<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: common::DCTnum> Type2And3SplitRadix<T> {
     /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `half_dct.len() * 2`
-    pub fn new(half_dct: Arc<TransformType2And3<T>>, quarter_dct: Arc<TransformType2And3<T>>) -> Self {
+    pub fn new(half_dct: Arc<dyn TransformType2And3<T>>, quarter_dct: Arc<dyn TransformType2And3<T>>) -> Self {
         let half_len = half_dct.len();
         let quarter_len = quarter_dct.len();
         let len = half_len * 2;

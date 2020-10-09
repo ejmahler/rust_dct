@@ -7,7 +7,7 @@ use common;
 pub fn single_twiddle<T: common::DCTnum>(i: usize, fft_len: usize) -> Complex<T> {
     let angle_constant = f64::consts::PI * -2f64 / fft_len as f64;
 
-    let c = Complex::from_polar(&1f64, &(angle_constant * i as f64));
+    let c = Complex::from_polar(1f64, angle_constant * i as f64);
 
     Complex {
         re: T::from_f64(c.re).unwrap(),
@@ -30,7 +30,7 @@ pub fn single_twiddle_re<T: common::DCTnum>(i: usize, fft_len: usize) -> T {
 pub fn single_twiddle_halfoffset<T: common::DCTnum>(i: usize, fft_len: usize) -> Complex<T> {
     let angle_constant = f64::consts::PI * -2f64 / fft_len as f64;
     
-    let c = Complex::from_polar(&1f64, &(angle_constant * (i as f64 + 0.5f64)));
+    let c = Complex::from_polar(1f64, angle_constant * (i as f64 + 0.5f64));
 
     Complex {
         re: T::from_f64(c.re).unwrap(),
@@ -54,9 +54,9 @@ mod unit_tests {
             let single_inverse: Complex<f32> = single_twiddle(i, len).conj();
 
             let expected =
-                Complex::from_polar(&1f32, &(-2f32 * f32::consts::PI * i as f32 / len as f32));
+                Complex::from_polar(1f32, -2f32 * f32::consts::PI * i as f32 / len as f32);
             let expected_inverse =
-                Complex::from_polar(&1f32, &(2f32 * f32::consts::PI * i as f32 / len as f32));
+                Complex::from_polar(1f32, 2f32 * f32::consts::PI * i as f32 / len as f32);
 
             assert!(
                 fuzzy_cmp(single.re, expected.re, 0.001f32),

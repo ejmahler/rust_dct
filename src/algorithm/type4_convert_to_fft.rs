@@ -31,12 +31,12 @@ use ::{DCT4, DST4, TransformType4};
 /// dct.process_dst4(&mut dst4_input, &mut dst4_output);
 /// ~~~
 pub struct Type4ConvertToFFTOdd<T> {
-    fft: Arc<FFT<T>>,
+    fft: Arc<dyn FFT<T>>,
 }
 
 impl<T: common::DCTnum> Type4ConvertToFFTOdd<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_fft.len()`. `inner_fft.len()` must be odd.
-    pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
+    pub fn new(inner_fft: Arc<dyn FFT<T>>) -> Self {
         assert!(
             !inner_fft.is_inverse(),
             "Type4ConvertToFFTOdd requires a forward FFT, but an inverse FFT was provided");
@@ -262,11 +262,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = Type4Naive::new(size);
+            let naive_dct = Type4Naive::new(size);
             naive_dct.process_dct4(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
-            let mut dct = Type4ConvertToFFTOdd::new(fft_planner.plan_fft(size));
+            let dct = Type4ConvertToFFTOdd::new(fft_planner.plan_fft(size));
             dct.process_dct4(&mut actual_input, &mut actual_output);
 
             println!("expected: {:?}", expected_output);
@@ -295,11 +295,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let mut naive_dct = Type4Naive::new(size);
+            let naive_dct = Type4Naive::new(size);
             naive_dct.process_dst4(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FFTplanner::new(false);
-            let mut dct = Type4ConvertToFFTOdd::new(fft_planner.plan_fft(size));
+            let dct = Type4ConvertToFFTOdd::new(fft_planner.plan_fft(size));
             dct.process_dst4(&mut actual_input, &mut actual_output);
 
             println!("expected: {:?}", expected_output);

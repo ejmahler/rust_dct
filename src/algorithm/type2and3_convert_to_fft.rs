@@ -39,13 +39,13 @@ use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 /// dct.process_dst3(&mut dst3_input, &mut dst3_output);
 /// ~~~
 pub struct Type2And3ConvertToFFT<T> {
-    fft: Arc<FFT<T>>,
+    fft: Arc<dyn FFT<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: common::DCTnum> Type2And3ConvertToFFT<T> {
     /// Creates a new DCT2, DST2, DCT3, and DST3 context that will process signals of length `inner_fft.len()`.
-    pub fn new(inner_fft: Arc<FFT<T>>) -> Self {
+    pub fn new(inner_fft: Arc<dyn FFT<T>>) -> Self {
         assert!(
             !inner_fft.is_inverse(),
             "The 'DCT type 2 via FFT' algorithm requires a forward FFT, but an inverse FFT \

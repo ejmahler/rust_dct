@@ -29,13 +29,13 @@ use ::{DCT4, DST4, TransformType2And3, TransformType4};
 /// dct.process_dct4(&mut input, &mut output);
 /// ~~~
 pub struct Type4ConvertToType3Even<T> {
-    inner_dct: Arc<TransformType2And3<T>>,
+    inner_dct: Arc<dyn TransformType2And3<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
 impl<T: common::DCTnum> Type4ConvertToType3Even<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_dct.len() * 2`.
-    pub fn new(inner_dct: Arc<TransformType2And3<T>>) -> Self {
+    pub fn new(inner_dct: Arc<dyn TransformType2And3<T>>) -> Self {
         let inner_len = inner_dct.len();
         let len = inner_len * 2;
 
@@ -144,11 +144,11 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             
-            let mut naive_dct4 = Type4Naive::new(size);
+            let naive_dct4 = Type4Naive::new(size);
             naive_dct4.process_dct4(&mut expected_input, &mut expected_output);
 
             let inner_dct3 = Arc::new(Type2And3Naive::new(inner_size));
-            let mut dct = Type4ConvertToType3Even::new(inner_dct3);
+            let dct = Type4ConvertToType3Even::new(inner_dct3);
             dct.process_dct4(&mut actual_input, &mut actual_output);
 
             println!("");
@@ -175,11 +175,11 @@ mod test {
             let mut actual_output = vec![0f32; size];
 
             
-            let mut naive_dst4 = Type4Naive::new(size);
+            let naive_dst4 = Type4Naive::new(size);
             naive_dst4.process_dst4(&mut expected_input, &mut expected_output);
 
             let inner_dct3 = Arc::new(Type2And3Naive::new(inner_size));
-            let mut dct = Type4ConvertToType3Even::new(inner_dct3);
+            let dct = Type4ConvertToType3Even::new(inner_dct3);
             dct.process_dst4(&mut actual_input, &mut actual_output);
 
             println!("");
