@@ -1,27 +1,35 @@
-use std::fmt::Debug;
 use rustfft::FFTnum;
 use rustfft::num_traits::FloatConst;
 
 
 /// Generic floating point number, implemented for f32 and f64
-pub trait DCTnum: FFTnum + FloatConst + Debug {
+pub trait DCTnum: FFTnum + FloatConst {
 	fn half() -> Self;
 	fn two() -> Self;
 }
-impl DCTnum for f32 {
-	fn half() -> Self {
-		0.5
-	}
+// impl DCTnum for f32 {
+// 	fn half() -> Self {
+// 		0.5
+// 	}
+// 	fn two() -> Self {
+// 		2.0
+// 	}
+// }
+// impl DCTnum for f64 {
+// 	fn half() -> Self {
+// 		0.5
+// 	}
+// 	fn two() -> Self {
+// 		2.0
+// 	}
+// }
+
+impl<T: FFTnum + FloatConst> DCTnum for T {
 	fn two() -> Self {
-		2.0
+		Self::from_f64(2.0).unwrap()
 	}
-}
-impl DCTnum for f64 {
 	fn half() -> Self {
-		0.5
-	}
-	fn two() -> Self {
-		2.0
+		Self::from_f64(0.5).unwrap()
 	}
 }
 
