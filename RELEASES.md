@@ -1,3 +1,5 @@
+# Release 0.5.1
+ - Added a blanket impl for the DCTnum trait, making it easier to use arbitrary numeric types.
 # Release 0.5.0
  - Upgraded rustfft version from 3 to 4
  - Fixed warning spam from missing `dyn` keyword
