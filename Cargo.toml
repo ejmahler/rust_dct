@@ -1,6 +1,6 @@
 [package]
 name = "rustdct"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Elliott Mahler <join.together at gmail>"]
 
 description = "Compute Discrete Cosine Transforms (DCT) of any size in O(nlogn) time, in pure Rust."
