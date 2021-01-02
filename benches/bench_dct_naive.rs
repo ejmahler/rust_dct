@@ -2,8 +2,8 @@
 extern crate test;
 extern crate rustdct;
 
-use rustdct::{DCT1, DCT2, DCT3, DCT4};
-use rustdct::algorithm::{DCT1Naive, Type2And3Naive, Type4Naive};
+use rustdct::{DCT1, DCT2, DCT3, DCT4, DST6, DST7};
+use rustdct::algorithm::{DCT1Naive, Type2And3Naive, Type4Naive, DST6And7Naive};
 use rustdct::mdct::{MDCT, MDCTNaive, window_fn};
 
 use test::Bencher;
@@ -240,3 +240,88 @@ fn imdct_naive_10(b: &mut Bencher) {
 fn imdct_naive_12(b: &mut Bencher) {
     bench_imdct_naive(b, 12);
 }
+
+/// Times just the DST6 execution (not allocation and pre-calculation)
+/// for a given length
+fn bench_dst6_naive(b: &mut Bencher, len: usize) {
+
+    let dct = DST6And7Naive::new(len);
+
+    let mut signal = vec![0_f32; len];
+    let mut spectrum = signal.clone();
+    b.iter(|| { dct.process_dst6(&mut signal, &mut spectrum); });
+}
+
+#[bench] fn dst6_even_naive_10(b: &mut Bencher) { bench_dst6_naive(b, 10); }
+#[bench] fn dst6_even_naive_11(b: &mut Bencher) { bench_dst6_naive(b, 11); }
+#[bench] fn dst6_even_naive_12(b: &mut Bencher) { bench_dst6_naive(b, 12); }
+#[bench] fn dst6_even_naive_13(b: &mut Bencher) { bench_dst6_naive(b, 13); }
+#[bench] fn dst6_even_naive_14(b: &mut Bencher) { bench_dst6_naive(b, 14); }
+#[bench] fn dst6_even_naive_15(b: &mut Bencher) { bench_dst6_naive(b, 15); }
+#[bench] fn dst6_even_naive_16(b: &mut Bencher) { bench_dst6_naive(b, 16); }
+#[bench] fn dst6_even_naive_17(b: &mut Bencher) { bench_dst6_naive(b, 17); }
+#[bench] fn dst6_even_naive_18(b: &mut Bencher) { bench_dst6_naive(b, 18); }
+#[bench] fn dst6_even_naive_19(b: &mut Bencher) { bench_dst6_naive(b, 19); }
+#[bench] fn dst6_even_naive_20(b: &mut Bencher) { bench_dst6_naive(b, 20); }
+#[bench] fn dst6_even_naive_21(b: &mut Bencher) { bench_dst6_naive(b, 21); }
+#[bench] fn dst6_even_naive_22(b: &mut Bencher) { bench_dst6_naive(b, 22); }
+#[bench] fn dst6_even_naive_23(b: &mut Bencher) { bench_dst6_naive(b, 23); }
+#[bench] fn dst6_even_naive_24(b: &mut Bencher) { bench_dst6_naive(b, 24); }
+#[bench] fn dst6_even_naive_25(b: &mut Bencher) { bench_dst6_naive(b, 25); }
+#[bench] fn dst6_even_naive_26(b: &mut Bencher) { bench_dst6_naive(b, 26); }
+#[bench] fn dst6_even_naive_27(b: &mut Bencher) { bench_dst6_naive(b, 27); }
+#[bench] fn dst6_even_naive_28(b: &mut Bencher) { bench_dst6_naive(b, 28); }
+#[bench] fn dst6_even_naive_29(b: &mut Bencher) { bench_dst6_naive(b, 29); }
+#[bench] fn dst6_even_naive_30(b: &mut Bencher) { bench_dst6_naive(b, 30); }
+#[bench] fn dst6_even_naive_31(b: &mut Bencher) { bench_dst6_naive(b, 31); }
+#[bench] fn dst6_even_naive_32(b: &mut Bencher) { bench_dst6_naive(b, 32); }
+#[bench] fn dst6_even_naive_33(b: &mut Bencher) { bench_dst6_naive(b, 33); }
+#[bench] fn dst6_even_naive_34(b: &mut Bencher) { bench_dst6_naive(b, 34); }
+#[bench] fn dst6_even_naive_35(b: &mut Bencher) { bench_dst6_naive(b, 35); }
+#[bench] fn dst6_even_naive_36(b: &mut Bencher) { bench_dst6_naive(b, 36); }
+#[bench] fn dst6_even_naive_37(b: &mut Bencher) { bench_dst6_naive(b, 37); }
+#[bench] fn dst6_even_naive_38(b: &mut Bencher) { bench_dst6_naive(b, 38); }
+#[bench] fn dst6_even_naive_39(b: &mut Bencher) { bench_dst6_naive(b, 39); }
+
+/// Times just the DST7 execution (not allocation and pre-calculation)
+/// for a given length
+fn bench_dst7_naive(b: &mut Bencher, len: usize) {
+
+    let dct = DST6And7Naive::new(len);
+
+    let mut signal = vec![0_f32; len];
+    let mut spectrum = signal.clone();
+    b.iter(|| { dct.process_dst7(&mut signal, &mut spectrum); });
+}
+
+
+#[bench] fn dst7_even_naive_10(b: &mut Bencher) { bench_dst7_naive(b, 10); }
+#[bench] fn dst7_even_naive_11(b: &mut Bencher) { bench_dst7_naive(b, 11); }
+#[bench] fn dst7_even_naive_12(b: &mut Bencher) { bench_dst7_naive(b, 12); }
+#[bench] fn dst7_even_naive_13(b: &mut Bencher) { bench_dst7_naive(b, 13); }
+#[bench] fn dst7_even_naive_14(b: &mut Bencher) { bench_dst7_naive(b, 14); }
+#[bench] fn dst7_even_naive_15(b: &mut Bencher) { bench_dst7_naive(b, 15); }
+#[bench] fn dst7_even_naive_16(b: &mut Bencher) { bench_dst7_naive(b, 16); }
+#[bench] fn dst7_even_naive_17(b: &mut Bencher) { bench_dst7_naive(b, 17); }
+#[bench] fn dst7_even_naive_18(b: &mut Bencher) { bench_dst7_naive(b, 18); }
+#[bench] fn dst7_even_naive_19(b: &mut Bencher) { bench_dst7_naive(b, 19); }
+#[bench] fn dst7_even_naive_20(b: &mut Bencher) { bench_dst7_naive(b, 20); }
+#[bench] fn dst7_even_naive_21(b: &mut Bencher) { bench_dst7_naive(b, 21); }
+#[bench] fn dst7_even_naive_22(b: &mut Bencher) { bench_dst7_naive(b, 22); }
+#[bench] fn dst7_even_naive_23(b: &mut Bencher) { bench_dst7_naive(b, 23); }
+#[bench] fn dst7_even_naive_24(b: &mut Bencher) { bench_dst7_naive(b, 24); }
+#[bench] fn dst7_even_naive_25(b: &mut Bencher) { bench_dst7_naive(b, 25); }
+#[bench] fn dst7_even_naive_26(b: &mut Bencher) { bench_dst7_naive(b, 26); }
+#[bench] fn dst7_even_naive_27(b: &mut Bencher) { bench_dst7_naive(b, 27); }
+#[bench] fn dst7_even_naive_28(b: &mut Bencher) { bench_dst7_naive(b, 28); }
+#[bench] fn dst7_even_naive_29(b: &mut Bencher) { bench_dst7_naive(b, 29); }
+#[bench] fn dst7_even_naive_30(b: &mut Bencher) { bench_dst7_naive(b, 30); }
+#[bench] fn dst7_even_naive_31(b: &mut Bencher) { bench_dst7_naive(b, 31); }
+#[bench] fn dst7_even_naive_32(b: &mut Bencher) { bench_dst7_naive(b, 32); }
+#[bench] fn dst7_even_naive_33(b: &mut Bencher) { bench_dst7_naive(b, 33); }
+#[bench] fn dst7_even_naive_34(b: &mut Bencher) { bench_dst7_naive(b, 34); }
+#[bench] fn dst7_even_naive_35(b: &mut Bencher) { bench_dst7_naive(b, 35); }
+#[bench] fn dst7_even_naive_36(b: &mut Bencher) { bench_dst7_naive(b, 36); }
+#[bench] fn dst7_even_naive_37(b: &mut Bencher) { bench_dst7_naive(b, 37); }
+#[bench] fn dst7_even_naive_38(b: &mut Bencher) { bench_dst7_naive(b, 38); }
+#[bench] fn dst7_even_naive_39(b: &mut Bencher) { bench_dst7_naive(b, 39); }

@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use rustdct::rustfft::FFTplanner;
 use rustdct::DCTplanner;
-use rustdct::{DCT1, DCT2, DCT3, DCT4, TransformType2And3};
+use rustdct::{DCT1, DCT2, DCT3, DCT4, TransformType2And3, DST6, DST7};
 use rustdct::algorithm::*;
 use rustdct::algorithm::type2and3_butterflies::*;
 use rustdct::mdct::{MDCT, MDCTViaDCT4, window_fn};
@@ -408,3 +408,90 @@ fn imdct_fft_10(b: &mut Bencher) {
 fn imdct_fft_12(b: &mut Bencher) {
     bench_imdct_fft(b, 12);
 }
+
+
+/// Times just the DST6 execution (not allocation and pre-calculation)
+/// for a given length
+fn bench_dst6_fft(b: &mut Bencher, len: usize) {
+
+    let mut planner = FFTplanner::new(false);
+    let dct = DST6And7ConvertToFFT::new(planner.plan_fft(len * 2 + 1));
+
+    let mut signal = vec![0_f32; len];
+    let mut spectrum = signal.clone();
+    b.iter(|| { dct.process_dst6(&mut signal, &mut spectrum); });
+}
+
+#[bench] fn dst6_fft_10(b: &mut Bencher) { bench_dst6_fft(b, 10); }
+#[bench] fn dst6_fft_11(b: &mut Bencher) { bench_dst6_fft(b, 11); }
+#[bench] fn dst6_fft_12(b: &mut Bencher) { bench_dst6_fft(b, 12); }
+#[bench] fn dst6_fft_13(b: &mut Bencher) { bench_dst6_fft(b, 13); }
+#[bench] fn dst6_fft_14(b: &mut Bencher) { bench_dst6_fft(b, 14); }
+#[bench] fn dst6_fft_15(b: &mut Bencher) { bench_dst6_fft(b, 15); }
+#[bench] fn dst6_fft_16(b: &mut Bencher) { bench_dst6_fft(b, 16); }
+#[bench] fn dst6_fft_17(b: &mut Bencher) { bench_dst6_fft(b, 17); }
+#[bench] fn dst6_fft_18(b: &mut Bencher) { bench_dst6_fft(b, 18); }
+#[bench] fn dst6_fft_19(b: &mut Bencher) { bench_dst6_fft(b, 19); }
+#[bench] fn dst6_fft_20(b: &mut Bencher) { bench_dst6_fft(b, 20); }
+#[bench] fn dst6_fft_21(b: &mut Bencher) { bench_dst6_fft(b, 21); }
+#[bench] fn dst6_fft_22(b: &mut Bencher) { bench_dst6_fft(b, 22); }
+#[bench] fn dst6_fft_23(b: &mut Bencher) { bench_dst6_fft(b, 23); }
+#[bench] fn dst6_fft_24(b: &mut Bencher) { bench_dst6_fft(b, 24); }
+#[bench] fn dst6_fft_25(b: &mut Bencher) { bench_dst6_fft(b, 25); }
+#[bench] fn dst6_fft_26(b: &mut Bencher) { bench_dst6_fft(b, 26); }
+#[bench] fn dst6_fft_27(b: &mut Bencher) { bench_dst6_fft(b, 27); }
+#[bench] fn dst6_fft_28(b: &mut Bencher) { bench_dst6_fft(b, 28); }
+#[bench] fn dst6_fft_29(b: &mut Bencher) { bench_dst6_fft(b, 29); }
+#[bench] fn dst6_fft_30(b: &mut Bencher) { bench_dst6_fft(b, 30); }
+#[bench] fn dst6_fft_31(b: &mut Bencher) { bench_dst6_fft(b, 31); }
+#[bench] fn dst6_fft_32(b: &mut Bencher) { bench_dst6_fft(b, 32); }
+#[bench] fn dst6_fft_33(b: &mut Bencher) { bench_dst6_fft(b, 33); }
+#[bench] fn dst6_fft_34(b: &mut Bencher) { bench_dst6_fft(b, 34); }
+#[bench] fn dst6_fft_35(b: &mut Bencher) { bench_dst6_fft(b, 35); }
+#[bench] fn dst6_fft_36(b: &mut Bencher) { bench_dst6_fft(b, 36); }
+#[bench] fn dst6_fft_37(b: &mut Bencher) { bench_dst6_fft(b, 37); }
+#[bench] fn dst6_fft_38(b: &mut Bencher) { bench_dst6_fft(b, 38); }
+#[bench] fn dst6_fft_39(b: &mut Bencher) { bench_dst6_fft(b, 39); }
+
+/// Times just the DST6 execution (not allocation and pre-calculation)
+/// for a given length
+fn bench_dst7_fft(b: &mut Bencher, len: usize) {
+
+    let mut planner = FFTplanner::new(false);
+    let dct = DST6And7ConvertToFFT::new(planner.plan_fft(len * 2 + 1));
+
+    let mut signal = vec![0_f32; len];
+    let mut spectrum = signal.clone();
+    b.iter(|| { dct.process_dst7(&mut signal, &mut spectrum); });
+}
+
+#[bench] fn dst7_fft_10(b: &mut Bencher) { bench_dst7_fft(b, 10); }
+#[bench] fn dst7_fft_11(b: &mut Bencher) { bench_dst7_fft(b, 11); }
+#[bench] fn dst7_fft_12(b: &mut Bencher) { bench_dst7_fft(b, 12); }
+#[bench] fn dst7_fft_13(b: &mut Bencher) { bench_dst7_fft(b, 13); }
+#[bench] fn dst7_fft_14(b: &mut Bencher) { bench_dst7_fft(b, 14); }
+#[bench] fn dst7_fft_15(b: &mut Bencher) { bench_dst7_fft(b, 15); }
+#[bench] fn dst7_fft_16(b: &mut Bencher) { bench_dst7_fft(b, 16); }
+#[bench] fn dst7_fft_17(b: &mut Bencher) { bench_dst7_fft(b, 17); }
+#[bench] fn dst7_fft_18(b: &mut Bencher) { bench_dst7_fft(b, 18); }
+#[bench] fn dst7_fft_19(b: &mut Bencher) { bench_dst7_fft(b, 19); }
+#[bench] fn dst7_fft_20(b: &mut Bencher) { bench_dst7_fft(b, 20); }
+#[bench] fn dst7_fft_21(b: &mut Bencher) { bench_dst7_fft(b, 21); }
+#[bench] fn dst7_fft_22(b: &mut Bencher) { bench_dst7_fft(b, 22); }
+#[bench] fn dst7_fft_23(b: &mut Bencher) { bench_dst7_fft(b, 23); }
+#[bench] fn dst7_fft_24(b: &mut Bencher) { bench_dst7_fft(b, 24); }
+#[bench] fn dst7_fft_25(b: &mut Bencher) { bench_dst7_fft(b, 25); }
+#[bench] fn dst7_fft_26(b: &mut Bencher) { bench_dst7_fft(b, 26); }
+#[bench] fn dst7_fft_27(b: &mut Bencher) { bench_dst7_fft(b, 27); }
+#[bench] fn dst7_fft_28(b: &mut Bencher) { bench_dst7_fft(b, 28); }
+#[bench] fn dst7_fft_29(b: &mut Bencher) { bench_dst7_fft(b, 29); }
+#[bench] fn dst7_fft_30(b: &mut Bencher) { bench_dst7_fft(b, 30); }
+#[bench] fn dst7_fft_31(b: &mut Bencher) { bench_dst7_fft(b, 31); }
+#[bench] fn dst7_fft_32(b: &mut Bencher) { bench_dst7_fft(b, 32); }
+#[bench] fn dst7_fft_33(b: &mut Bencher) { bench_dst7_fft(b, 33); }
+#[bench] fn dst7_fft_34(b: &mut Bencher) { bench_dst7_fft(b, 34); }
+#[bench] fn dst7_fft_35(b: &mut Bencher) { bench_dst7_fft(b, 35); }
+#[bench] fn dst7_fft_36(b: &mut Bencher) { bench_dst7_fft(b, 36); }
+#[bench] fn dst7_fft_37(b: &mut Bencher) { bench_dst7_fft(b, 37); }
+#[bench] fn dst7_fft_38(b: &mut Bencher) { bench_dst7_fft(b, 38); }
+#[bench] fn dst7_fft_39(b: &mut Bencher) { bench_dst7_fft(b, 39); }

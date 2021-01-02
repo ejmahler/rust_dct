@@ -303,7 +303,12 @@ impl<T: common::DCTnum> DCTplanner<T> {
     }
 
     fn plan_new_dst6(&mut self, len: usize) -> Arc<dyn DST6And7<T>> {
-        Arc::new(DST6And7Naive::new(len))
+        if len < 45 {
+            Arc::new(DST6And7Naive::new(len))
+        } else {
+            let fft = self.fft_planner.plan_fft(len * 2 + 1);
+            Arc::new(DST6And7ConvertToFFT::new(fft))
+        }
     }
 
     /// Returns DST Type 7 instance which processes signals of size `len`.

@@ -1,47 +1,9 @@
-//! RustDCT is a pure-Rust signal processing library that computes the most common Discrete Cosine Transforms
-//!
-//! * Discrete Cosine Transform (DCT) Types 1, 2, 3, 4
-//! * Discrete Sine Transform (DST) Types 1, 2, 3, 4
-//! * Modified Discrete Cosine Transform (MDCT)
-//!
-//! The recommended way to use RustDCT is to create a [`DCTplanner`](struct.DCTplanner.html) instance, then call its
-//! `plan_dct1` or `plan_dct2` or etc methods. Each transform type has its own `plan_*` method which will choose the best algorithm
-//! for the given size.
-//!
-//! ```rust
-//! // Compute a DCT Type 2 of size 1234
-//! use std::sync::Arc;
-//! use rustdct::DCTplanner;
-//!
-//! let mut input:  Vec<f32> = vec![0f32; 1234];
-//! let mut output: Vec<f32> = vec![0f32; 1234];
-//!
-//! let mut planner = DCTplanner::new();
-//! let dct = planner.plan_dct2(1234);
-//! dct.process_dct2(&mut input, &mut output);
-//!
-//! // The DCT instance returned by the planner is stored behind an `Arc`, so it's cheap to clone
-//! let dct_clone = Arc::clone(&dct);
-//! ```
-//! 
-//! RustDCT also exposes individual DCT algorithms. For example, if you're writing a JPEG compression library, it's
-//! safe to assume you want a DCT2 and DCT3 of size 8. Instead of going through the planner, you can directly create
-//! hardcoded DCT instances of size 8.
-//! 
-//! ```rust
-//! // Compute a DCT type 2 of size 8, and then compute a DCT type 3 of size 8 on the output.
-//! use rustdct::{DCT2, DCT3};
-//! use rustdct::algorithm::type2and3_butterflies::Type2And3Butterfly8;
-//! 
-//! let mut input = [0f32; 8];
-//! let mut intermediate = [0f32; 8];
-//! let mut output = [0f32; 8];
-//! 
-//! let dct = Type2And3Butterfly8::new();
-//! 
-//! dct.process_dct2(&mut input, &mut intermediate);
-//! dct.process_dct3(&mut intermediate, &mut output);
-//! ```
+
+#[feature(min_specialization)]
+
+trait TestTrait<T> {}
+impl<T, I: Iterator<Item=T>> TestTrait<T> for I { /* default impl */ }
+impl<T> TestTrait<T> for std::vec::IntoIter<T> { /* specialized impl */ }
 
 pub extern crate rustfft;
 

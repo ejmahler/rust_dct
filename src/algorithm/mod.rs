@@ -13,6 +13,7 @@ mod type4_naive;
 
 mod type5_naive;
 mod type6and7_naive;
+mod type6and7_convert_to_fft;
 mod type8_naive;
 
 pub use self::type1_naive::DCT1Naive;
@@ -33,6 +34,7 @@ pub use self::type5_naive::DST5Naive;
 
 pub use self::type6and7_naive::DCT6And7Naive;
 pub use self::type6and7_naive::DST6And7Naive;
+pub use self::type6and7_convert_to_fft::DST6And7ConvertToFFT;
 
 pub use self::type8_naive::DCT8Naive;
 pub use self::type8_naive::DST8Naive;
