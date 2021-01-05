@@ -2,9 +2,9 @@
 extern crate test;
 extern crate rustdct;
 
-use rustdct::{DCT1, DCT2, DCT3, DCT4, DST6, DST7};
-use rustdct::algorithm::{DCT1Naive, Type2And3Naive, Type4Naive, DST6And7Naive};
-use rustdct::mdct::{MDCT, MDCTNaive, window_fn};
+use rustdct::{Dct1, Dct2, Dct3, Dct4, Dst6, Dst7};
+use rustdct::algorithm::{Dct1Naive, Type2And3Naive, Type4Naive, Dst6And7Naive};
+use rustdct::mdct::{Mdct, MdctNaive, window_fn};
 
 use test::Bencher;
 
@@ -12,7 +12,7 @@ use test::Bencher;
 /// for a given length
 fn bench_dct1_naive(b: &mut Bencher, len: usize) {
 
-    let dct = DCT1Naive::new(len);
+    let dct = Dct1Naive::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -170,7 +170,7 @@ fn dct4_odd_naive_09(b: &mut Bencher) {
 /// for a given length
 fn bench_mdct_naive(b: &mut Bencher, len: usize) {
 
-    let dct = MDCTNaive::new(len, window_fn::mp3);
+    let dct = MdctNaive::new(len, window_fn::mp3);
 
     let signal = vec![0_f32; len * 2];
     let mut spectrum = vec![0_f32; len];
@@ -209,7 +209,7 @@ fn mdct_naive_12(b: &mut Bencher) {
 /// for a given length
 fn bench_imdct_naive(b: &mut Bencher, len: usize) {
 
-    let dct = MDCTNaive::new(len, window_fn::mp3);
+    let dct = MdctNaive::new(len, window_fn::mp3);
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len * 2];
@@ -245,7 +245,7 @@ fn imdct_naive_12(b: &mut Bencher) {
 /// for a given length
 fn bench_dst6_naive(b: &mut Bencher, len: usize) {
 
-    let dct = DST6And7Naive::new(len);
+    let dct = Dst6And7Naive::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -287,7 +287,7 @@ fn bench_dst6_naive(b: &mut Bencher, len: usize) {
 /// for a given length
 fn bench_dst7_naive(b: &mut Bencher, len: usize) {
 
-    let dct = DST6And7Naive::new(len);
+    let dct = Dst6And7Naive::new(len);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();

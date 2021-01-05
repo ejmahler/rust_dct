@@ -2,7 +2,7 @@ use std::f64;
 
 use rustfft::Length;
 
-use mdct::MDCT;
+use mdct::Mdct;
 use common;
 
 /// Naive O(n^2 ) MDCT implementation
@@ -11,21 +11,21 @@ use common;
 ///
 /// ~~~
 /// // Computes a naive MDCT of output size 124, using the MP3 window function
-/// use rustdct::mdct::{MDCT, MDCTNaive, window_fn};
+/// use rustdct::mdct::{Mdct, MdctNaive, window_fn};
 ///
 /// let len = 124;
 /// let mut input:  Vec<f32> = vec![0f32; len * 2];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let dct = MDCTNaive::new(len, window_fn::mp3);
+/// let dct = MdctNaive::new(len, window_fn::mp3);
 /// dct.process_mdct(&input, &mut output);
 /// ~~~
-pub struct MDCTNaive<T> {
+pub struct MdctNaive<T> {
     twiddles: Box<[T]>,
     window: Box<[T]>,
 }
 
-impl<T: common::DctNum> MDCTNaive<T> {
+impl<T: common::DctNum> MdctNaive<T> {
     /// Creates a new MDCT context that will process inputs of length `output_len * 2` and produce
     /// outputs of length `output_len`
     ///
@@ -55,7 +55,7 @@ impl<T: common::DctNum> MDCTNaive<T> {
     }
 }
 
-impl<T: common::DctNum> MDCT<T> for MDCTNaive<T> {
+impl<T: common::DctNum> Mdct<T> for MdctNaive<T> {
     fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
@@ -146,7 +146,7 @@ impl<T: common::DctNum> MDCT<T> for MDCTNaive<T> {
         }
     }
 }
-impl<T> Length for MDCTNaive<T> {
+impl<T> Length for MdctNaive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 4
     }
@@ -261,7 +261,7 @@ mod unit_tests {
 
                 let mut fast_output = vec![0f32; output_len];
 
-                let dct = MDCTNaive::new(output_len, current_window_fn);
+                let dct = MdctNaive::new(output_len, current_window_fn);
 
                 dct.process_mdct(&mut input, &mut fast_output);
 
@@ -352,7 +352,7 @@ mod unit_tests {
 
             let mut fast_output = vec![0f32; input.len() * 2];
 
-            let dct = MDCTNaive::new(input.len(), window_fn::one);
+            let dct = MdctNaive::new(input.len(), window_fn::one);
             dct.process_imdct(&input, &mut fast_output);
 
             assert!(compare_float_vectors(&expected, &slow_output));
@@ -409,7 +409,7 @@ mod unit_tests {
 
             let mut fast_output = vec![0f32; input.len() * 2];
 
-            let dct = MDCTNaive::new(input.len(), window_fn::mp3);
+            let dct = MdctNaive::new(input.len(), window_fn::mp3);
             dct.process_imdct(&input, &mut fast_output);
 
             assert!(compare_float_vectors(&expected, &slow_output));
@@ -430,7 +430,7 @@ mod unit_tests {
 
                 let mut fast_output = vec![0f32; output_len];
 
-                let dct = MDCTNaive::new(input_len, current_window_fn);
+                let dct = MdctNaive::new(input_len, current_window_fn);
                 dct.process_imdct(&mut input, &mut fast_output);
 
                 assert!(

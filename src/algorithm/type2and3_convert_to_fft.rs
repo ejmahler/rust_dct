@@ -6,21 +6,21 @@ use rustfft::{Fft, Length};
 
 use common;
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
+use ::{Dct2, Dst2, Dct3, Dst3, TransformType2And3};
 
 /// DCT2, DST2, DCT3, and DST3 implementation that converts the problem into a FFT of the same size
 ///
 /// ~~~
 /// // Computes a O(NlogN) DCT2, DST2, DCT3, and DST3 of size 1234 by converting them to FFTs
-/// use rustdct::{DCT2, DST2, DCT3, DST3};
-/// use rustdct::algorithm::Type2And3ConvertToFFT;
+/// use rustdct::{Dct2, Dst2, Dct3, Dst3};
+/// use rustdct::algorithm::Type2And3ConvertToFft;
 /// use rustdct::rustfft::FftPlanner;
 ///
 /// let len = 1234;
 /// let mut planner = FftPlanner::new();
 /// let fft = planner.plan_fft_forward(len);
 ///
-/// let dct = Type2And3ConvertToFFT::new(fft);
+/// let dct = Type2And3ConvertToFft::new(fft);
 /// 
 /// let mut dct2_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct2_output: Vec<f32> = vec![0f32; len];
@@ -38,12 +38,12 @@ use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 /// let mut dst3_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dst3(&mut dst3_input, &mut dst3_output);
 /// ~~~
-pub struct Type2And3ConvertToFFT<T> {
+pub struct Type2And3ConvertToFft<T> {
     fft: Arc<dyn Fft<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DctNum> Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> Type2And3ConvertToFft<T> {
     /// Creates a new DCT2, DST2, DCT3, and DST3 context that will process signals of length `inner_fft.len()`.
     pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
         assert_eq!(
@@ -58,14 +58,14 @@ impl<T: common::DctNum> Type2And3ConvertToFFT<T> {
             .map(|i| twiddles::single_twiddle(i, len * 4))
             .collect();
 
-        Type2And3ConvertToFFT {
+        Type2And3ConvertToFft {
             fft: inner_fft,
             twiddles: twiddles.into_boxed_slice(),
         }
     }
 }
 
-impl<T: common::DctNum> DCT2<T> for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -95,7 +95,7 @@ impl<T: common::DctNum> DCT2<T> for Type2And3ConvertToFFT<T> {
         }
     }
 }
-impl<T: common::DctNum> DST2<T> for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -125,7 +125,7 @@ impl<T: common::DctNum> DST2<T> for Type2And3ConvertToFFT<T> {
         }
     }
 }
-impl<T: common::DctNum> DCT3<T> for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -161,7 +161,7 @@ impl<T: common::DctNum> DCT3<T> for Type2And3ConvertToFFT<T> {
         }
     }
 }
-impl<T: common::DctNum> DST3<T> for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -197,8 +197,8 @@ impl<T: common::DctNum> DST3<T> for Type2And3ConvertToFFT<T> {
         }
     }
 }
-impl<T: common::DctNum> TransformType2And3<T> for Type2And3ConvertToFFT<T>{}
-impl<T> Length for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> TransformType2And3<T> for Type2And3ConvertToFft<T>{}
+impl<T> Length for Type2And3ConvertToFft<T> {
     fn len(&self) -> usize {
         self.twiddles.len()
     }
@@ -227,7 +227,7 @@ mod test {
             naive_dct.process_dct2(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FftPlanner::new();
-            let dct = Type2And3ConvertToFFT::new(fft_planner.plan_fft_forward(size));
+            let dct = Type2And3ConvertToFft::new(fft_planner.plan_fft_forward(size));
             dct.process_dct2(&mut actual_input, &mut actual_output);
 
             println!("{}", size);
@@ -256,7 +256,7 @@ mod test {
             naive_dst.process_dst2(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FftPlanner::new();
-            let dst = Type2And3ConvertToFFT::new(fft_planner.plan_fft_forward(size));
+            let dst = Type2And3ConvertToFft::new(fft_planner.plan_fft_forward(size));
             dst.process_dst2(&mut actual_input, &mut actual_output);
 
             println!("{}", size);
@@ -285,7 +285,7 @@ mod test {
             naive_dct.process_dct3(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FftPlanner::new();
-            let dct = Type2And3ConvertToFFT::new(fft_planner.plan_fft_forward(size));
+            let dct = Type2And3ConvertToFft::new(fft_planner.plan_fft_forward(size));
             dct.process_dct3(&mut actual_input, &mut actual_output);
 
             println!("{}", size);
@@ -314,7 +314,7 @@ mod test {
             naive_dst.process_dst3(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FftPlanner::new();
-            let dst = Type2And3ConvertToFFT::new(fft_planner.plan_fft_forward(size));
+            let dst = Type2And3ConvertToFft::new(fft_planner.plan_fft_forward(size));
             dst.process_dst3(&mut actual_input, &mut actual_output);
 
             println!("{}", size);

@@ -5,7 +5,7 @@ use rustfft::Length;
 
 use twiddles;
 use common;
-use ::{DCT4, DST4, TransformType2And3, TransformType4};
+use ::{Dct4, Dst4, TransformType2And3, TransformType4};
 
 /// DCT4 and DST4 implementation that converts the problem into two DCT3 of half size.
 /// 
@@ -14,7 +14,7 @@ use ::{DCT4, DST4, TransformType2And3, TransformType4};
 /// ~~~
 /// // Computes a DCT Type 4 of size 1234
 /// use std::sync::Arc;
-/// use rustdct::DCT4;
+/// use rustdct::Dct4;
 /// use rustdct::algorithm::Type4ConvertToType3Even;
 /// use rustdct::DctPlanner;
 ///
@@ -50,7 +50,7 @@ impl<T: common::DctNum> Type4ConvertToType3Even<T> {
         }
     }
 }
-impl<T: common::DctNum> DCT4<T> for Type4ConvertToType3Even<T> {
+impl<T: common::DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -84,7 +84,7 @@ impl<T: common::DctNum> DCT4<T> for Type4ConvertToType3Even<T> {
         }
     }
 }
-impl<T: common::DctNum> DST4<T> for Type4ConvertToType3Even<T> {
+impl<T: common::DctNum> Dst4<T> for Type4ConvertToType3Even<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 

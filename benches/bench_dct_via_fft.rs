@@ -6,10 +6,10 @@ use std::sync::Arc;
 
 use rustdct::rustfft::FftPlanner;
 use rustdct::DctPlanner;
-use rustdct::{DCT1, DCT2, DCT3, DCT4, TransformType2And3, DST6, DST7};
+use rustdct::{Dct1, Dct2, Dct3, Dct4, TransformType2And3, Dst6, Dst7};
 use rustdct::algorithm::*;
 use rustdct::algorithm::type2and3_butterflies::*;
-use rustdct::mdct::{MDCT, MDCTViaDCT4, window_fn};
+use rustdct::mdct::{Mdct, MdctViaDct4, window_fn};
 
 use test::Bencher;
 
@@ -18,7 +18,7 @@ use test::Bencher;
 fn bench_dct1_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FftPlanner::new();
-    let dct = DCT1ConvertToFFT::new(planner.plan_fft_forward((len - 1) * 2));
+    let dct = Dct1ConvertToFft::new(planner.plan_fft_forward((len - 1) * 2));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -45,7 +45,7 @@ fn dct1_fft_0026(b: &mut Bencher) {
 fn bench_dct2_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FftPlanner::new();
-    let dct = Type2And3ConvertToFFT::new(planner.plan_fft_forward(len));
+    let dct = Type2And3ConvertToFft::new(planner.plan_fft_forward(len));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -141,7 +141,7 @@ fn dct2_power2_split_065536(b: &mut Bencher) {
 fn bench_dct3_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FftPlanner::new();
-    let dct = Type2And3ConvertToFFT::new(planner.plan_fft_forward(len));
+    let dct = Type2And3ConvertToFft::new(planner.plan_fft_forward(len));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -299,7 +299,7 @@ fn bench_dct4_via_fft_odd(b: &mut Bencher, len: usize) {
 
     let mut planner = FftPlanner::new();
     let inner_fft = planner.plan_fft_forward(len);
-    let dct = Type4ConvertToFFTOdd::new(inner_fft);
+    let dct = Type4ConvertToFftOdd::new(inner_fft);
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -339,7 +339,7 @@ fn dct4_odd_via_fft_999999(b: &mut Bencher) {
 fn bench_mdct_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = DctPlanner::new();
-    let dct = MDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
+    let dct = MdctViaDct4::new(planner.plan_dct4(len), window_fn::mp3);
 
     let signal = vec![0_f32; len * 2];
     let mut spectrum = vec![0_f32; len];
@@ -378,7 +378,7 @@ fn mdct_fft_12(b: &mut Bencher) {
 fn bench_imdct_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = DctPlanner::new();
-    let dct = MDCTViaDCT4::new(planner.plan_dct4(len), window_fn::mp3);
+    let dct = MdctViaDct4::new(planner.plan_dct4(len), window_fn::mp3);
 
     let signal = vec![0_f32; len];
     let mut spectrum = vec![0_f32; len * 2];
@@ -415,7 +415,7 @@ fn imdct_fft_12(b: &mut Bencher) {
 fn bench_dst6_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FftPlanner::new();
-    let dct = DST6And7ConvertToFFT::new(planner.plan_fft_forward(len * 2 + 1));
+    let dct = Dst6And7ConvertToFft::new(planner.plan_fft_forward(len * 2 + 1));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();
@@ -458,7 +458,7 @@ fn bench_dst6_fft(b: &mut Bencher, len: usize) {
 fn bench_dst7_fft(b: &mut Bencher, len: usize) {
 
     let mut planner = FftPlanner::new();
-    let dct = DST6And7ConvertToFFT::new(planner.plan_fft_forward(len * 2 + 1));
+    let dct = Dst6And7ConvertToFft::new(planner.plan_fft_forward(len * 2 + 1));
 
     let mut signal = vec![0_f32; len];
     let mut spectrum = signal.clone();

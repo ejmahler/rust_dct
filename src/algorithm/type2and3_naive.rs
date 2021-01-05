@@ -2,14 +2,14 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
+use ::{Dct2, Dst2, Dct3, Dst3, TransformType2And3};
 use common;
 
 /// Naive O(n^2 ) DCT Type 2, DST Type 2, DCT Type 3, and DST Type 3 implementation
 ///
 /// ~~~
 /// // Computes a naive DCT2, DST2, DCT3, and DST3 of size 23
-/// use rustdct::{DCT2, DST2, DCT3, DST3};
+/// use rustdct::{Dct2, Dst2, Dct3, Dst3};
 /// use rustdct::algorithm::Type2And3Naive;
 ///
 /// let len = 23;
@@ -46,7 +46,7 @@ impl<T: common::DctNum> Type2And3Naive<T> {
     }
 }
 
-impl<T: common::DctNum> DCT2<T> for Type2And3Naive<T> {
+impl<T: common::DctNum> Dct2<T> for Type2And3Naive<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -70,7 +70,7 @@ impl<T: common::DctNum> DCT2<T> for Type2And3Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> DST2<T> for Type2And3Naive<T> {
+impl<T: common::DctNum> Dst2<T> for Type2And3Naive<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -94,7 +94,7 @@ impl<T: common::DctNum> DST2<T> for Type2And3Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> DCT3<T> for Type2And3Naive<T> {
+impl<T: common::DctNum> Dct3<T> for Type2And3Naive<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -120,7 +120,7 @@ impl<T: common::DctNum> DCT3<T> for Type2And3Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> DST3<T> for Type2And3Naive<T> {
+impl<T: common::DctNum> Dst3<T> for Type2And3Naive<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 

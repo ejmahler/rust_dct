@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use rustfft::FftPlanner;
-use ::{DCT1, DST1, TransformType4, TransformType2And3, DCT5, DST5, DCT6And7, DST6And7, DCT8, DST8};
+use ::{Dct1, Dst1, TransformType4, TransformType2And3, Dct5, Dst5, Dct6And7, Dst6And7, Dct8, Dst8};
 use mdct::*;
 use algorithm::*;
 use algorithm::type2and3_butterflies::*;
@@ -42,18 +42,18 @@ const DCT2_BUTTERFLIES: [usize; 5] = [2, 3, 4, 8, 16];
 pub struct DctPlanner<T: DctNum> {
     fft_planner: FftPlanner<T>,
 
-    dct1_cache: HashMap<usize, Arc<dyn DCT1<T>>>,
-    dst1_cache: HashMap<usize, Arc<dyn DST1<T>>>,
+    dct1_cache: HashMap<usize, Arc<dyn Dct1<T>>>,
+    dst1_cache: HashMap<usize, Arc<dyn Dst1<T>>>,
     dct23_cache: HashMap<usize, Arc<dyn TransformType2And3<T>>>,
     dct4_cache: HashMap<usize, Arc<dyn TransformType4<T>>>,
-    dct5_cache: HashMap<usize, Arc<dyn DCT5<T>>>,
-    dst5_cache: HashMap<usize, Arc<dyn DST5<T>>>,
-    dct6_cache: HashMap<usize, Arc<dyn DCT6And7<T>>>,
-    dst6_cache: HashMap<usize, Arc<dyn DST6And7<T>>>,
-    dct8_cache: HashMap<usize, Arc<dyn DCT8<T>>>,
-    dst8_cache: HashMap<usize, Arc<dyn DST8<T>>>,
+    dct5_cache: HashMap<usize, Arc<dyn Dct5<T>>>,
+    dst5_cache: HashMap<usize, Arc<dyn Dst5<T>>>,
+    dct6_cache: HashMap<usize, Arc<dyn Dct6And7<T>>>,
+    dst6_cache: HashMap<usize, Arc<dyn Dst6And7<T>>>,
+    dct8_cache: HashMap<usize, Arc<dyn Dct8<T>>>,
+    dst8_cache: HashMap<usize, Arc<dyn Dst8<T>>>,
 
-    mdct_cache: HashMap<usize, Arc<dyn MDCT<T>>>,
+    mdct_cache: HashMap<usize, Arc<dyn Mdct<T>>>,
 }
 impl<T: DctNum> DctPlanner<T> {
     pub fn new() -> Self {
@@ -75,7 +75,7 @@ impl<T: DctNum> DctPlanner<T> {
 
     /// Returns a DCT Type 1 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct1(&mut self, len: usize) -> Arc<dyn DCT1<T>> {
+    pub fn plan_dct1(&mut self, len: usize) -> Arc<dyn Dct1<T>> {
         if self.dct1_cache.contains_key(&len) {
             Arc::clone(self.dct1_cache.get(&len).unwrap())
         } else {
@@ -85,13 +85,13 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_dct1(&mut self, len: usize) -> Arc<dyn DCT1<T>> {
+    fn plan_new_dct1(&mut self, len: usize) -> Arc<dyn Dct1<T>> {
         //benchmarking shows that below about 25, it's faster to just use the naive DCT1 algorithm
         if len < 25 {
-            Arc::new(DCT1Naive::new(len))
+            Arc::new(Dct1Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft_forward((len - 1) * 2);
-            Arc::new(DCT1ConvertToFFT::new(fft))
+            Arc::new(Dct1ConvertToFft::new(fft))
         }
     }
 
@@ -122,7 +122,7 @@ impl<T: DctNum> DctPlanner<T> {
             Arc::new(Type2And3Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft_forward(len);
-            Arc::new(Type2And3ConvertToFFT::new(fft))
+            Arc::new(Type2And3ConvertToFft::new(fft))
         }
     }
 
@@ -175,14 +175,14 @@ impl<T: DctNum> DctPlanner<T> {
                 Arc::new(Type4Naive::new(len))
             } else {
                 let fft = self.fft_planner.plan_fft_forward(len);
-                Arc::new(Type4ConvertToFFTOdd::new(fft))
+                Arc::new(Type4ConvertToFftOdd::new(fft))
             }
         }
     }
 
     /// Returns a DCT Type 5 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct5(&mut self, len: usize) -> Arc<dyn DCT5<T>> {
+    pub fn plan_dct5(&mut self, len: usize) -> Arc<dyn Dct5<T>> {
         if self.dct5_cache.contains_key(&len) {
             Arc::clone(self.dct5_cache.get(&len).unwrap())
         } else {
@@ -192,13 +192,13 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_dct5(&mut self, len: usize) -> Arc<dyn DCT5<T>> {
-        Arc::new(DCT5Naive::new(len))
+    fn plan_new_dct5(&mut self, len: usize) -> Arc<dyn Dct5<T>> {
+        Arc::new(Dct5Naive::new(len))
     }
 
     /// Returns a DCT Type 6 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct6(&mut self, len: usize) -> Arc<dyn DCT6And7<T>> {
+    pub fn plan_dct6(&mut self, len: usize) -> Arc<dyn Dct6And7<T>> {
         if self.dct6_cache.contains_key(&len) {
             Arc::clone(self.dct6_cache.get(&len).unwrap())
         } else {
@@ -208,19 +208,19 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_dct6(&mut self, len: usize) -> Arc<dyn DCT6And7<T>> {
-        Arc::new(DCT6And7Naive::new(len))
+    fn plan_new_dct6(&mut self, len: usize) -> Arc<dyn Dct6And7<T>> {
+        Arc::new(Dct6And7Naive::new(len))
     }
 
     /// Returns DCT Type 7 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct7(&mut self, len: usize) -> Arc<dyn DCT6And7<T>> {
+    pub fn plan_dct7(&mut self, len: usize) -> Arc<dyn Dct6And7<T>> {
         self.plan_dct6(len)
     }
 
     /// Returns a DCT Type 8 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dct8(&mut self, len: usize) -> Arc<dyn DCT8<T>> {
+    pub fn plan_dct8(&mut self, len: usize) -> Arc<dyn Dct8<T>> {
         if self.dct8_cache.contains_key(&len) {
             Arc::clone(self.dct8_cache.get(&len).unwrap())
         } else {
@@ -230,14 +230,14 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_dct8(&mut self, len: usize) -> Arc<dyn DCT8<T>> {
-        Arc::new(DCT8Naive::new(len))
+    fn plan_new_dct8(&mut self, len: usize) -> Arc<dyn Dct8<T>> {
+        Arc::new(Dct8Naive::new(len))
     }
 
 
     /// Returns a DST Type 1 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dst1(&mut self, len: usize) -> Arc<dyn DST1<T>> {
+    pub fn plan_dst1(&mut self, len: usize) -> Arc<dyn Dst1<T>> {
         if self.dst1_cache.contains_key(&len) {
             Arc::clone(self.dst1_cache.get(&len).unwrap())
         } else {
@@ -247,13 +247,13 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_dst1(&mut self, len: usize) -> Arc<dyn DST1<T>> {
+    fn plan_new_dst1(&mut self, len: usize) -> Arc<dyn Dst1<T>> {
         //benchmarking shows that below about 25, it's faster to just use the naive DCT1 algorithm
         if len < 25 {
-            Arc::new(DST1Naive::new(len))
+            Arc::new(Dst1Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft_forward((len + 1) * 2);
-            Arc::new(DST1ConvertToFFT::new(fft))
+            Arc::new(Dst1ConvertToFft::new(fft))
         }
     }
 
@@ -277,7 +277,7 @@ impl<T: DctNum> DctPlanner<T> {
 
     /// Returns a DST Type 5 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dst5(&mut self, len: usize) -> Arc<dyn DST5<T>> {
+    pub fn plan_dst5(&mut self, len: usize) -> Arc<dyn Dst5<T>> {
         if self.dst5_cache.contains_key(&len) {
             Arc::clone(self.dst5_cache.get(&len).unwrap())
         } else {
@@ -287,13 +287,13 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_dst5(&mut self, len: usize) -> Arc<dyn DST5<T>> {
-        Arc::new(DST5Naive::new(len))
+    fn plan_new_dst5(&mut self, len: usize) -> Arc<dyn Dst5<T>> {
+        Arc::new(Dst5Naive::new(len))
     }
 
     /// Returns a DST Type 6 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dst6(&mut self, len: usize) -> Arc<dyn DST6And7<T>> {
+    pub fn plan_dst6(&mut self, len: usize) -> Arc<dyn Dst6And7<T>> {
         if self.dst6_cache.contains_key(&len) {
             Arc::clone(self.dst6_cache.get(&len).unwrap())
         } else {
@@ -303,24 +303,24 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_dst6(&mut self, len: usize) -> Arc<dyn DST6And7<T>> {
+    fn plan_new_dst6(&mut self, len: usize) -> Arc<dyn Dst6And7<T>> {
         if len < 45 {
-            Arc::new(DST6And7Naive::new(len))
+            Arc::new(Dst6And7Naive::new(len))
         } else {
             let fft = self.fft_planner.plan_fft_forward(len * 2 + 1);
-            Arc::new(DST6And7ConvertToFFT::new(fft))
+            Arc::new(Dst6And7ConvertToFft::new(fft))
         }
     }
 
     /// Returns DST Type 7 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dst7(&mut self, len: usize) -> Arc<dyn DST6And7<T>> {
+    pub fn plan_dst7(&mut self, len: usize) -> Arc<dyn Dst6And7<T>> {
         self.plan_dst6(len)
     }
 
      /// Returns a DST Type 8 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_dst8(&mut self, len: usize) -> Arc<dyn DST8<T>> {
+    pub fn plan_dst8(&mut self, len: usize) -> Arc<dyn Dst8<T>> {
         if self.dst8_cache.contains_key(&len) {
             Arc::clone(self.dst8_cache.get(&len).unwrap())
         } else {
@@ -330,8 +330,8 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_dst8(&mut self, len: usize) -> Arc<dyn DST8<T>> {
-        Arc::new(DST8Naive::new(len))
+    fn plan_new_dst8(&mut self, len: usize) -> Arc<dyn Dst8<T>> {
+        Arc::new(Dst8Naive::new(len))
     }
 
 
@@ -341,7 +341,7 @@ impl<T: DctNum> DctPlanner<T> {
     /// See the [`window_fn`](mdct/window_fn/index.html) module for provided window functions.
     ///
     /// If this is called multiple times, it will attempt to re-use internal data between instances
-    pub fn plan_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<dyn MDCT<T>>
+    pub fn plan_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<dyn Mdct<T>>
     where F: (FnOnce(usize) -> Vec<T>) {
         if self.mdct_cache.contains_key(&len) {
             Arc::clone(self.mdct_cache.get(&len).unwrap())
@@ -352,10 +352,10 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-    fn plan_new_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<dyn MDCT<T>>
+    fn plan_new_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<dyn Mdct<T>>
     where F: (FnOnce(usize) -> Vec<T>) {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
-        Arc::new(MDCTViaDCT4::new(inner_dct4, window_fn))
+        Arc::new(MdctViaDct4::new(inner_dct4, window_fn))
     }
 }

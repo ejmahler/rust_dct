@@ -2,14 +2,14 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use twiddles;
-use ::{DCT4, DST4, TransformType4};
+use ::{Dct4, Dst4, TransformType4};
 use common;
 
 /// Naive O(n^2 ) DCT Type 4 and DST Type 4 implementation
 ///
 /// ~~~
 /// // Computes a naive DCT4 of size 23
-/// use rustdct::{DCT4, DST4};
+/// use rustdct::{Dct4, Dst4};
 /// use rustdct::algorithm::Type4Naive;
 ///
 /// let len = 23;
@@ -38,7 +38,7 @@ impl<T: common::DctNum> Type4Naive<T> {
     }
 }
 
-impl<T: common::DctNum> DCT4<T> for Type4Naive<T> {
+impl<T: common::DctNum> Dct4<T> for Type4Naive<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -62,7 +62,7 @@ impl<T: common::DctNum> DCT4<T> for Type4Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> DST4<T> for Type4Naive<T> {
+impl<T: common::DctNum> Dst4<T> for Type4Naive<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 

@@ -85,7 +85,7 @@ macro_rules! dct_test_with_planner {
 
 pub mod test_mdct {
     use super::*;
-    use rustdct::mdct::{MDCT, MDCTNaive};
+    use rustdct::mdct::{Mdct, MdctNaive};
 
     pub fn planned_matches_naive<F>(len: usize, window_fn: F)
     where
@@ -99,7 +99,7 @@ pub mod test_mdct {
         let mut naive_output = vec![0f32; len];
         let mut actual_output = vec![0f32; len];
 
-        let naive_dct = MDCTNaive::new(len, &window_fn);
+        let naive_dct = MdctNaive::new(len, &window_fn);
 
         let mut planner = DctPlanner::new();
         let actual_dct = planner.plan_mdct(len, window_fn);

@@ -4,8 +4,8 @@ extern crate rand;
 #[macro_use]
 mod common;
 
-use rustdct::{DCT1, DCT2, DCT3, DCT4, DCT5, DCT6, DCT7, DCT8, DST1, DST2, DST3, DST4, DST5, DST6, DST7, DST8};
-use rustdct::algorithm::{DCT1Naive, DST1Naive, Type2And3Naive, Type4Naive, DCT5Naive, DST5Naive, DCT6And7Naive, DST6And7Naive, DCT8Naive, DST8Naive};
+use rustdct::{Dct1, Dct2, Dct3, Dct4, Dct5, Dct6, Dct7, Dct8, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6, Dst7, Dst8};
+use rustdct::algorithm::{Dct1Naive, Dst1Naive, Type2And3Naive, Type4Naive, Dct5Naive, Dst5Naive, Dct6And7Naive, Dst6And7Naive, Dct8Naive, Dst8Naive};
 use rustdct::mdct::window_fn;
 use rustdct::DctPlanner;
 
@@ -34,8 +34,8 @@ fn inverse_scale_plushalf(len: usize) -> f64 {
 
 #[test]
 fn test_dct1_accuracy() {
-    dct_test_with_known_data!(reference_dct1, DCT1Naive, process_dct1, known_values_dct1);
-    dct_test_with_planner!(reference_dct1, DCT1Naive, process_dct1, plan_dct1, 2);
+    dct_test_with_known_data!(reference_dct1, Dct1Naive, process_dct1, known_values_dct1);
+    dct_test_with_planner!(reference_dct1, Dct1Naive, process_dct1, plan_dct1, 2);
     dct_test_inverse!(reference_dct1, reference_dct1, inverse_scale_dct1, 2);
 }
 #[test]
@@ -58,22 +58,22 @@ fn test_dct4_accuracy() {
 }
 #[test]
 fn test_dct5_accuracy() {
-    dct_test_with_planner!(reference_dct5, DCT5Naive, process_dct5, plan_dct5, 1);
+    dct_test_with_planner!(reference_dct5, Dct5Naive, process_dct5, plan_dct5, 1);
     dct_test_inverse!(reference_dct5, reference_dct5, inverse_scale_minushalf, 1);
 }
 #[test]
 fn test_dct6_accuracy() {
-    dct_test_with_planner!(reference_dct6, DCT6And7Naive, process_dct6, plan_dct6, 1);
+    dct_test_with_planner!(reference_dct6, Dct6And7Naive, process_dct6, plan_dct6, 1);
     dct_test_inverse!(reference_dct6, reference_dct7, inverse_scale_minushalf, 1);
 }
 #[test]
 fn test_dct7_accuracy() {
-    dct_test_with_planner!(reference_dct7, DCT6And7Naive, process_dct7, plan_dct7, 1);
+    dct_test_with_planner!(reference_dct7, Dct6And7Naive, process_dct7, plan_dct7, 1);
     dct_test_inverse!(reference_dct7, reference_dct6, inverse_scale_minushalf, 1);
 }
 #[test]
 fn test_dct8_accuracy() {
-    dct_test_with_planner!(reference_dct8, DCT8Naive, process_dct8, plan_dct8, 6);
+    dct_test_with_planner!(reference_dct8, Dct8Naive, process_dct8, plan_dct8, 6);
     dct_test_inverse!(reference_dct8, reference_dct8, inverse_scale_plushalf, 1);
 }
 
@@ -81,8 +81,8 @@ fn test_dct8_accuracy() {
 
 #[test]
 fn test_dst1_accuracy() {
-    dct_test_with_known_data!(reference_dst1, DST1Naive, process_dst1, known_values_dst1);
-    dct_test_with_planner!(reference_dst1, DST1Naive, process_dst1, plan_dst1, 1);
+    dct_test_with_known_data!(reference_dst1, Dst1Naive, process_dst1, known_values_dst1);
+    dct_test_with_planner!(reference_dst1, Dst1Naive, process_dst1, plan_dst1, 1);
     dct_test_inverse!(reference_dst1, reference_dst1, inverse_scale_dst1, 1);
 }
 #[test]
@@ -105,22 +105,22 @@ fn test_dst4_accuracy() {
 }
 #[test]
 fn test_dst5_accuracy() {
-    dct_test_with_planner!(reference_dst5, DST5Naive, process_dst5, plan_dst5, 1);
+    dct_test_with_planner!(reference_dst5, Dst5Naive, process_dst5, plan_dst5, 1);
     dct_test_inverse!(reference_dst5, reference_dst5, inverse_scale_plushalf, 1);
 }
 #[test]
 fn test_dst6_accuracy() {
-    dct_test_with_planner!(reference_dst6, DST6And7Naive, process_dst6, plan_dst6, 1);
+    dct_test_with_planner!(reference_dst6, Dst6And7Naive, process_dst6, plan_dst6, 1);
     dct_test_inverse!(reference_dst6, reference_dst7, inverse_scale_plushalf, 1);
 }
 #[test]
 fn test_dst7_accuracy() {
-    dct_test_with_planner!(reference_dst7, DST6And7Naive, process_dst7, plan_dst7, 6);
+    dct_test_with_planner!(reference_dst7, Dst6And7Naive, process_dst7, plan_dst7, 6);
     dct_test_inverse!(reference_dst7, reference_dst6, inverse_scale_plushalf, 1);
 }
 #[test]
 fn test_dst8_accuracy() {
-    dct_test_with_planner!(reference_dst8, DST8Naive, process_dst8, plan_dst8, 6);
+    dct_test_with_planner!(reference_dst8, Dst8Naive, process_dst8, plan_dst8, 6);
     dct_test_inverse!(reference_dst8, reference_dst8, inverse_scale_minushalf, 1);
 }
 

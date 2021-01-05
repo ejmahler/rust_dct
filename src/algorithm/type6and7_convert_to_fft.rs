@@ -5,21 +5,21 @@ use rustfft::num_complex::Complex;
 use rustfft::{Fft, Length};
 
 use common;
-use ::{DST6, DST7, DST6And7};
+use ::{Dst6, Dst7, Dst6And7};
 
 /// DST6 and DST7 implementation that converts the problem into a FFT of the same size
 ///
 /// ~~~
 /// // Computes a O(NlogN) DST6 and DST7 of size 1234 by converting them to FFTs
-/// use rustdct::{DST6, DST7};
-/// use rustdct::algorithm::DST6And7ConvertToFFT;
+/// use rustdct::{Dst6, Dst7};
+/// use rustdct::algorithm::Dst6And7ConvertToFft;
 /// use rustdct::rustfft::FftPlanner;
 ///
 /// let len = 1234;
 /// let mut planner = FftPlanner::new();
 /// let fft = planner.plan_fft_forward(len * 2 + 1);
 ///
-/// let dct = DST6And7ConvertToFFT::new(fft);
+/// let dct = Dst6And7ConvertToFft::new(fft);
 /// 
 /// let mut dst6_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst6_output: Vec<f32> = vec![0f32; len];
@@ -29,11 +29,11 @@ use ::{DST6, DST7, DST6And7};
 /// let mut dst7_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dst7(&mut dst7_input, &mut dst7_output);
 /// ~~~
-pub struct DST6And7ConvertToFFT<T> {
+pub struct Dst6And7ConvertToFft<T> {
     fft: Arc<dyn Fft<T>>,
 }
 
-impl<T: common::DctNum> DST6And7ConvertToFFT<T> {
+impl<T: common::DctNum> Dst6And7ConvertToFft<T> {
     /// Creates a new DST6 and DST7 context that will process signals of length `(inner_fft.len() - 1) / 2`.
     pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
         assert!(inner_fft.len() % 2 == 1, "The 'DST6And7ConvertToFFT' algorithm requires an odd-len FFT. Provided len={}", inner_fft.len());
@@ -44,7 +44,7 @@ impl<T: common::DctNum> DST6And7ConvertToFFT<T> {
         Self { fft: inner_fft }
     }
 }
-impl<T: common::DctNum> DST6<T> for DST6And7ConvertToFFT<T> {
+impl<T: common::DctNum> Dst6<T> for Dst6And7ConvertToFft<T> {
     fn process_dst6(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -75,7 +75,7 @@ impl<T: common::DctNum> DST6<T> for DST6And7ConvertToFFT<T> {
         }
     }
 }
-impl<T: common::DctNum> DST7<T> for DST6And7ConvertToFFT<T> {
+impl<T: common::DctNum> Dst7<T> for Dst6And7ConvertToFft<T> {
     fn process_dst7(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -111,8 +111,8 @@ impl<T: common::DctNum> DST7<T> for DST6And7ConvertToFFT<T> {
         }
     }
 }
-impl<T: common::DctNum> DST6And7<T> for DST6And7ConvertToFFT<T>{}
-impl<T> Length for DST6And7ConvertToFFT<T> {
+impl<T: common::DctNum> Dst6And7<T> for Dst6And7ConvertToFft<T>{}
+impl<T> Length for Dst6And7ConvertToFft<T> {
     fn len(&self) -> usize {
         (self.fft.len() - 1) / 2
     }
@@ -122,7 +122,7 @@ impl<T> Length for DST6And7ConvertToFFT<T> {
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::DST6And7Naive;
+    use algorithm::Dst6And7Naive;
 
     use test_utils::{compare_float_vectors, random_signal};
     use rustfft::FftPlanner;
@@ -137,11 +137,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let naive_dst = DST6And7Naive::new(size);
+            let naive_dst = Dst6And7Naive::new(size);
             naive_dst.process_dst6(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FftPlanner::new();
-            let dst = DST6And7ConvertToFFT::new(fft_planner.plan_fft_forward(size * 2 + 1));
+            let dst = Dst6And7ConvertToFft::new(fft_planner.plan_fft_forward(size * 2 + 1));
             dst.process_dst6(&mut actual_input, &mut actual_output);
 
             println!("{}", size);
@@ -166,11 +166,11 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            let naive_dst = DST6And7Naive::new(size);
+            let naive_dst = Dst6And7Naive::new(size);
             naive_dst.process_dst7(&mut expected_input, &mut expected_output);
 
             let mut fft_planner = FftPlanner::new();
-            let dst = DST6And7ConvertToFFT::new(fft_planner.plan_fft_forward(size * 2 + 1));
+            let dst = Dst6And7ConvertToFft::new(fft_planner.plan_fft_forward(size * 2 + 1));
             dst.process_dst7(&mut actual_input, &mut actual_output);
 
             println!("{}", size);

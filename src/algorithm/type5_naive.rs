@@ -2,7 +2,7 @@ use std::f64;
 
 use rustfft::Length;
 
-use ::{DCT5, DST5};
+use ::{Dct5, Dst5};
 use common;
 
 
@@ -12,21 +12,21 @@ use common;
 ///
 /// ~~~
 /// // Computes a naive DCT5 of size 23
-/// use rustdct::DCT5;
-/// use rustdct::algorithm::DCT5Naive;
+/// use rustdct::Dct5;
+/// use rustdct::algorithm::Dct5Naive;
 ///
 /// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let dct = DCT5Naive::new(len);
+/// let dct = Dct5Naive::new(len);
 /// dct.process_dct5(&mut input, &mut output);
 /// ~~~
-pub struct DCT5Naive<T> {
+pub struct Dct5Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DctNum> DCT5Naive<T> {
+impl<T: common::DctNum> Dct5Naive<T> {
     pub fn new(len: usize) -> Self {
         let constant_factor = f64::consts::PI / (len as f64 - 0.5);
 
@@ -39,7 +39,7 @@ impl<T: common::DctNum> DCT5Naive<T> {
     }
 }
 
-impl<T: common::DctNum> DCT5<T> for DCT5Naive<T> {
+impl<T: common::DctNum> Dct5<T> for Dct5Naive<T> {
     fn process_dct5(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -67,7 +67,7 @@ impl<T: common::DctNum> DCT5<T> for DCT5Naive<T> {
 
     }
 }
-impl<T> Length for DCT5Naive<T> {
+impl<T> Length for Dct5Naive<T> {
     fn len(&self) -> usize {
         (self.twiddles.len() + 1) / 2
     }
@@ -80,21 +80,21 @@ impl<T> Length for DCT5Naive<T> {
 ///
 /// ~~~
 /// // Computes a naive DST5 of size 23
-/// use rustdct::DST5;
-/// use rustdct::algorithm::DST5Naive;
+/// use rustdct::Dst5;
+/// use rustdct::algorithm::Dst5Naive;
 ///
 /// let len = 23;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let dst = DST5Naive::new(len);
+/// let dst = Dst5Naive::new(len);
 /// dst.process_dst5(&mut input, &mut output);
 /// ~~~
-pub struct DST5Naive<T> {
+pub struct Dst5Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DctNum> DST5Naive<T> {
+impl<T: common::DctNum> Dst5Naive<T> {
     /// Creates a new DST5 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
 
@@ -109,7 +109,7 @@ impl<T: common::DctNum> DST5Naive<T> {
     }
 }
 
-impl<T: common::DctNum> DST5<T> for DST5Naive<T> {
+impl<T: common::DctNum> Dst5<T> for Dst5Naive<T> {
     fn process_dst5(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -133,7 +133,7 @@ impl<T: common::DctNum> DST5<T> for DST5Naive<T> {
         }
     }
 }
-impl<T> Length for DST5Naive<T> {
+impl<T> Length for Dst5Naive<T> {
     fn len(&self) -> usize {
         (self.twiddles.len() - 1) / 2
     }

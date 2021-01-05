@@ -8,7 +8,7 @@ mod mdct_via_dct4;
 pub mod window_fn;
 
 /// An umbrella trait for algorithms which compute the Modified Discrete Cosine Transform (MDCT)
-pub trait MDCT<T: common::DctNum>: Length + Sync + Send {
+pub trait Mdct<T: common::DctNum>: Length + Sync + Send {
     /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
@@ -44,5 +44,5 @@ pub trait MDCT<T: common::DctNum>: Length + Sync + Send {
     fn process_imdct_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]);
 }
 
-pub use self::mdct_naive::MDCTNaive;
-pub use self::mdct_via_dct4::MDCTViaDCT4;
+pub use self::mdct_naive::MdctNaive;
+pub use self::mdct_via_dct4::MdctViaDct4;

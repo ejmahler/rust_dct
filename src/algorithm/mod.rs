@@ -16,25 +16,25 @@ mod type6and7_naive;
 mod type6and7_convert_to_fft;
 mod type8_naive;
 
-pub use self::type1_naive::DCT1Naive;
-pub use self::type1_naive::DST1Naive;
-pub use self::type1_convert_to_fft::DCT1ConvertToFFT;
-pub use self::type1_convert_to_fft::DST1ConvertToFFT;
+pub use self::type1_naive::Dct1Naive;
+pub use self::type1_naive::Dst1Naive;
+pub use self::type1_convert_to_fft::Dct1ConvertToFft;
+pub use self::type1_convert_to_fft::Dst1ConvertToFft;
 
-pub use self::type2and3_convert_to_fft::Type2And3ConvertToFFT;
+pub use self::type2and3_convert_to_fft::Type2And3ConvertToFft;
 pub use self::type2and3_naive::Type2And3Naive;
 pub use self::type2and3_splitradix::Type2And3SplitRadix;
 
-pub use self::type4_convert_to_fft::Type4ConvertToFFTOdd;
+pub use self::type4_convert_to_fft::Type4ConvertToFftOdd;
 pub use self::type4_convert_to_type3::Type4ConvertToType3Even;
 pub use self::type4_naive::Type4Naive;
 
-pub use self::type5_naive::DCT5Naive;
-pub use self::type5_naive::DST5Naive;
+pub use self::type5_naive::Dct5Naive;
+pub use self::type5_naive::Dst5Naive;
 
-pub use self::type6and7_naive::DCT6And7Naive;
-pub use self::type6and7_naive::DST6And7Naive;
-pub use self::type6and7_convert_to_fft::DST6And7ConvertToFFT;
+pub use self::type6and7_naive::Dct6And7Naive;
+pub use self::type6and7_naive::Dst6And7Naive;
+pub use self::type6and7_convert_to_fft::Dst6And7ConvertToFft;
 
-pub use self::type8_naive::DCT8Naive;
-pub use self::type8_naive::DST8Naive;
+pub use self::type8_naive::Dct8Naive;
+pub use self::type8_naive::Dst8Naive;

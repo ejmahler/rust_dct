@@ -5,7 +5,7 @@ use rustfft::Length;
 
 use common;
 use twiddles;
-use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
+use ::{Dct2, Dst2, Dct3, Dst3, TransformType2And3};
 
 /// DCT2, DCT3, DST2, and DST3 implemention that recursively divides the problem in half.
 /// 
@@ -14,7 +14,7 @@ use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 /// ~~~
 /// // Computes a DCT Type 2 of size 1024
 /// use rustdct::algorithm::Type2And3SplitRadix;
-/// use rustdct::DCT2;
+/// use rustdct::Dct2;
 /// use rustdct::DctPlanner;
 ///
 /// let len = 1024;
@@ -61,7 +61,7 @@ impl<T: common::DctNum> Type2And3SplitRadix<T> {
     }
 }
 
-impl<T: common::DctNum> DCT2<T> for Type2And3SplitRadix<T> {
+impl<T: common::DctNum> Dct2<T> for Type2And3SplitRadix<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -140,7 +140,7 @@ impl<T: common::DctNum> DCT2<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DctNum> DST2<T> for Type2And3SplitRadix<T> {
+impl<T: common::DctNum> Dst2<T> for Type2And3SplitRadix<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         
         for i in 0..(self.len() / 2) {
@@ -152,7 +152,7 @@ impl<T: common::DctNum> DST2<T> for Type2And3SplitRadix<T> {
         output.reverse();
     }
 }
-impl<T: common::DctNum> DCT3<T> for Type2And3SplitRadix<T> {
+impl<T: common::DctNum> Dct3<T> for Type2And3SplitRadix<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -231,7 +231,7 @@ impl<T: common::DctNum> DCT3<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DctNum> DST3<T> for Type2And3SplitRadix<T> {
+impl<T: common::DctNum> Dst3<T> for Type2And3SplitRadix<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         
         input.reverse();

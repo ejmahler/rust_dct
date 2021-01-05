@@ -3,7 +3,7 @@ use std::sync::Arc;
 use rustfft::Length;
 
 use ::TransformType4;
-use mdct::MDCT;
+use mdct::Mdct;
 use common;
 
 /// MDCT implementation that converts the problem to a DCT Type 4 of the same size.
@@ -13,7 +13,7 @@ use common;
 ///
 /// ~~~
 /// // Computes a MDCT of input size 1234 via a DCT4, using the MP3 window function
-/// use rustdct::mdct::{MDCT, MDCTViaDCT4, window_fn};
+/// use rustdct::mdct::{Mdct, MdctViaDct4, window_fn};
 /// use rustdct::DctPlanner;
 ///
 /// let len = 1234;
@@ -23,15 +23,15 @@ use common;
 /// let mut planner = DctPlanner::new();
 /// let inner_dct4 = planner.plan_dct4(len);
 /// 
-/// let dct = MDCTViaDCT4::new(inner_dct4, window_fn::mp3);
+/// let dct = MdctViaDct4::new(inner_dct4, window_fn::mp3);
 /// dct.process_mdct(&input, &mut output);
 /// ~~~
-pub struct MDCTViaDCT4<T> {
+pub struct MdctViaDct4<T> {
     dct: Arc<dyn TransformType4<T>>,
     window: Box<[T]>,
 }
 
-impl<T: common::DctNum> MDCTViaDCT4<T> {
+impl<T: common::DctNum> MdctViaDct4<T> {
     /// Creates a new MDCT context that will process signals of length `inner_dct.len() * 2`, with an output of length `inner_dct.len()`
     ///
     /// `inner_dct.len()` must be even.
@@ -55,7 +55,7 @@ impl<T: common::DctNum> MDCTViaDCT4<T> {
         }
     }
 }
-impl<T: common::DctNum> MDCT<T> for MDCTViaDCT4<T> {
+impl<T: common::DctNum> Mdct<T> for MdctViaDct4<T> {
     fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
@@ -165,7 +165,7 @@ impl<T: common::DctNum> MDCT<T> for MDCTViaDCT4<T> {
         }
     }
 }
-impl<T> Length for MDCTViaDCT4<T> {
+impl<T> Length for MdctViaDct4<T> {
     fn len(&self) -> usize {
         self.dct.len()
     }
@@ -181,7 +181,7 @@ mod unit_tests {
     use super::*;
 
     use algorithm::Type4Naive;
-    use mdct::MDCTNaive;
+    use mdct::MdctNaive;
     use mdct::window_fn;
     use test_utils::{compare_float_vectors, random_signal};
 
@@ -199,10 +199,10 @@ mod unit_tests {
                 let mut fast_output = vec![0f32; output_len];
 
 
-                let naive_mdct = MDCTNaive::new(output_len, current_window_fn);
+                let naive_mdct = MdctNaive::new(output_len, current_window_fn);
 
                 let inner_dct4 = Arc::new(Type4Naive::new(output_len));
-                let fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
+                let fast_mdct = MdctViaDct4::new(inner_dct4, current_window_fn);
 
                 naive_mdct.process_mdct(&input, &mut naive_output);
                 fast_mdct.process_mdct(&input, &mut fast_output);
@@ -231,10 +231,10 @@ mod unit_tests {
                 let mut fast_output = vec![0f32; output_len];
 
 
-                let naive_mdct = MDCTNaive::new(input_len, current_window_fn);
+                let naive_mdct = MdctNaive::new(input_len, current_window_fn);
 
                 let inner_dct4 = Arc::new(Type4Naive::new(input_len));
-                let fast_mdct = MDCTViaDCT4::new(inner_dct4, current_window_fn);
+                let fast_mdct = MdctViaDct4::new(inner_dct4, current_window_fn);
 
                 naive_mdct.process_imdct(&input, &mut naive_output);
                 fast_mdct.process_imdct(&input, &mut fast_output);

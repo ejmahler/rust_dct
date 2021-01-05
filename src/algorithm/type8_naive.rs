@@ -1,26 +1,26 @@
 use rustfft::Length;
 
-use ::{DCT8, DST8};
+use ::{Dct8, Dst8};
 use common;
 
 /// Naive O(n^2 ) DCT Type 8 implementation
 ///
 /// ~~~
 /// // Computes a naive DCT8 of size 23
-/// use rustdct::DCT8;
-/// use rustdct::algorithm::DCT8Naive;
+/// use rustdct::Dct8;
+/// use rustdct::algorithm::Dct8Naive;
 ///
 /// let len = 23;
-/// let naive = DCT8Naive::new(len);
+/// let naive = Dct8Naive::new(len);
 /// 
 /// let mut dct8_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct8_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dct8(&mut dct8_input, &mut dct8_output);
 /// ~~~
-pub struct DCT8Naive<T> {
+pub struct Dct8Naive<T> {
     twiddles: Box<[T]>,
 }
-impl<T: common::DctNum> DCT8Naive<T> {
+impl<T: common::DctNum> Dct8Naive<T> {
     /// Creates a new DCT8 and DST8 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 + 1) as f64;
@@ -33,7 +33,7 @@ impl<T: common::DctNum> DCT8Naive<T> {
         Self { twiddles: twiddles.into_boxed_slice() }
     }
 }
-impl<T: common::DctNum> DCT8<T> for DCT8Naive<T> {
+impl<T: common::DctNum> Dct8<T> for Dct8Naive<T> {
     fn process_dct8(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -57,7 +57,7 @@ impl<T: common::DctNum> DCT8<T> for DCT8Naive<T> {
         }
     }
 }
-impl<T> Length for DCT8Naive<T> {
+impl<T> Length for Dct8Naive<T> {
     fn len(&self) -> usize {
         (self.twiddles.len() - 2) / 4
     }
@@ -67,21 +67,21 @@ impl<T> Length for DCT8Naive<T> {
 ///
 /// ~~~
 /// // Computes a naive DST8 of size 23
-/// use rustdct::DST8;
-/// use rustdct::algorithm::DST8Naive;
+/// use rustdct::Dst8;
+/// use rustdct::algorithm::Dst8Naive;
 ///
 /// let len = 23;
-/// let naive = DST8Naive::new(len);
+/// let naive = Dst8Naive::new(len);
 /// 
 /// let mut dst8_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst8_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dst8(&mut dst8_input, &mut dst8_output);
 /// ~~~
-pub struct DST8Naive<T> {
+pub struct Dst8Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DctNum> DST8Naive<T> {
+impl<T: common::DctNum> Dst8Naive<T> {
     /// Creates a new DCT8 and DST8 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 - 1) as f64;
@@ -95,7 +95,7 @@ impl<T: common::DctNum> DST8Naive<T> {
     }
 }
 
-impl<T: common::DctNum> DST8<T> for DST8Naive<T> {
+impl<T: common::DctNum> Dst8<T> for Dst8Naive<T> {
     fn process_dst8(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -121,7 +121,7 @@ impl<T: common::DctNum> DST8<T> for DST8Naive<T> {
         }
     }
 }
-impl<T> Length for DST8Naive<T> {
+impl<T> Length for Dst8Naive<T> {
     fn len(&self) -> usize {
         (self.twiddles.len() + 2) / 4
     }
