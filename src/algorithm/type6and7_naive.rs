@@ -1,6 +1,6 @@
 use rustfft::Length;
 
-use crate::common;
+use crate::{RequiredScratch, common};
 use crate::{Dct6, Dct6And7, Dct7, DctNum, Dst6, Dst6And7, Dst7};
 
 /// Naive O(n^2 ) DCT Type 6 and DCT Type 7 implementation
@@ -13,13 +13,11 @@ use crate::{Dct6, Dct6And7, Dct7, DctNum, Dst6, Dst6And7, Dst7};
 /// let len = 23;
 /// let naive = Dct6And7Naive::new(len);
 ///
-/// let mut dct6_input:  Vec<f32> = vec![0f32; len];
-/// let mut dct6_output: Vec<f32> = vec![0f32; len];
-/// naive.process_dct6(&mut dct6_input, &mut dct6_output);
+/// let mut dct6_buffer = vec![0f32; len];
+/// naive.process_dct6(&mut dct6_buffer);
 ///
-/// let mut dct7_input:  Vec<f32> = vec![0f32; len];
-/// let mut dct7_output: Vec<f32> = vec![0f32; len];
-/// naive.process_dct7(&mut dct7_input, &mut dct7_output);
+/// let mut dct7_buffer = vec![0f32; len];
+/// naive.process_dct7(&mut dct7_buffer);
 /// ~~~
 pub struct Dct6And7Naive<T> {
     twiddles: Box<[T]>,
@@ -42,23 +40,24 @@ impl<T: DctNum> Dct6And7Naive<T> {
 }
 
 impl<T: DctNum> Dct6<T> for Dct6And7Naive<T> {
-    fn process_dct6(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct6_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        common::verify_length(buffer, scratch, self.len());
+        scratch.copy_from_slice(buffer);
 
-        input[input.len() - 1] = input[input.len() - 1] * T::half();
-        output[0] = input.iter().fold(T::zero(), |acc, e| acc + *e);
+        scratch[scratch.len() - 1] = scratch[scratch.len() - 1] * T::half();
+        buffer[0] = scratch.iter().fold(T::zero(), |acc, e| acc + *e);
 
-        for k in 1..output.len() {
-            let output_cell = output.get_mut(k).unwrap();
+        for k in 1..buffer.len() {
+            let output_cell = buffer.get_mut(k).unwrap();
             *output_cell = T::zero();
 
             let twiddle_stride = k * 2;
             let mut twiddle_index = k;
 
-            for i in 0..input.len() {
+            for i in 0..scratch.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
-                *output_cell = *output_cell + input[i] * twiddle;
+                *output_cell = *output_cell + scratch[i] * twiddle;
 
                 twiddle_index += twiddle_stride;
                 if twiddle_index >= self.twiddles.len() {
@@ -69,22 +68,23 @@ impl<T: DctNum> Dct6<T> for Dct6And7Naive<T> {
     }
 }
 impl<T: DctNum> Dct7<T> for Dct6And7Naive<T> {
-    fn process_dct7(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct7_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        common::verify_length(buffer, scratch, self.len());
+        scratch.copy_from_slice(buffer);
 
-        input[0] = input[0] * T::half();
+        scratch[0] = scratch[0] * T::half();
 
-        for k in 0..output.len() {
-            let output_cell = output.get_mut(k).unwrap();
-            *output_cell = input[0];
+        for k in 0..buffer.len() {
+            let output_cell = buffer.get_mut(k).unwrap();
+            *output_cell = scratch[0];
 
             let twiddle_stride = k * 2 + 1;
             let mut twiddle_index = twiddle_stride;
 
-            for i in 1..input.len() {
+            for i in 1..scratch.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
-                *output_cell = *output_cell + input[i] * twiddle;
+                *output_cell = *output_cell + scratch[i] * twiddle;
 
                 twiddle_index += twiddle_stride;
                 if twiddle_index >= self.twiddles.len() {
@@ -92,6 +92,11 @@ impl<T: DctNum> Dct7<T> for Dct6And7Naive<T> {
                 }
             }
         }
+    }
+}
+impl<T> RequiredScratch for Dct6And7Naive<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.len()
     }
 }
 impl<T: DctNum> Dct6And7<T> for Dct6And7Naive<T> {}
@@ -111,13 +116,11 @@ impl<T> Length for Dct6And7Naive<T> {
 /// let len = 23;
 /// let naive = Dst6And7Naive::new(len);
 ///
-/// let mut dst6_input:  Vec<f32> = vec![0f32; len];
-/// let mut dst6_output: Vec<f32> = vec![0f32; len];
-/// naive.process_dst6(&mut dst6_input, &mut dst6_output);
+/// let mut dst6_buffer = vec![0f32; len];
+/// naive.process_dst6(&mut dst6_buffer);
 ///
-/// let mut dst7_input:  Vec<f32> = vec![0f32; len];
-/// let mut dst7_output: Vec<f32> = vec![0f32; len];
-/// naive.process_dst7(&mut dst7_input, &mut dst7_output);
+/// let mut dst7_buffer = vec![0f32; len];
+/// naive.process_dst7(&mut dst7_buffer);
 /// ~~~
 pub struct Dst6And7Naive<T> {
     twiddles: Box<[T]>,
@@ -140,20 +143,21 @@ impl<T: DctNum> Dst6And7Naive<T> {
 }
 
 impl<T: DctNum> Dst6<T> for Dst6And7Naive<T> {
-    fn process_dst6(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst6_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        common::verify_length(buffer, scratch, self.len());
+        scratch.copy_from_slice(buffer);
 
-        for k in 0..output.len() {
-            let output_cell = output.get_mut(k).unwrap();
+        for k in 0..buffer.len() {
+            let output_cell = buffer.get_mut(k).unwrap();
             *output_cell = T::zero();
 
             let twiddle_stride = (k + 1) * 2;
             let mut twiddle_index = k + 1;
 
-            for i in 0..input.len() {
+            for i in 0..scratch.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
-                *output_cell = *output_cell + input[i] * twiddle;
+                *output_cell = *output_cell + scratch[i] * twiddle;
 
                 twiddle_index += twiddle_stride;
                 if twiddle_index >= self.twiddles.len() {
@@ -164,20 +168,21 @@ impl<T: DctNum> Dst6<T> for Dst6And7Naive<T> {
     }
 }
 impl<T: DctNum> Dst7<T> for Dst6And7Naive<T> {
-    fn process_dst7(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst7_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        common::verify_length(buffer, scratch, self.len());
+        scratch.copy_from_slice(buffer);
 
-        for k in 0..output.len() {
-            let output_cell = output.get_mut(k).unwrap();
+        for k in 0..buffer.len() {
+            let output_cell = buffer.get_mut(k).unwrap();
             *output_cell = T::zero();
 
             let twiddle_stride = k * 2 + 1;
             let mut twiddle_index = twiddle_stride;
 
-            for i in 0..input.len() {
+            for i in 0..scratch.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
-                *output_cell = *output_cell + input[i] * twiddle;
+                *output_cell = *output_cell + scratch[i] * twiddle;
 
                 twiddle_index += twiddle_stride;
                 if twiddle_index >= self.twiddles.len() {
@@ -185,6 +190,11 @@ impl<T: DctNum> Dst7<T> for Dst6And7Naive<T> {
                 }
             }
         }
+    }
+}
+impl<T> RequiredScratch for Dst6And7Naive<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.len()
     }
 }
 impl<T: DctNum> Dst6And7<T> for Dst6And7Naive<T> {}

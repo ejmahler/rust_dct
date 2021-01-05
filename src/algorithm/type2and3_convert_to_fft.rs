@@ -1,12 +1,10 @@
 use std::sync::Arc;
 
 use rustfft::num_complex::Complex;
-use rustfft::{num_traits::Zero, FftDirection};
-use rustfft::{Fft, Length};
+use rustfft::{Fft, Length, FftDirection};
 
-use crate::twiddles;
-use crate::{common, DctNum};
-use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
+use crate::{RequiredScratch, array_utils::into_complex_mut, twiddles};
+use crate::{DctNum, Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
 /// DCT2, DST2, DCT3, and DST3 implementation that converts the problem into a FFT of the same size
 ///
@@ -22,25 +20,23 @@ use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 ///
 /// let dct = Type2And3ConvertToFft::new(fft);
 ///
-/// let mut dct2_input:  Vec<f32> = vec![0f32; len];
-/// let mut dct2_output: Vec<f32> = vec![0f32; len];
-/// dct.process_dct2(&mut dct2_input, &mut dct2_output);
+/// let mut dct2_buffer = vec![0f32; len];
+/// dct.process_dct2(&mut dct2_buffer);
 ///
-/// let mut dst2_input:  Vec<f32> = vec![0f32; len];
-/// let mut dst2_output: Vec<f32> = vec![0f32; len];
-/// dct.process_dst2(&mut dst2_input, &mut dst2_output);
+/// let mut dst2_buffer = vec![0f32; len];
+/// dct.process_dst2(&mut dst2_buffer);
 ///
-/// let mut dct3_input:  Vec<f32> = vec![0f32; len];
-/// let mut dct3_output: Vec<f32> = vec![0f32; len];
-/// dct.process_dct3(&mut dct3_input, &mut dct3_output);
+/// let mut dct3_buffer = vec![0f32; len];
+/// dct.process_dct3(&mut dct3_buffer);
 ///
-/// let mut dst3_input:  Vec<f32> = vec![0f32; len];
-/// let mut dst3_output: Vec<f32> = vec![0f32; len];
-/// dct.process_dst3(&mut dst3_input, &mut dst3_output);
+/// let mut dst3_buffer = vec![0f32; len];
+/// dct.process_dst3(&mut dst3_buffer);
 /// ~~~
 pub struct Type2And3ConvertToFft<T> {
     fft: Arc<dyn Fft<T>>,
     twiddles: Box<[Complex<T>]>,
+
+    scratch_len: usize,
 }
 
 impl<T: DctNum> Type2And3ConvertToFft<T> {
@@ -58,30 +54,36 @@ impl<T: DctNum> Type2And3ConvertToFft<T> {
             .map(|i| twiddles::single_twiddle(i, len * 4))
             .collect();
 
-        Type2And3ConvertToFft {
+        let scratch_len = 2 * (len + inner_fft.get_inplace_scratch_len());
+
+        Self {
             fft: inner_fft,
             twiddles: twiddles.into_boxed_slice(),
+            scratch_len,
         }
     }
 }
 
 impl<T: DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
-    fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
+        assert_eq!(scratch.len(), self.get_scratch_len());
 
-        let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
-        let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
+        let len = self.len();
+
+        let complex_scratch = into_complex_mut(scratch);
+        let (fft_buffer, fft_scratch) = complex_scratch.split_at_mut(len);
 
         // the first half of the array will be the even elements, in order
-        let even_end = (input.len() + 1) / 2;
+        let even_end = (buffer.len() + 1) / 2;
         for i in 0..even_end {
-            fft_buffer[i] = Complex::from(input[i * 2]);
+            fft_buffer[i] = Complex::from(buffer[i * 2]);
         }
 
         // the second half is the odd elements, in reverse order
-        let odd_end = input.len() - 1 - input.len() % 2;
-        for i in 0..input.len() / 2 {
-            fft_buffer[even_end + i] = Complex::from(input[odd_end - 2 * i]);
+        let odd_end = buffer.len() - 1 - buffer.len() % 2;
+        for i in 0..buffer.len() / 2 {
+            fft_buffer[even_end + i] = Complex::from(buffer[odd_end - 2 * i]);
         }
 
         // run the fft
@@ -91,29 +93,32 @@ impl<T: DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
         for ((fft_entry, correction_entry), spectrum_entry) in fft_buffer
             .iter()
             .zip(self.twiddles.iter())
-            .zip(output.iter_mut())
+            .zip(buffer.iter_mut())
         {
             *spectrum_entry = (fft_entry * correction_entry).re;
         }
     }
 }
 impl<T: DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
-    fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
+        assert_eq!(scratch.len(), self.get_scratch_len());
 
-        let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
-        let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
+        let len = self.len();
+
+        let complex_scratch = into_complex_mut(scratch);
+        let (fft_buffer, fft_scratch) = complex_scratch.split_at_mut(len);
 
         // the first half of the array will be the even elements, in order
-        let even_end = (input.len() + 1) / 2;
+        let even_end = (buffer.len() + 1) / 2;
         for i in 0..even_end {
-            fft_buffer[i] = Complex::from(input[i * 2]);
+            fft_buffer[i] = Complex::from(buffer[i * 2]);
         }
 
         // the second half is the odd elements, in reverse order and negated
-        let odd_end = input.len() - 1 - input.len() % 2;
-        for i in 0..input.len() / 2 {
-            fft_buffer[even_end + i] = Complex::from(-input[odd_end - 2 * i]);
+        let odd_end = buffer.len() - 1 - buffer.len() % 2;
+        for i in 0..buffer.len() / 2 {
+            fft_buffer[even_end + i] = Complex::from(-buffer[odd_end - 2 * i]);
         }
 
         // run the fft
@@ -123,23 +128,24 @@ impl<T: DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
         for ((fft_entry, correction_entry), spectrum_entry) in fft_buffer
             .iter()
             .zip(self.twiddles.iter())
-            .zip(output.iter_mut().rev())
+            .zip(buffer.iter_mut().rev())
         {
             *spectrum_entry = (fft_entry * correction_entry).re;
         }
     }
 }
 impl<T: DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
-    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
+        assert_eq!(scratch.len(), self.get_scratch_len());
 
-        let half = T::half();
+        let len = self.len();
 
-        let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
-        let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
+        let complex_scratch = into_complex_mut(scratch);
+        let (fft_buffer, fft_scratch) = complex_scratch.split_at_mut(len);
 
-        // compute the FFT input based on the correction factors
-        fft_buffer[0] = Complex::from(input[0] * half);
+        // compute the FFT buffer based on the correction factors
+        fft_buffer[0] = Complex::from(buffer[0] * T::half());
 
         for (i, (fft_input_element, twiddle)) in fft_buffer
             .iter_mut()
@@ -148,39 +154,40 @@ impl<T: DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
             .skip(1)
         {
             let c = Complex {
-                re: input[i],
-                im: input[input.len() - i],
+                re: buffer[i],
+                im: buffer[buffer.len() - i],
             };
-            *fft_input_element = c * twiddle * half;
+            *fft_input_element = c * twiddle * T::half();
         }
 
         // run the fft
         self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
-        // copy the first half of the fft output into the even elements of the output
-        let even_end = (input.len() + 1) / 2;
+        // copy the first half of the fft output into the even elements of the buffer
+        let even_end = (buffer.len() + 1) / 2;
         for i in 0..even_end {
-            output[i * 2] = fft_buffer[i].re;
+            buffer[i * 2] = fft_buffer[i].re;
         }
 
-        // copy the second half of the fft output into the odd elements, reversed
-        let odd_end = input.len() - 1 - input.len() % 2;
-        for i in 0..input.len() / 2 {
-            output[odd_end - 2 * i] = fft_buffer[i + even_end].re;
+        // copy the second half of the fft buffer into the odd elements, reversed
+        let odd_end = buffer.len() - 1 - buffer.len() % 2;
+        for i in 0..buffer.len() / 2 {
+            buffer[odd_end - 2 * i] = fft_buffer[i + even_end].re;
         }
     }
 }
 impl<T: DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
-    fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
+        assert_eq!(scratch.len(), self.get_scratch_len());
 
-        let half = T::half();
+        let len = self.len();
 
-        let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
-        let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
+        let complex_scratch = into_complex_mut(scratch);
+        let (fft_buffer, fft_scratch) = complex_scratch.split_at_mut(len);
 
-        // compute the FFT input based on the correction factors
-        fft_buffer[0] = Complex::from(input[input.len() - 1] * half);
+        // compute the FFT buffer based on the correction factors
+        fft_buffer[0] = Complex::from(buffer[buffer.len() - 1] * T::half());
 
         for (i, (fft_input_element, twiddle)) in fft_buffer
             .iter_mut()
@@ -189,10 +196,10 @@ impl<T: DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
             .skip(1)
         {
             let c = Complex {
-                re: input[input.len() - i - 1],
-                im: input[i - 1],
+                re: buffer[buffer.len() - i - 1],
+                im: buffer[i - 1],
             };
-            *fft_input_element = c * twiddle * half;
+            *fft_input_element = c * twiddle * T::half();
         }
 
         // run the fft
@@ -201,13 +208,13 @@ impl<T: DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
         // copy the first half of the fft output into the even elements of the output
         let even_end = (self.len() + 1) / 2;
         for i in 0..even_end {
-            output[i * 2] = fft_buffer[i].re;
+            buffer[i * 2] = fft_buffer[i].re;
         }
 
         // copy the second half of the fft output into the odd elements, reversed
         let odd_end = self.len() - 1 - self.len() % 2;
         for i in 0..self.len() / 2 {
-            output[odd_end - 2 * i] = -fft_buffer[i + even_end].re;
+            buffer[odd_end - 2 * i] = -fft_buffer[i + even_end].re;
         }
     }
 }
@@ -215,6 +222,11 @@ impl<T: DctNum> TransformType2And3<T> for Type2And3ConvertToFft<T> {}
 impl<T> Length for Type2And3ConvertToFft<T> {
     fn len(&self) -> usize {
         self.twiddles.len()
+    }
+}
+impl<T: DctNum> RequiredScratch for Type2And3ConvertToFft<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.scratch_len
     }
 }
 
@@ -230,25 +242,22 @@ mod test {
     #[test]
     fn test_dct2_via_fft() {
         for size in 2..20 {
-            let mut expected_input = random_signal(size);
-            let mut actual_input = random_signal(size);
-
-            let mut expected_output = vec![0f32; size];
-            let mut actual_output = vec![0f32; size];
+            let mut expected_buffer = random_signal(size);
+            let mut actual_buffer = expected_buffer.clone();
 
             let naive_dct = Type2And3Naive::new(size);
-            naive_dct.process_dct2(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct2(&mut expected_buffer);
 
             let mut fft_planner = FftPlanner::new();
             let dct = Type2And3ConvertToFft::new(fft_planner.plan_fft_forward(size));
-            dct.process_dct2(&mut actual_input, &mut actual_output);
+            dct.process_dct2(&mut actual_buffer);
 
             println!("{}", size);
-            println!("expected: {:?}", expected_output);
-            println!("actual: {:?}", actual_output);
+            println!("expected: {:?}", expected_buffer);
+            println!("actual: {:?}", actual_buffer);
 
             assert!(
-                compare_float_vectors(&actual_output, &expected_output),
+                compare_float_vectors(&actual_buffer, &expected_buffer),
                 "len = {}",
                 size
             );
@@ -259,25 +268,22 @@ mod test {
     #[test]
     fn test_dst2_via_fft() {
         for size in 2..20 {
-            let mut expected_input = random_signal(size);
-            let mut actual_input = random_signal(size);
-
-            let mut expected_output = vec![0f32; size];
-            let mut actual_output = vec![0f32; size];
+            let mut expected_buffer = random_signal(size);
+            let mut actual_buffer = expected_buffer.clone();
 
             let naive_dst = Type2And3Naive::new(size);
-            naive_dst.process_dst2(&mut expected_input, &mut expected_output);
+            naive_dst.process_dst2(&mut expected_buffer);
 
             let mut fft_planner = FftPlanner::new();
             let dst = Type2And3ConvertToFft::new(fft_planner.plan_fft_forward(size));
-            dst.process_dst2(&mut actual_input, &mut actual_output);
+            dst.process_dst2(&mut actual_buffer);
 
             println!("{}", size);
-            println!("expected: {:?}", expected_output);
-            println!("actual: {:?}", actual_output);
+            println!("expected: {:?}", expected_buffer);
+            println!("actual: {:?}", actual_buffer);
 
             assert!(
-                compare_float_vectors(&actual_output, &expected_output),
+                compare_float_vectors(&actual_buffer, &expected_buffer),
                 "len = {}",
                 size
             );
@@ -288,25 +294,22 @@ mod test {
     #[test]
     fn test_dct3_via_fft() {
         for size in 2..20 {
-            let mut expected_input = random_signal(size);
-            let mut actual_input = random_signal(size);
-
-            let mut expected_output = vec![0f32; size];
-            let mut actual_output = vec![0f32; size];
+            let mut expected_buffer = random_signal(size);
+            let mut actual_buffer = expected_buffer.clone();
 
             let naive_dct = Type2And3Naive::new(size);
-            naive_dct.process_dct3(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct3(&mut expected_buffer);
 
             let mut fft_planner = FftPlanner::new();
             let dct = Type2And3ConvertToFft::new(fft_planner.plan_fft_forward(size));
-            dct.process_dct3(&mut actual_input, &mut actual_output);
+            dct.process_dct3(&mut actual_buffer);
 
             println!("{}", size);
-            println!("expected: {:?}", expected_output);
-            println!("actual: {:?}", actual_output);
+            println!("expected: {:?}", expected_buffer);
+            println!("actual: {:?}", actual_buffer);
 
             assert!(
-                compare_float_vectors(&actual_output, &expected_output),
+                compare_float_vectors(&actual_buffer, &expected_buffer),
                 "len = {}",
                 size
             );
@@ -317,25 +320,22 @@ mod test {
     #[test]
     fn test_dst3_via_fft() {
         for size in 2..20 {
-            let mut expected_input = random_signal(size);
-            let mut actual_input = random_signal(size);
-
-            let mut expected_output = vec![0f32; size];
-            let mut actual_output = vec![0f32; size];
+            let mut expected_buffer = random_signal(size);
+            let mut actual_buffer = expected_buffer.clone();
 
             let naive_dst = Type2And3Naive::new(size);
-            naive_dst.process_dst3(&mut expected_input, &mut expected_output);
+            naive_dst.process_dst3(&mut expected_buffer);
 
             let mut fft_planner = FftPlanner::new();
             let dst = Type2And3ConvertToFft::new(fft_planner.plan_fft_forward(size));
-            dst.process_dst3(&mut actual_input, &mut actual_output);
+            dst.process_dst3(&mut actual_buffer);
 
             println!("{}", size);
-            println!("expected: {:?}", expected_output);
-            println!("actual: {:?}", actual_output);
+            println!("expected: {:?}", expected_buffer);
+            println!("actual: {:?}", actual_buffer);
 
             assert!(
-                compare_float_vectors(&actual_output, &expected_output),
+                compare_float_vectors(&actual_buffer, &expected_buffer),
                 "len = {}",
                 size
             );

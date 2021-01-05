@@ -23,12 +23,11 @@ const DCT2_BUTTERFLIES: [usize; 5] = [2, 3, 4, 8, 16];
 /// use std::sync::Arc;
 /// use rustdct::DctPlanner;
 ///
-/// let mut input:  Vec<f32> = vec![0f32; 1234];
-/// let mut output: Vec<f32> = vec![0f32; 1234];
-///
 /// let mut planner = DctPlanner::new();
 /// let dct4 = planner.plan_dct4(1234);
-/// dct4.process_dct4(&mut input, &mut output);
+///
+/// let mut buffer = vec![0f32; 1234];
+/// dct4.process_dct4(&mut buffer);
 ///
 /// // The DCT instance returned by the planner is stored behind an `Arc`, so it's cheap to clone
 /// let dct4_clone = Arc::clone(&dct4);

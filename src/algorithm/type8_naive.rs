@@ -1,6 +1,6 @@
 use rustfft::Length;
 
-use crate::common;
+use crate::{RequiredScratch, common};
 use crate::{Dct8, DctNum, Dst8};
 
 /// Naive O(n^2 ) DCT Type 8 implementation
@@ -13,15 +13,14 @@ use crate::{Dct8, DctNum, Dst8};
 /// let len = 23;
 /// let naive = Dct8Naive::new(len);
 ///
-/// let mut dct8_input:  Vec<f32> = vec![0f32; len];
-/// let mut dct8_output: Vec<f32> = vec![0f32; len];
-/// naive.process_dct8(&mut dct8_input, &mut dct8_output);
+/// let mut buffer = vec![0f32; len];
+/// naive.process_dct8(&mut buffer);
 /// ~~~
 pub struct Dct8Naive<T> {
     twiddles: Box<[T]>,
 }
 impl<T: DctNum> Dct8Naive<T> {
-    /// Creates a new DCT8 and DST8 context that will process signals of length `len`
+    /// Creates a new DCT8 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 + 1) as f64;
 
@@ -36,20 +35,21 @@ impl<T: DctNum> Dct8Naive<T> {
     }
 }
 impl<T: DctNum> Dct8<T> for Dct8Naive<T> {
-    fn process_dct8(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct8_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        common::verify_length(buffer, scratch, self.len());
+        scratch.copy_from_slice(buffer);
 
-        for k in 0..output.len() {
-            let output_cell = output.get_mut(k).unwrap();
+        for k in 0..buffer.len() {
+            let output_cell = buffer.get_mut(k).unwrap();
             *output_cell = T::zero();
 
             let mut twiddle_index = k;
             let twiddle_stride = k * 2 + 1;
 
-            for i in 0..input.len() {
+            for i in 0..scratch.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
-                *output_cell = *output_cell + input[i] * twiddle;
+                *output_cell = *output_cell + scratch[i] * twiddle;
 
                 twiddle_index += twiddle_stride;
                 if twiddle_index >= self.twiddles.len() {
@@ -57,6 +57,11 @@ impl<T: DctNum> Dct8<T> for Dct8Naive<T> {
                 }
             }
         }
+    }
+}
+impl<T> RequiredScratch for Dct8Naive<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.len()
     }
 }
 impl<T> Length for Dct8Naive<T> {
@@ -75,16 +80,15 @@ impl<T> Length for Dct8Naive<T> {
 /// let len = 23;
 /// let naive = Dst8Naive::new(len);
 ///
-/// let mut dst8_input:  Vec<f32> = vec![0f32; len];
-/// let mut dst8_output: Vec<f32> = vec![0f32; len];
-/// naive.process_dst8(&mut dst8_input, &mut dst8_output);
+/// let mut buffer = vec![0f32; len];
+/// naive.process_dst8(&mut buffer);
 /// ~~~
 pub struct Dst8Naive<T> {
     twiddles: Box<[T]>,
 }
 
 impl<T: DctNum> Dst8Naive<T> {
-    /// Creates a new DCT8 and DST8 context that will process signals of length `len`
+    /// Creates a new DST8 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 - 1) as f64;
 
@@ -100,22 +104,23 @@ impl<T: DctNum> Dst8Naive<T> {
 }
 
 impl<T: DctNum> Dst8<T> for Dst8Naive<T> {
-    fn process_dst8(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst8_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        common::verify_length(buffer, scratch, self.len());
+        scratch.copy_from_slice(buffer);
 
-        input[input.len() - 1] = input[input.len() - 1] * T::half();
+        scratch[scratch.len() - 1] = scratch[scratch.len() - 1] * T::half();
 
-        for k in 0..output.len() {
-            let output_cell = output.get_mut(k).unwrap();
+        for k in 0..buffer.len() {
+            let output_cell = buffer.get_mut(k).unwrap();
             *output_cell = T::zero();
 
             let mut twiddle_index = k;
             let twiddle_stride = k * 2 + 1;
 
-            for i in 0..input.len() {
+            for i in 0..scratch.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
-                *output_cell = *output_cell + input[i] * twiddle;
+                *output_cell = *output_cell + scratch[i] * twiddle;
 
                 twiddle_index += twiddle_stride;
                 if twiddle_index >= self.twiddles.len() {
@@ -123,6 +128,11 @@ impl<T: DctNum> Dst8<T> for Dst8Naive<T> {
                 }
             }
         }
+    }
+}
+impl<T> RequiredScratch for Dst8Naive<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.len()
     }
 }
 impl<T> Length for Dst8Naive<T> {

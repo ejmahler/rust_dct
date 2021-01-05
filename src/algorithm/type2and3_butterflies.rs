@@ -3,53 +3,53 @@ use std::marker::PhantomData;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use crate::common;
-use crate::{twiddles, DctNum};
+use crate::{twiddles, DctNum, RequiredScratch};
 use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
 macro_rules! butterfly_boilerplate {
     ($struct_name:ident, $size:expr) => {
         impl<T: DctNum> Dct2<T> for $struct_name<T> {
-            fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
-                common::verify_length(input, output, self.len());
+            fn process_dct2_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
+                assert_eq!(buffer.len(), self.len());
 
-                output.copy_from_slice(input);
                 unsafe {
-                    self.process_inplace_dct2(output);
+                    self.process_inplace_dct2(buffer);
                 }
             }
         }
         impl<T: DctNum> Dct3<T> for $struct_name<T> {
-            fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
-                common::verify_length(input, output, self.len());
+            fn process_dct3_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
+                assert_eq!(buffer.len(), self.len());
 
-                output.copy_from_slice(input);
                 unsafe {
-                    self.process_inplace_dct3(output);
+                    self.process_inplace_dct3(buffer);
                 }
             }
         }
         impl<T: DctNum> Dst2<T> for $struct_name<T> {
-            fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
-                common::verify_length(input, output, self.len());
+            fn process_dst2_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
+                assert_eq!(buffer.len(), self.len());
 
-                output.copy_from_slice(input);
                 unsafe {
-                    self.process_inplace_dst2(output);
+                    self.process_inplace_dst2(buffer);
                 }
             }
         }
         impl<T: DctNum> Dst3<T> for $struct_name<T> {
-            fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
-                common::verify_length(input, output, self.len());
+            fn process_dst3_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
+                assert_eq!(buffer.len(), self.len());
 
-                output.copy_from_slice(input);
                 unsafe {
-                    self.process_inplace_dst3(output);
+                    self.process_inplace_dst3(buffer);
                 }
             }
         }
         impl<T: DctNum> TransformType2And3<T> for $struct_name<T> {}
+        impl<T> RequiredScratch for $struct_name<T> {
+            fn get_scratch_len(&self) -> usize {
+                0
+            }
+        }
         impl<T> Length for $struct_name<T> {
             fn len(&self) -> usize {
                 $size
@@ -111,47 +111,54 @@ impl<T: DctNum> Type2And3Butterfly2<T> {
     }
 }
 impl<T: DctNum> Dct2<T> for Type2And3Butterfly2<T> {
-    fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct2_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
 
-        output[0] = input[0] + input[1];
-        output[1] = (input[0] - input[1]) * T::FRAC_1_SQRT_2();
+        let sum = buffer[0] + buffer[1];
+        buffer[1] = (buffer[0] - buffer[1]) * T::FRAC_1_SQRT_2();
+        buffer[0] = sum;
     }
 }
 impl<T: DctNum> Dct3<T> for Type2And3Butterfly2<T> {
-    fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct3_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
 
-        let half_0 = input[0] * T::half();
-        let frac_1 = input[1] * T::FRAC_1_SQRT_2();
+        let half_0 = buffer[0] * T::half();
+        let frac_1 = buffer[1] * T::FRAC_1_SQRT_2();
 
-        output[0] = half_0 + frac_1;
-        output[1] = half_0 - frac_1;
+        buffer[0] = half_0 + frac_1;
+        buffer[1] = half_0 - frac_1;
     }
 }
 impl<T: DctNum> Dst2<T> for Type2And3Butterfly2<T> {
-    fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst2_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
 
-        output[0] = (input[0] + input[1]) * T::FRAC_1_SQRT_2();
-        output[1] = input[0] - input[1];
+        let sum = (buffer[0] + buffer[1]) * T::FRAC_1_SQRT_2();
+        buffer[1] = buffer[0] - buffer[1];
+        buffer[0] = sum;
     }
 }
 impl<T: DctNum> Dst3<T> for Type2And3Butterfly2<T> {
-    fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst3_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
 
-        let frac_0 = input[0] * T::FRAC_1_SQRT_2();
-        let half_1 = input[1] * T::half();
+        let frac_0 = buffer[0] * T::FRAC_1_SQRT_2();
+        let half_1 = buffer[1] * T::half();
 
-        output[0] = frac_0 + half_1;
-        output[1] = frac_0 - half_1;
+        buffer[0] = frac_0 + half_1;
+        buffer[1] = frac_0 - half_1;
     }
 }
 impl<T: DctNum> TransformType2And3<T> for Type2And3Butterfly2<T> {}
 impl<T> Length for Type2And3Butterfly2<T> {
     fn len(&self) -> usize {
         2
+    }
+}
+impl<T> RequiredScratch for Type2And3Butterfly2<T> {
+    fn get_scratch_len(&self) -> usize {
+        0
     }
 }
 
@@ -791,33 +798,30 @@ mod test {
                     naive_instance: &dyn Dct2<f32>,
                 ) {
                     // set up buffers
-                    let expected_input = random_signal($size);
-
-                    let mut expected_output = vec![0f32; $size];
-                    let mut inplace_buffer = expected_input.clone();
-                    let mut actual_output = expected_output.clone();
+                    let mut expected_buffer = random_signal($size);
+                    let mut inplace_buffer = expected_buffer.clone();
+                    let mut actual_buffer = expected_buffer.clone();
 
                     // perform the test
-                    naive_instance.process_dct2(&mut expected_input.clone(), &mut expected_output);
+                    naive_instance.process_dct2(&mut expected_buffer);
 
                     unsafe {
                         butterfly_instance.process_inplace_dct2(&mut inplace_buffer);
                     }
 
-                    butterfly_instance
-                        .process_dct2(&mut expected_input.clone(), &mut actual_output);
+                    butterfly_instance.process_dct2(&mut actual_buffer);
                     println!("");
-                    println!("expected output: {:?}", expected_output);
+                    println!("expected output: {:?}", expected_buffer);
                     println!("inplace output:  {:?}", inplace_buffer);
-                    println!("process output:  {:?}", actual_output);
+                    println!("process output:  {:?}", actual_buffer);
 
                     assert!(
-                        compare_float_vectors(&expected_output, &inplace_buffer),
+                        compare_float_vectors(&expected_buffer, &inplace_buffer),
                         "process_inplace_dct2() failed, length = {}",
                         $size
                     );
                     assert!(
-                        compare_float_vectors(&expected_output, &actual_output),
+                        compare_float_vectors(&expected_buffer, &actual_buffer),
                         "process_dct2() failed, length = {}",
                         $size
                     );
@@ -828,33 +832,30 @@ mod test {
                     naive_instance: &dyn Dct3<f32>,
                 ) {
                     // set up buffers
-                    let expected_input = random_signal($size);
-
-                    let mut expected_output = vec![0f32; $size];
-                    let mut inplace_buffer = expected_input.clone();
-                    let mut actual_output = expected_output.clone();
+                    let mut expected_buffer = random_signal($size);
+                    let mut inplace_buffer = expected_buffer.clone();
+                    let mut actual_buffer = expected_buffer.clone();
 
                     // perform the test
-                    naive_instance.process_dct3(&mut expected_input.clone(), &mut expected_output);
+                    naive_instance.process_dct3(&mut expected_buffer);
 
                     unsafe {
                         butterfly_instance.process_inplace_dct3(&mut inplace_buffer);
                     }
 
-                    butterfly_instance
-                        .process_dct3(&mut expected_input.clone(), &mut actual_output);
+                    butterfly_instance.process_dct3(&mut actual_buffer);
                     println!("");
-                    println!("expected output: {:?}", expected_output);
+                    println!("expected output: {:?}", expected_buffer);
                     println!("inplace output:  {:?}", inplace_buffer);
-                    println!("process output:  {:?}", actual_output);
+                    println!("process output:  {:?}", actual_buffer);
 
                     assert!(
-                        compare_float_vectors(&expected_output, &inplace_buffer),
+                        compare_float_vectors(&expected_buffer, &inplace_buffer),
                         "process_inplace_dct3() failed, length = {}",
                         $size
                     );
                     assert!(
-                        compare_float_vectors(&expected_output, &actual_output),
+                        compare_float_vectors(&expected_buffer, &actual_buffer),
                         "process_dct3() failed, length = {}",
                         $size
                     );
@@ -865,33 +866,30 @@ mod test {
                     naive_instance: &dyn Dst2<f32>,
                 ) {
                     // set up buffers
-                    let expected_input = random_signal($size);
-
-                    let mut expected_output = vec![0f32; $size];
-                    let mut inplace_buffer = expected_input.clone();
-                    let mut actual_output = expected_output.clone();
+                    let mut expected_buffer = random_signal($size);
+                    let mut inplace_buffer = expected_buffer.clone();
+                    let mut actual_buffer = expected_buffer.clone();
 
                     // perform the test
-                    naive_instance.process_dst2(&mut expected_input.clone(), &mut expected_output);
+                    naive_instance.process_dst2(&mut expected_buffer);
 
                     unsafe {
                         butterfly_instance.process_inplace_dst2(&mut inplace_buffer);
                     }
 
-                    butterfly_instance
-                        .process_dst2(&mut expected_input.clone(), &mut actual_output);
+                    butterfly_instance.process_dst2(&mut actual_buffer);
                     println!("");
-                    println!("expected output: {:?}", expected_output);
+                    println!("expected output: {:?}", expected_buffer);
                     println!("inplace output:  {:?}", inplace_buffer);
-                    println!("process output:  {:?}", actual_output);
+                    println!("process output:  {:?}", actual_buffer);
 
                     assert!(
-                        compare_float_vectors(&expected_output, &inplace_buffer),
+                        compare_float_vectors(&expected_buffer, &inplace_buffer),
                         "process_inplace_dst2() failed, length = {}",
                         $size
                     );
                     assert!(
-                        compare_float_vectors(&expected_output, &actual_output),
+                        compare_float_vectors(&expected_buffer, &actual_buffer),
                         "process_dst2() failed, length = {}",
                         $size
                     );
@@ -902,33 +900,30 @@ mod test {
                     naive_instance: &dyn Dst3<f32>,
                 ) {
                     // set up buffers
-                    let expected_input = random_signal($size);
-
-                    let mut expected_output = vec![0f32; $size];
-                    let mut inplace_buffer = expected_input.clone();
-                    let mut actual_output = expected_output.clone();
+                    let mut expected_buffer = random_signal($size);
+                    let mut inplace_buffer = expected_buffer.clone();
+                    let mut actual_buffer = expected_buffer.clone();
 
                     // perform the test
-                    naive_instance.process_dst3(&mut expected_input.clone(), &mut expected_output);
+                    naive_instance.process_dst3(&mut expected_buffer);
 
                     unsafe {
                         butterfly_instance.process_inplace_dst3(&mut inplace_buffer);
                     }
 
-                    butterfly_instance
-                        .process_dst3(&mut expected_input.clone(), &mut actual_output);
+                    butterfly_instance.process_dst3(&mut actual_buffer);
                     println!("");
-                    println!("expected output: {:?}", expected_output);
+                    println!("expected output: {:?}", expected_buffer);
                     println!("inplace output:  {:?}", inplace_buffer);
-                    println!("process output:  {:?}", actual_output);
+                    println!("process output:  {:?}", actual_buffer);
 
                     assert!(
-                        compare_float_vectors(&expected_output, &inplace_buffer),
+                        compare_float_vectors(&expected_buffer, &inplace_buffer),
                         "process_inplace_dst3() failed, length = {}",
                         $size
                     );
                     assert!(
-                        compare_float_vectors(&expected_output, &actual_output),
+                        compare_float_vectors(&expected_buffer, &actual_buffer),
                         "process_dst3() failed, length = {}",
                         $size
                     );

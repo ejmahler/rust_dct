@@ -3,13 +3,10 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use crate::common;
-use crate::{twiddles, DctNum};
-use crate::{Dct4, Dst4, TransformType2And3, TransformType4};
-
+use crate::{Dct4, Dst4, TransformType2And3, TransformType4, RequiredScratch, twiddles, DctNum};
 /// DCT4 and DST4 implementation that converts the problem into two DCT3 of half size.
 ///
-/// If the inner DCT3 is  O(nlogn), then so is this. This algorithm can only be used if the problem size is even.
+/// If the inner DCT3 is O(nlogn), then so is this. This algorithm can only be used if the problem size is even.
 ///
 /// ~~~
 /// // Computes a DCT Type 4 of size 1234
@@ -19,18 +16,18 @@ use crate::{Dct4, Dst4, TransformType2And3, TransformType4};
 /// use rustdct::DctPlanner;
 ///
 /// let len = 1234;
-/// let mut input:  Vec<f32> = vec![0f32; len];
-/// let mut output: Vec<f32> = vec![0f32; len];
-///
 /// let mut planner = DctPlanner::new();
 /// let inner_dct3 = planner.plan_dct3(len / 2);
 ///
 /// let dct = Type4ConvertToType3Even::new(inner_dct3);
-/// dct.process_dct4(&mut input, &mut output);
+///
+/// let mut buffer = vec![0f32; len];
+/// dct.process_dct4(&mut buffer);
 /// ~~~
 pub struct Type4ConvertToType3Even<T> {
     inner_dct: Arc<dyn TransformType2And3<T>>,
     twiddles: Box<[Complex<T>]>,
+    scratch_len: usize,
 }
 
 impl<T: DctNum> Type4ConvertToType3Even<T> {
@@ -43,82 +40,109 @@ impl<T: DctNum> Type4ConvertToType3Even<T> {
             .map(|i| twiddles::single_twiddle(2 * i + 1, len * 8).conj())
             .collect();
 
-        Type4ConvertToType3Even {
+        let inner_scratch = inner_dct.get_scratch_len();
+        let scratch_len = if inner_scratch <= len {
+            len
+        } else {
+            len + inner_scratch
+        };
+
+        Self {
             inner_dct: inner_dct,
             twiddles: twiddles.into_boxed_slice(),
+            scratch_len,
         }
     }
 }
 impl<T: DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
-    fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
+        assert!(scratch.len() >= self.get_scratch_len());
+        let scratch = &mut scratch[..self.get_scratch_len()];
+        let (self_scratch, extra_scratch) = scratch.split_at_mut(self.len()); 
 
         let len = self.len();
         let inner_len = len / 2;
 
         //pre-process the input by splitting into into two arrays, one for the inner DCT3, and the other for the DST3
-        let (mut output_left, mut output_right) = output.split_at_mut(inner_len);
+        let (mut output_left, mut output_right) = self_scratch.split_at_mut(inner_len);
 
-        output_left[0] = input[0] * T::two();
+        output_left[0] = buffer[0] * T::two();
         for k in 1..inner_len {
-            output_left[k] = input[2 * k - 1] + input[2 * k];
-            output_right[k - 1] = input[2 * k - 1] - input[2 * k];
+            output_left[k] = buffer[2 * k - 1] + buffer[2 * k];
+            output_right[k - 1] = buffer[2 * k - 1] - buffer[2 * k];
         }
-        output_right[inner_len - 1] = input[len - 1] * T::two();
+        output_right[inner_len - 1] = buffer[len - 1] * T::two();
 
         //run the two inner DCTs on our separated arrays
-        let (mut inner_result_cos, mut inner_result_sin) = input.split_at_mut(inner_len);
+        let inner_scratch = if extra_scratch.len() > 0 {
+            extra_scratch
+        } else {
+            &mut buffer[..]
+        };
 
         self.inner_dct
-            .process_dct3(&mut output_left, &mut inner_result_cos);
+            .process_dct3_with_scratch(&mut output_left, inner_scratch);
         self.inner_dct
-            .process_dst3(&mut output_right, &mut inner_result_sin);
+            .process_dst3_with_scratch(&mut output_right, inner_scratch);
 
         //post-process the data by combining it back into a single array
         for k in 0..inner_len {
             let twiddle = self.twiddles[k];
-            let cos_value = inner_result_cos[k];
-            let sin_value = inner_result_sin[k];
+            let cos_value = output_left[k];
+            let sin_value = output_right[k];
 
-            output_left[k] = cos_value * twiddle.re + sin_value * twiddle.im;
-            output_right[inner_len - 1 - k] = cos_value * twiddle.im - sin_value * twiddle.re;
+            buffer[k] = cos_value * twiddle.re + sin_value * twiddle.im;
+            buffer[len - 1 - k] = cos_value * twiddle.im - sin_value * twiddle.re;
         }
     }
 }
 impl<T: DctNum> Dst4<T> for Type4ConvertToType3Even<T> {
-    fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
+        assert!(scratch.len() >= self.get_scratch_len());
+        let scratch = &mut scratch[..self.get_scratch_len()];
+        let (self_scratch, extra_scratch) = scratch.split_at_mut(self.len()); 
 
         let len = self.len();
         let inner_len = len / 2;
 
         //pre-process the input by splitting into into two arrays, one for the inner DCT3, and the other for the DST3
-        let (mut output_left, mut output_right) = output.split_at_mut(inner_len);
+        let (mut output_left, mut output_right) = self_scratch.split_at_mut(inner_len);
 
-        output_right[0] = input[0] * T::two();
+        output_right[0] = buffer[0] * T::two();
         for k in 1..inner_len {
-            output_left[k - 1] = input[2 * k - 1] + input[2 * k];
-            output_right[k] = input[2 * k] - input[2 * k - 1];
+            output_left[k - 1] = buffer[2 * k - 1] + buffer[2 * k];
+            output_right[k] = buffer[2 * k] - buffer[2 * k - 1];
         }
-        output_left[inner_len - 1] = input[len - 1] * T::two();
+        output_left[inner_len - 1] = buffer[len - 1] * T::two();
 
         //run the two inner DCTs on our separated arrays
-        let (mut inner_result_cos, mut inner_result_sin) = input.split_at_mut(inner_len);
+        let inner_scratch = if extra_scratch.len() > 0 {
+            extra_scratch
+        } else {
+            &mut buffer[..]
+        };
 
         self.inner_dct
-            .process_dst3(&mut output_left, &mut inner_result_cos);
+            .process_dst3_with_scratch(&mut output_left, inner_scratch);
         self.inner_dct
-            .process_dct3(&mut output_right, &mut inner_result_sin);
+            .process_dct3_with_scratch(&mut output_right, inner_scratch);
 
         //post-process the data by combining it back into a single array
         for k in 0..inner_len {
             let twiddle = self.twiddles[k];
-            let cos_value = inner_result_cos[k];
-            let sin_value = inner_result_sin[k];
+            let cos_value = output_left[k];
+            let sin_value = output_right[k];
 
-            output_left[k] = cos_value * twiddle.re + sin_value * twiddle.im;
-            output_right[inner_len - 1 - k] = sin_value * twiddle.re - cos_value * twiddle.im;
+            buffer[k] = cos_value * twiddle.re + sin_value * twiddle.im;
+            buffer[len - 1 - k] = sin_value * twiddle.re - cos_value * twiddle.im;
         }
+    }
+}
+impl<T> RequiredScratch for Type4ConvertToType3Even<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.scratch_len
     }
 }
 impl<T: DctNum> TransformType4<T> for Type4ConvertToType3Even<T> {}
@@ -139,25 +163,22 @@ mod test {
         for inner_size in 1..20 {
             let size = inner_size * 2;
 
-            let mut expected_input = random_signal(size);
-            let mut actual_input = expected_input.clone();
-
-            let mut expected_output = vec![0f32; size];
-            let mut actual_output = vec![0f32; size];
+            let mut expected_buffer = random_signal(size);
+            let mut actual_buffer = expected_buffer.clone();
 
             let naive_dct4 = Type4Naive::new(size);
-            naive_dct4.process_dct4(&mut expected_input, &mut expected_output);
+            naive_dct4.process_dct4(&mut expected_buffer);
 
             let inner_dct3 = Arc::new(Type2And3Naive::new(inner_size));
             let dct = Type4ConvertToType3Even::new(inner_dct3);
-            dct.process_dct4(&mut actual_input, &mut actual_output);
+            dct.process_dct4(&mut actual_buffer);
 
             println!("");
-            println!("expected: {:?}", expected_output);
-            println!("actual:   {:?}", actual_output);
+            println!("expected: {:?}", expected_buffer);
+            println!("actual:   {:?}", actual_buffer);
 
             assert!(
-                compare_float_vectors(&expected_output, &actual_output),
+                compare_float_vectors(&expected_buffer, &actual_buffer),
                 "len = {}",
                 size
             );
@@ -169,25 +190,22 @@ mod test {
         for inner_size in 1..20 {
             let size = inner_size * 2;
 
-            let mut expected_input = random_signal(size);
-            let mut actual_input = expected_input.clone();
-
-            let mut expected_output = vec![0f32; size];
-            let mut actual_output = vec![0f32; size];
+            let mut expected_buffer = random_signal(size);
+            let mut actual_buffer = expected_buffer.clone();
 
             let naive_dst4 = Type4Naive::new(size);
-            naive_dst4.process_dst4(&mut expected_input, &mut expected_output);
+            naive_dst4.process_dst4(&mut expected_buffer);
 
-            let inner_dct3 = Arc::new(Type2And3Naive::new(inner_size));
-            let dct = Type4ConvertToType3Even::new(inner_dct3);
-            dct.process_dst4(&mut actual_input, &mut actual_output);
+            let inner_dst3 = Arc::new(Type2And3Naive::new(inner_size));
+            let dst = Type4ConvertToType3Even::new(inner_dst3);
+            dst.process_dst4(&mut actual_buffer);
 
             println!("");
-            println!("expected: {:?}", expected_output);
-            println!("actual:   {:?}", actual_output);
+            println!("expected: {:?}", expected_buffer);
+            println!("actual:   {:?}", actual_buffer);
 
             assert!(
-                compare_float_vectors(&expected_output, &actual_output),
+                compare_float_vectors(&expected_buffer, &actual_buffer),
                 "len = {}",
                 size
             );

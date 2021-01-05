@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use rustfft::num_complex::Complex;
-use rustfft::{num_traits::Zero, FftDirection};
+use rustfft::FftDirection;
 use rustfft::{Fft, Length};
 
-use crate::{common, DctNum};
+use crate::{DctNum, RequiredScratch, array_utils::into_complex_mut};
 use crate::{Dct4, Dst4, TransformType4};
 
 /// DCT Type 4 and DST Type 4 implementation that converts the problem into a FFT of the same size.
@@ -18,20 +18,22 @@ use crate::{Dct4, Dst4, TransformType4};
 /// use rustdct::rustfft::FftPlanner;
 ///
 /// let len = 1233;
+///
 /// let mut planner = FftPlanner::new();
 /// let fft = planner.plan_fft_forward(len);
 /// let dct = Type4ConvertToFftOdd::new(fft);
 ///
-/// let mut dct4_input:  Vec<f32> = vec![0f32; len];
-/// let mut dct4_output: Vec<f32> = vec![0f32; len];
-/// dct.process_dct4(&mut dct4_input, &mut dct4_output);
+/// let mut dct4_buffer = vec![0f32; len];
+/// dct.process_dct4(&mut dct4_buffer);
 ///
-/// let mut dst4_input:  Vec<f32> = vec![0f32; len];
-/// let mut dst4_output: Vec<f32> = vec![0f32; len];
-/// dct.process_dst4(&mut dst4_input, &mut dst4_output);
+/// let mut dst4_buffer = vec![0f32; len];
+/// dct.process_dst4(&mut dst4_buffer);
 /// ~~~
 pub struct Type4ConvertToFftOdd<T> {
     fft: Arc<dyn Fft<T>>,
+
+    len: usize,
+    scratch_len: usize,
 }
 
 impl<T: DctNum> Type4ConvertToFftOdd<T> {
@@ -51,27 +53,32 @@ impl<T: DctNum> Type4ConvertToFftOdd<T> {
             len
         );
 
-        Self { fft: inner_fft }
+        Self { 
+            scratch_len: 2 * (len + inner_fft.get_inplace_scratch_len()),
+            fft: inner_fft,
+            len,
+        }
     }
 }
 
 impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
-    fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
+        assert_eq!(scratch.len(), self.get_scratch_len());
 
         let len = self.len();
         let half_len = len / 2;
         let quarter_len = len / 4;
 
-        let mut buffer = vec![Complex::zero(); len + self.fft.get_inplace_scratch_len()];
-        let (fft_buffer, fft_scratch) = buffer.split_at_mut(len);
+        let complex_scratch = into_complex_mut(scratch);
+        let (fft_buffer, fft_scratch) = complex_scratch.split_at_mut(len);
 
         //start by reordering the input into the FFT input
         let mut input_index = half_len;
         let mut fft_index = 0;
         while input_index < len {
             fft_buffer[fft_index] = Complex {
-                re: input[input_index],
+                re: buffer[input_index],
                 im: T::zero(),
             };
 
@@ -83,7 +90,7 @@ impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
         input_index = input_index - len;
         while input_index < len {
             fft_buffer[fft_index] = Complex {
-                re: -input[len - input_index - 1],
+                re: -buffer[len - input_index - 1],
                 im: T::zero(),
             };
 
@@ -94,7 +101,7 @@ impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
         input_index = input_index - len;
         while input_index < len {
             fft_buffer[fft_index] = Complex {
-                re: -input[input_index],
+                re: -buffer[input_index],
                 im: T::zero(),
             };
 
@@ -105,7 +112,7 @@ impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
         input_index = input_index - len;
         while input_index < len {
             fft_buffer[fft_index] = Complex {
-                re: input[len - input_index - 1],
+                re: buffer[len - input_index - 1],
                 im: T::zero(),
             };
 
@@ -116,7 +123,7 @@ impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
         input_index = input_index - len;
         while fft_index < len {
             fft_buffer[fft_index] = Complex {
-                re: input[input_index],
+                re: buffer[input_index],
                 im: T::zero(),
             };
 
@@ -136,46 +143,45 @@ impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
             let fft_result = fft_buffer[4 * i + 1] * (output_sign * result_scale);
             let next_result = fft_buffer[4 * i + 3] * (output_sign * result_scale);
 
-            output[i * 2] = fft_result.re + fft_result.im;
-            output[i * 2 + 1] = -next_result.re + next_result.im;
+            buffer[i * 2] = fft_result.re + fft_result.im;
+            buffer[i * 2 + 1] = -next_result.re + next_result.im;
 
-            output[len - i * 2 - 2] = (next_result.re + next_result.im) * second_half_sign;
-            output[len - i * 2 - 1] = (fft_result.re - fft_result.im) * second_half_sign;
+            buffer[len - i * 2 - 2] = (next_result.re + next_result.im) * second_half_sign;
+            buffer[len - i * 2 - 1] = (fft_result.re - fft_result.im) * second_half_sign;
 
             output_sign = output_sign.neg();
         }
 
         //we either have 1 or 3 elements left over that we couldn't get in the above loop, handle them here
         if len % 4 == 1 {
-            output[half_len] = fft_buffer[0].re * output_sign * result_scale;
+            buffer[half_len] = fft_buffer[0].re * output_sign * result_scale;
         } else {
             let fft_result = fft_buffer[len - 2] * (output_sign * result_scale);
 
-            output[half_len - 1] = fft_result.re + fft_result.im;
-            output[half_len + 1] = -fft_result.re + fft_result.im;
-            output[half_len] = -fft_buffer[0].re * output_sign * result_scale;
+            buffer[half_len - 1] = fft_result.re + fft_result.im;
+            buffer[half_len + 1] = -fft_result.re + fft_result.im;
+            buffer[half_len] = -fft_buffer[0].re * output_sign * result_scale;
         }
     }
 }
 impl<T: DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
-    fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
-
-        self.process_dct4(input, output);
+    fn process_dst4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        assert_eq!(buffer.len(), self.len());
+        assert_eq!(scratch.len(), self.get_scratch_len());
 
         let len = self.len();
         let half_len = len / 2;
         let quarter_len = len / 4;
 
-        let mut buffer = vec![Complex::zero(); len + self.fft.get_inplace_scratch_len()];
-        let (fft_buffer, fft_scratch) = buffer.split_at_mut(len);
+        let complex_scratch = into_complex_mut(scratch);
+        let (fft_buffer, fft_scratch) = complex_scratch.split_at_mut(len);
 
         //start by reordering the input into the FFT input
         let mut input_index = half_len;
         let mut fft_index = 0;
         while input_index < len {
             fft_buffer[fft_index] = Complex {
-                re: input[len - input_index - 1],
+                re: buffer[len - input_index - 1],
                 im: T::zero(),
             };
 
@@ -187,7 +193,7 @@ impl<T: DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
         input_index = input_index - len;
         while input_index < len {
             fft_buffer[fft_index] = Complex {
-                re: -input[input_index],
+                re: -buffer[input_index],
                 im: T::zero(),
             };
 
@@ -198,7 +204,7 @@ impl<T: DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
         input_index = input_index - len;
         while input_index < len {
             fft_buffer[fft_index] = Complex {
-                re: -input[len - input_index - 1],
+                re: -buffer[len - input_index - 1],
                 im: T::zero(),
             };
 
@@ -209,7 +215,7 @@ impl<T: DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
         input_index = input_index - len;
         while input_index < len {
             fft_buffer[fft_index] = Complex {
-                re: input[input_index],
+                re: buffer[input_index],
                 im: T::zero(),
             };
 
@@ -220,7 +226,7 @@ impl<T: DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
         input_index = input_index - len;
         while fft_index < len {
             fft_buffer[fft_index] = Complex {
-                re: input[len - input_index - 1],
+                re: buffer[len - input_index - 1],
                 im: T::zero(),
             };
 
@@ -240,31 +246,36 @@ impl<T: DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
             let fft_result = fft_buffer[4 * i + 1] * (output_sign * result_scale);
             let next_result = fft_buffer[4 * i + 3] * (output_sign * result_scale);
 
-            output[i * 2] = fft_result.re + fft_result.im;
-            output[i * 2 + 1] = next_result.re - next_result.im;
+            buffer[i * 2] = fft_result.re + fft_result.im;
+            buffer[i * 2 + 1] = next_result.re - next_result.im;
 
-            output[len - i * 2 - 2] = -(next_result.re + next_result.im) * second_half_sign;
-            output[len - i * 2 - 1] = (fft_result.re - fft_result.im) * second_half_sign;
+            buffer[len - i * 2 - 2] = -(next_result.re + next_result.im) * second_half_sign;
+            buffer[len - i * 2 - 1] = (fft_result.re - fft_result.im) * second_half_sign;
 
             output_sign = output_sign.neg();
         }
 
         //we either have 1 or 3 elements left over that we couldn't get in the above loop, handle them here
         if len % 4 == 1 {
-            output[half_len] = fft_buffer[0].re * output_sign * result_scale;
+            buffer[half_len] = fft_buffer[0].re * output_sign * result_scale;
         } else {
             let fft_result = fft_buffer[len - 2] * (output_sign * result_scale);
 
-            output[half_len - 1] = fft_result.re + fft_result.im;
-            output[half_len + 1] = -fft_result.re + fft_result.im;
-            output[half_len] = fft_buffer[0].re * output_sign * result_scale;
+            buffer[half_len - 1] = fft_result.re + fft_result.im;
+            buffer[half_len + 1] = -fft_result.re + fft_result.im;
+            buffer[half_len] = fft_buffer[0].re * output_sign * result_scale;
         }
+    }
+}
+impl<T: DctNum> RequiredScratch for Type4ConvertToFftOdd<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.scratch_len
     }
 }
 impl<T: DctNum> TransformType4<T> for Type4ConvertToFftOdd<T> {}
 impl<T> Length for Type4ConvertToFftOdd<T> {
     fn len(&self) -> usize {
-        self.fft.len()
+        self.len
     }
 }
 
@@ -283,26 +294,23 @@ mod test {
             let size = 2 * n + 1;
             println!("{}", size);
 
-            let mut expected_input = random_signal(size);
-            let mut actual_input = expected_input.clone();
+            let mut expected_buffer = random_signal(size);
+            let mut actual_buffer = expected_buffer.clone();
 
-            println!("input: {:?}", actual_input);
-
-            let mut expected_output = vec![0f32; size];
-            let mut actual_output = vec![0f32; size];
+            println!("input: {:?}", actual_buffer);
 
             let naive_dct = Type4Naive::new(size);
-            naive_dct.process_dct4(&mut expected_input, &mut expected_output);
+            naive_dct.process_dct4(&mut expected_buffer);
 
             let mut fft_planner = FftPlanner::new();
             let dct = Type4ConvertToFftOdd::new(fft_planner.plan_fft_forward(size));
-            dct.process_dct4(&mut actual_input, &mut actual_output);
+            dct.process_dct4(&mut actual_buffer);
 
-            println!("expected: {:?}", expected_output);
-            println!("actual: {:?}", actual_output);
+            println!("expected: {:?}", expected_buffer);
+            println!("actual: {:?}", actual_buffer);
 
             assert!(
-                compare_float_vectors(&actual_output, &expected_output),
+                compare_float_vectors(&actual_buffer, &expected_buffer),
                 "len = {}",
                 size
             );
@@ -316,26 +324,23 @@ mod test {
             let size = 2 * n + 1;
             println!("{}", size);
 
-            let mut expected_input = random_signal(size);
-            let mut actual_input = expected_input.clone();
+            let mut expected_buffer = random_signal(size);
+            let mut actual_buffer = expected_buffer.clone();
 
-            println!("input: {:?}", actual_input);
+            println!("input: {:?}", actual_buffer);
 
-            let mut expected_output = vec![0f32; size];
-            let mut actual_output = vec![0f32; size];
-
-            let naive_dct = Type4Naive::new(size);
-            naive_dct.process_dst4(&mut expected_input, &mut expected_output);
+            let naive_dst = Type4Naive::new(size);
+            naive_dst.process_dst4(&mut expected_buffer);
 
             let mut fft_planner = FftPlanner::new();
-            let dct = Type4ConvertToFftOdd::new(fft_planner.plan_fft_forward(size));
-            dct.process_dst4(&mut actual_input, &mut actual_output);
+            let dst = Type4ConvertToFftOdd::new(fft_planner.plan_fft_forward(size));
+            dst.process_dst4(&mut actual_buffer);
 
-            println!("expected: {:?}", expected_output);
-            println!("actual: {:?}", actual_output);
+            println!("expected: {:?}", expected_buffer);
+            println!("actual: {:?}", actual_buffer);
 
             assert!(
-                compare_float_vectors(&actual_output, &expected_output),
+                compare_float_vectors(&actual_buffer, &expected_buffer),
                 "len = {}",
                 size
             );

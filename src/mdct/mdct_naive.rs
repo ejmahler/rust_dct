@@ -2,7 +2,7 @@ use std::f64;
 
 use rustfft::Length;
 
-use crate::common;
+use crate::{RequiredScratch, common};
 use crate::{mdct::Mdct, DctNum};
 
 /// Naive O(n^2 ) MDCT implementation
@@ -12,13 +12,18 @@ use crate::{mdct::Mdct, DctNum};
 /// ~~~
 /// // Computes a naive MDCT of output size 124, using the MP3 window function
 /// use rustdct::mdct::{Mdct, MdctNaive, window_fn};
+/// use rustdct::RequiredScratch;
 ///
 /// let len = 124;
-/// let mut input:  Vec<f32> = vec![0f32; len * 2];
-/// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let dct = MdctNaive::new(len, window_fn::mp3);
-/// dct.process_mdct(&input, &mut output);
+///
+/// let input = vec![0f32; len * 2];
+/// let (input_a, input_b) = input.split_at(len);
+/// let mut output = vec![0f32; len];
+/// let mut scratch = vec![0f32; dct.get_scratch_len()];
+///
+/// dct.process_mdct_with_scratch(input_a, input_b, &mut output, &mut scratch);
 /// ~~~
 pub struct MdctNaive<T> {
     twiddles: Box<[T]>,
@@ -64,7 +69,7 @@ impl<T: DctNum> MdctNaive<T> {
 }
 
 impl<T: DctNum> Mdct<T> for MdctNaive<T> {
-    fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
+    fn process_mdct_with_scratch(&self, input_a: &[T], input_b: &[T], output: &mut [T], _scratch: &mut [T]) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
 
@@ -101,7 +106,7 @@ impl<T: DctNum> Mdct<T> for MdctNaive<T> {
             }
         }
     }
-    fn process_imdct_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
+    fn process_imdct_with_scratch(&self, input: &[T], output_a: &mut [T], output_b: &mut [T], _scratch: &mut [T]) {
         common::verify_length(input, output_a, self.len());
         assert_eq!(output_a.len(), output_b.len());
 
@@ -157,6 +162,11 @@ impl<T: DctNum> Mdct<T> for MdctNaive<T> {
 impl<T> Length for MdctNaive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 4
+    }
+}
+impl<T> RequiredScratch for MdctNaive<T> {
+    fn get_scratch_len(&self) -> usize {
+        0
     }
 }
 
@@ -240,14 +250,15 @@ mod unit_tests {
                 let input_len = i * 4;
                 let output_len = i * 2;
 
-                let mut input = random_signal(input_len);
+                let input = random_signal(input_len);
+                let (input_a, input_b) = input.split_at(output_len);
+
                 let slow_output = slow_mdct(&input, current_window_fn);
 
                 let mut fast_output = vec![0f32; output_len];
 
                 let dct = MdctNaive::new(output_len, current_window_fn);
-
-                dct.process_mdct(&mut input, &mut fast_output);
+                dct.process_mdct_with_scratch(&input_a, &input_b, &mut fast_output, &mut []);
 
                 println!("{}", output_len);
                 println!("expected: {:?}", slow_output);
@@ -330,9 +341,11 @@ mod unit_tests {
             let slow_output = slow_imdct(&input, window_fn::one);
 
             let mut fast_output = vec![0f32; input.len() * 2];
+            let (fast_output_a, fast_output_b) = fast_output.split_at_mut(input.len());
 
             let dct = MdctNaive::new(input.len(), window_fn::one);
-            dct.process_imdct(&input, &mut fast_output);
+            dct.process_imdct_with_scratch(&input, fast_output_a, fast_output_b, &mut []);
+
 
             assert!(compare_float_vectors(&expected, &slow_output));
             assert!(compare_float_vectors(&expected, &fast_output));
@@ -386,9 +399,10 @@ mod unit_tests {
             let slow_output = slow_imdct(&input, window_fn::mp3);
 
             let mut fast_output = vec![0f32; input.len() * 2];
+            let (fast_output_a, fast_output_b) = fast_output.split_at_mut(input.len());
 
             let dct = MdctNaive::new(input.len(), window_fn::mp3);
-            dct.process_imdct(&input, &mut fast_output);
+            dct.process_imdct_with_scratch(&input, fast_output_a, fast_output_b, &mut []);
 
             assert!(compare_float_vectors(&expected, &slow_output));
             assert!(compare_float_vectors(&expected, &fast_output));
@@ -403,13 +417,14 @@ mod unit_tests {
                 let input_len = i * 2;
                 let output_len = i * 4;
 
-                let mut input = random_signal(input_len);
+                let input = random_signal(input_len);
                 let slow_output = slow_imdct(&input, current_window_fn);
 
                 let mut fast_output = vec![0f32; output_len];
+                let (fast_output_a, fast_output_b) = fast_output.split_at_mut(input_len);
 
                 let dct = MdctNaive::new(input_len, current_window_fn);
-                dct.process_imdct(&mut input, &mut fast_output);
+                dct.process_imdct_with_scratch(&input, fast_output_a, fast_output_b, &mut []);
 
                 assert!(
                     compare_float_vectors(&slow_output, &fast_output),

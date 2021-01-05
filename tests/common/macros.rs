@@ -9,20 +9,19 @@ macro_rules! dct_test_with_known_data {
             let len = entry.input.len();
             assert_eq!(len, entry.expected_output.len(), "Invalid test data -- input and known output are not the same length");
 
-            let mut naive_input = entry.input.clone();
-            let mut naive_output = vec![0.0; len];
+            let mut naive_buffer = entry.input.clone();
 
             let naive_dct = $naive_struct::new(len);
-            naive_dct.$process_fn(&mut naive_input, &mut naive_output);
+            naive_dct.$process_fn(&mut naive_buffer);
 
             let slow_output = $reference_fn(&entry.input);
 
             println!("input:          {:?}", entry.input);
             println!("expected output:{:?}", entry.expected_output);
-            println!("naive output:   {:?}", naive_output);
+            println!("naive output:   {:?}", naive_buffer);
             println!("slow output:    {:?}", slow_output);
 
-            assert!(compare_float_vectors(&entry.expected_output, &naive_output));
+            assert!(compare_float_vectors(&entry.expected_output, &naive_buffer));
             assert!(compare_float_vectors(&entry.expected_output, &slow_output));
         }
     )
@@ -53,11 +52,8 @@ macro_rules! dct_test_with_planner {
         for len in $first_size..20 {
             let input = random_signal(len);
 
-            let mut naive_input = input.clone();
-            let mut actual_input = input.clone();
-
-            let mut naive_output = vec![0.0; len];
-            let mut actual_output = vec![0.0; len];
+            let mut naive_buffer = input.clone();
+            let mut actual_buffer = input.clone();
 
             let naive_dct = $naive_struct::new(len);
 
@@ -73,32 +69,32 @@ macro_rules! dct_test_with_planner {
             );
 
             let reference_output = $reference_fn(&input);
-            naive_dct.$process_fn(&mut naive_input, &mut naive_output);
-            actual_dct.$process_fn(&mut actual_input, &mut actual_output);
+            naive_dct.$process_fn(&mut naive_buffer);
+            actual_dct.$process_fn(&mut actual_buffer);
 
             println!("input:           {:?}", input);
             println!("reference output:{:?}", reference_output);
-            println!("naive output:    {:?}", naive_output);
-            println!("planned output:  {:?}", actual_output);
+            println!("naive output:    {:?}", naive_buffer);
+            println!("planned output:  {:?}", actual_buffer);
 
-            assert!(compare_float_vectors(&reference_output, &naive_output));
-            assert!(compare_float_vectors(&reference_output, &actual_output));
+            assert!(compare_float_vectors(&reference_output, &naive_buffer));
+            assert!(compare_float_vectors(&reference_output, &actual_buffer));
         }
     };
 }
 
 pub mod test_mdct {
     use super::*;
-    use rustdct::mdct::{Mdct, MdctNaive};
+    use rustdct::{RequiredScratch, mdct::{Mdct, MdctNaive}};
 
     pub fn planned_matches_naive<F>(len: usize, window_fn: F)
     where
         F: Fn(usize) -> Vec<f32>,
     {
-        let mut naive_input = random_signal(len * 2);
-        let mut actual_input = naive_input.clone();
+        let input = random_signal(len * 2);
+        println!("input:          {:?}", input);
 
-        println!("input:          {:?}", naive_input);
+        let (input_a, input_b) = input.split_at(len);
 
         let mut naive_output = vec![0f32; len];
         let mut actual_output = vec![0f32; len];
@@ -114,8 +110,11 @@ pub mod test_mdct {
             "Planner created a DCT of incorrect length"
         );
 
-        naive_dct.process_mdct(&mut naive_input, &mut naive_output);
-        actual_dct.process_mdct(&mut actual_input, &mut actual_output);
+        let mut naive_scratch = vec![0f32; naive_dct.get_scratch_len()];
+        let mut fast_scratch = vec![0f32; actual_dct.get_scratch_len()];
+
+        naive_dct.process_mdct_with_scratch(input_a, input_b, &mut naive_output, &mut naive_scratch);
+        actual_dct.process_mdct_with_scratch(input_a, input_b, &mut actual_output, &mut fast_scratch);
 
         println!("Naive output:   {:?}", naive_output);
         println!("Planned output: {:?}", actual_output);
@@ -139,18 +138,23 @@ pub mod test_mdct {
         let input = random_signal(len * (NUM_SEGMENTS + 1));
         let mut output = vec![0f32; len * NUM_SEGMENTS];
         let mut inverse = vec![0f32; len * (NUM_SEGMENTS + 1)];
+        let mut scratch = vec![0f32; mdct.get_scratch_len()];
 
         for i in 0..NUM_SEGMENTS {
             let input_chunk = &input[len * i..(len * (i + 2))];
             let output_chunk = &mut output[len * i..(len * (i + 1))];
 
-            mdct.process_mdct(input_chunk, output_chunk);
+            let (input_a, input_b) = input_chunk.split_at(len);
+
+            mdct.process_mdct_with_scratch(input_a, input_b, output_chunk, &mut scratch);
         }
         for i in 0..NUM_SEGMENTS {
             let input_chunk = &output[len * i..(len * (i + 1))];
             let output_chunk = &mut inverse[len * i..(len * (i + 2))];
 
-            mdct.process_imdct(input_chunk, output_chunk);
+            let (output_a, output_b) = output_chunk.split_at_mut(len);
+
+            mdct.process_imdct_with_scratch(input_chunk, output_a, output_b, &mut scratch);
         }
 
         //we have to scale the inverse by 1/len

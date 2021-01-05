@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use rustfft::Length;
 
-use crate::common;
+use crate::{RequiredScratch, common};
 use crate::mdct::Mdct;
 use crate::{DctNum, TransformType4};
 
@@ -14,21 +14,26 @@ use crate::{DctNum, TransformType4};
 /// ~~~
 /// // Computes a MDCT of input size 1234 via a DCT4, using the MP3 window function
 /// use rustdct::mdct::{Mdct, MdctViaDct4, window_fn};
-/// use rustdct::DctPlanner;
+/// use rustdct::{DctPlanner, RequiredScratch};
 ///
 /// let len = 1234;
-/// let input:  Vec<f32> = vec![0f32; len * 2];
-/// let mut output: Vec<f32> = vec![0f32; len];
 ///
 /// let mut planner = DctPlanner::new();
 /// let inner_dct4 = planner.plan_dct4(len);
 ///
 /// let dct = MdctViaDct4::new(inner_dct4, window_fn::mp3);
-/// dct.process_mdct(&input, &mut output);
+///
+/// let input = vec![0f32; len * 2];
+/// let (input_a, input_b) = input.split_at(len);
+/// let mut output = vec![0f32; len];
+/// let mut scratch = vec![0f32; dct.get_scratch_len()];
+///
+/// dct.process_mdct_with_scratch(input_a, input_b, &mut output, &mut scratch);
 /// ~~~
 pub struct MdctViaDct4<T> {
     dct: Arc<dyn TransformType4<T>>,
     window: Box<[T]>,
+    scratch_len: usize,
 }
 
 impl<T: DctNum> MdctViaDct4<T> {
@@ -54,19 +59,19 @@ impl<T: DctNum> MdctViaDct4<T> {
         );
 
         Self {
+            scratch_len: len + inner_dct.get_scratch_len(),
             dct: inner_dct,
             window: window.into_boxed_slice(),
         }
     }
 }
 impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
-    fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
+    fn process_mdct_with_scratch(&self, input_a: &[T], input_b: &[T], output: &mut [T], scratch: &mut [T]) {
+        let scratch = &mut scratch[..self.get_scratch_len()];
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
 
         let group_size = self.len() / 2;
-
-        let mut dct_buffer = vec![T::zero(); self.len()];
 
         //we're going to divide input_a into two subgroups, (a,b), and input_b into two subgroups: (c,d)
         //then scale them by the window function, then combine them into two subgroups: (-D-Cr, A-Br) where R means reversed
@@ -94,7 +99,7 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
             .skip(group_size);
 
         //the first half of the dct input is -Cr - D
-        for (element, (cr_val, d_val)) in dct_buffer
+        for (element, (cr_val, d_val)) in output
             .iter_mut()
             .zip(group_c_rev_iter.zip(group_d_iter))
         {
@@ -102,25 +107,25 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
         }
 
         //the second half of the dct input is is A - Br
-        for (element, (a_val, br_val)) in dct_buffer[group_size..]
+        for (element, (a_val, br_val)) in output[group_size..]
             .iter_mut()
             .zip(group_a_iter.zip(group_b_rev_iter))
         {
             *element = a_val - br_val;
         }
 
-        self.dct.process_dct4(&mut dct_buffer, output);
+        self.dct.process_dct4_with_scratch(output, scratch);
     }
 
-    fn process_imdct_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]) {
+    fn process_imdct_with_scratch(&self, input: &[T], output_a: &mut [T], output_b: &mut [T], scratch: &mut [T]) {
+        let scratch = &mut scratch[..self.get_scratch_len()];
         common::verify_length(input, output_a, self.len());
         assert_eq!(output_a.len(), output_b.len());
 
-        let mut buffer = vec![T::zero(); self.len() * 2];
-        let (mut dct_input, mut dct_output) = buffer.split_at_mut(self.len());
-        dct_input.copy_from_slice(input);
+        let (dct_buffer, dct_scratch) = scratch.split_at_mut(self.len());
+        dct_buffer.copy_from_slice(input);
 
-        self.dct.process_dct4(&mut dct_input, &mut dct_output);
+        self.dct.process_dct4_with_scratch(dct_buffer, dct_scratch);
 
         let group_size = self.len() / 2;
 
@@ -128,7 +133,7 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
         for ((output, window_val), val) in output_a
             .iter_mut()
             .zip(&self.window[..])
-            .zip(dct_output[group_size..].iter())
+            .zip(dct_buffer[group_size..].iter())
         {
             *output = *output + *val * *window_val;
         }
@@ -138,7 +143,7 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
             .iter_mut()
             .zip(&self.window[..])
             .skip(group_size)
-            .zip(dct_output[group_size..].iter().rev())
+            .zip(dct_buffer[group_size..].iter().rev())
         {
             *output = *output - *val * *window_val;
         }
@@ -147,7 +152,7 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
         for ((output, window_val), val) in output_b
             .iter_mut()
             .zip(&self.window[self.len()..])
-            .zip(dct_output[..group_size].iter().rev())
+            .zip(dct_buffer[..group_size].iter().rev())
         {
             *output = *output - *val * *window_val;
         }
@@ -157,7 +162,7 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
             .iter_mut()
             .zip(&self.window[self.len()..])
             .skip(group_size)
-            .zip(dct_output[..group_size].iter())
+            .zip(dct_buffer[..group_size].iter())
         {
             *output = *output - *val * *window_val;
         }
@@ -166,6 +171,11 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
 impl<T> Length for MdctViaDct4<T> {
     fn len(&self) -> usize {
         self.dct.len()
+    }
+}
+impl<T> RequiredScratch for MdctViaDct4<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.scratch_len
     }
 }
 
@@ -187,6 +197,7 @@ mod unit_tests {
                 let output_len = i * 2;
 
                 let input = random_signal(input_len);
+                let (input_a, input_b) = input.split_at(output_len);
 
                 let mut naive_output = vec![0f32; output_len];
                 let mut fast_output = vec![0f32; output_len];
@@ -196,8 +207,11 @@ mod unit_tests {
                 let inner_dct4 = Arc::new(Type4Naive::new(output_len));
                 let fast_mdct = MdctViaDct4::new(inner_dct4, current_window_fn);
 
-                naive_mdct.process_mdct(&input, &mut naive_output);
-                fast_mdct.process_mdct(&input, &mut fast_output);
+                let mut naive_scratch = vec![0f32; naive_mdct.get_scratch_len()];
+                let mut fast_scratch = vec![0f32; fast_mdct.get_scratch_len()];
+
+                naive_mdct.process_mdct_with_scratch(&input_a, &input_b, &mut naive_output, &mut naive_scratch);
+                fast_mdct.process_mdct_with_scratch(&input_a, &input_b, &mut fast_output, &mut fast_scratch);
 
                 assert!(
                     compare_float_vectors(&naive_output, &fast_output),
@@ -218,16 +232,23 @@ mod unit_tests {
 
                 let input = random_signal(input_len);
 
-                let mut naive_output = vec![0f32; output_len];
-                let mut fast_output = vec![0f32; output_len];
+                // Fill both output buffers with ones, instead of zeroes, to verify that the IMDCT doesn't overwrite the output buffer
+                let mut naive_output = vec![1f32; output_len];
+                let (naive_output_a, naive_output_b) = naive_output.split_at_mut(input_len);
+                
+                let mut fast_output = vec![1f32; output_len];
+                let (fast_output_a, fast_output_b) = fast_output.split_at_mut(input_len);
 
                 let naive_mdct = MdctNaive::new(input_len, current_window_fn);
 
                 let inner_dct4 = Arc::new(Type4Naive::new(input_len));
                 let fast_mdct = MdctViaDct4::new(inner_dct4, current_window_fn);
 
-                naive_mdct.process_imdct(&input, &mut naive_output);
-                fast_mdct.process_imdct(&input, &mut fast_output);
+                let mut naive_scratch = vec![0f32; naive_mdct.get_scratch_len()];
+                let mut fast_scratch = vec![0f32; fast_mdct.get_scratch_len()];
+
+                naive_mdct.process_imdct_with_scratch(&input, naive_output_a, naive_output_b, &mut naive_scratch);
+                fast_mdct.process_imdct_with_scratch(&input, fast_output_a, fast_output_b, &mut fast_scratch);
 
                 assert!(
                     compare_float_vectors(&naive_output, &fast_output),

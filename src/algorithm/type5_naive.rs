@@ -2,7 +2,7 @@ use std::f64;
 
 use rustfft::Length;
 
-use crate::common;
+use crate::{RequiredScratch, common};
 use crate::{Dct5, DctNum, Dst5};
 
 /// Naive O(n^2 ) DCT Type 5 implementation
@@ -15,11 +15,10 @@ use crate::{Dct5, DctNum, Dst5};
 /// use rustdct::algorithm::Dct5Naive;
 ///
 /// let len = 23;
-/// let mut input:  Vec<f32> = vec![0f32; len];
-/// let mut output: Vec<f32> = vec![0f32; len];
+/// let mut buffer = vec![0f32; len];
 ///
 /// let dct = Dct5Naive::new(len);
-/// dct.process_dct5(&mut input, &mut output);
+/// dct.process_dct5(&mut buffer);
 /// ~~~
 pub struct Dct5Naive<T> {
     twiddles: Box<[T]>,
@@ -41,23 +40,24 @@ impl<T: DctNum> Dct5Naive<T> {
 }
 
 impl<T: DctNum> Dct5<T> for Dct5Naive<T> {
-    fn process_dct5(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dct5_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        common::verify_length(buffer, scratch, self.len());
+        scratch.copy_from_slice(buffer);
 
-        input[0] = input[0] * T::half();
-        output[0] = input.iter().fold(T::zero(), |acc, e| acc + *e);
+        scratch[0] = scratch[0] * T::half();
+        buffer[0] = scratch.iter().fold(T::zero(), |acc, e| acc + *e);
 
-        for k in 1..output.len() {
-            let output_cell = output.get_mut(k).unwrap();
-            *output_cell = input[0];
+        for k in 1..buffer.len() {
+            let output_cell = buffer.get_mut(k).unwrap();
+            *output_cell = scratch[0];
 
             let twiddle_stride = k;
             let mut twiddle_index = twiddle_stride;
 
-            for i in 1..input.len() {
+            for i in 1..scratch.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
-                *output_cell = *output_cell + input[i] * twiddle;
+                *output_cell = *output_cell + scratch[i] * twiddle;
 
                 twiddle_index += twiddle_stride;
                 if twiddle_index >= self.twiddles.len() {
@@ -67,13 +67,18 @@ impl<T: DctNum> Dct5<T> for Dct5Naive<T> {
         }
     }
 }
+impl<T> RequiredScratch for Dct5Naive<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.len()
+    }
+}
 impl<T> Length for Dct5Naive<T> {
     fn len(&self) -> usize {
         (self.twiddles.len() + 1) / 2
     }
 }
 
-/// Naive O(n^2 ) DST Type 1 implementation
+/// Naive O(n^2 ) DST Type 5 implementation
 ///
 /// This implementation is primarily used to test other DST5 algorithms.
 ///
@@ -83,11 +88,10 @@ impl<T> Length for Dct5Naive<T> {
 /// use rustdct::algorithm::Dst5Naive;
 ///
 /// let len = 23;
-/// let mut input:  Vec<f32> = vec![0f32; len];
-/// let mut output: Vec<f32> = vec![0f32; len];
+/// let mut buffer = vec![0f32; len];
 ///
 /// let dst = Dst5Naive::new(len);
-/// dst.process_dst5(&mut input, &mut output);
+/// dst.process_dst5(&mut buffer);
 /// ~~~
 pub struct Dst5Naive<T> {
     twiddles: Box<[T]>,
@@ -110,20 +114,21 @@ impl<T: DctNum> Dst5Naive<T> {
 }
 
 impl<T: DctNum> Dst5<T> for Dst5Naive<T> {
-    fn process_dst5(&self, input: &mut [T], output: &mut [T]) {
-        common::verify_length(input, output, self.len());
+    fn process_dst5_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
+        common::verify_length(buffer, scratch, self.len());
+        scratch.copy_from_slice(buffer);
 
-        for k in 0..output.len() {
-            let output_cell = output.get_mut(k).unwrap();
+        for k in 0..buffer.len() {
+            let output_cell = buffer.get_mut(k).unwrap();
             *output_cell = T::zero();
 
             let twiddle_stride = k + 1;
             let mut twiddle_index = twiddle_stride;
 
-            for i in 0..input.len() {
+            for i in 0..scratch.len() {
                 let twiddle = self.twiddles[twiddle_index];
 
-                *output_cell = *output_cell + input[i] * twiddle;
+                *output_cell = *output_cell + scratch[i] * twiddle;
 
                 twiddle_index += twiddle_stride;
                 if twiddle_index >= self.twiddles.len() {
@@ -131,6 +136,11 @@ impl<T: DctNum> Dst5<T> for Dst5Naive<T> {
                 }
             }
         }
+    }
+}
+impl<T> RequiredScratch for Dst5Naive<T> {
+    fn get_scratch_len(&self) -> usize {
+        self.len()
     }
 }
 impl<T> Length for Dst5Naive<T> {

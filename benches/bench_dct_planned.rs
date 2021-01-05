@@ -10,10 +10,10 @@ fn bench_dct1_planned(b: &mut Bencher, len: usize) {
     let mut planner = rustdct::DctPlanner::new();
     let dct = planner.plan_dct1(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct1(&mut signal, &mut spectrum);
+        dct.process_dct1_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -32,10 +32,10 @@ fn bench_dct2_planned(b: &mut Bencher, len: usize) {
     let mut planner = rustdct::DctPlanner::new();
     let dct = planner.plan_dct2(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct2(&mut signal, &mut spectrum);
+        dct.process_dct2_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -54,10 +54,10 @@ fn bench_dct3_planned(b: &mut Bencher, len: usize) {
     let mut planner = rustdct::DctPlanner::new();
     let dct = planner.plan_dct3(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct3(&mut signal, &mut spectrum);
+        dct.process_dct3_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -76,10 +76,10 @@ fn bench_dct4_planned(b: &mut Bencher, len: usize) {
     let mut planner = rustdct::DctPlanner::new();
     let dct = planner.plan_dct4(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct4(&mut signal, &mut spectrum);
+        dct.process_dct4_with_scratch(&mut buffer, &mut scratch);
     });
 }
 

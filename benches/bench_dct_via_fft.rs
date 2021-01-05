@@ -4,7 +4,7 @@ extern crate test;
 
 use std::sync::Arc;
 
-use rustdct::algorithm::type2and3_butterflies::*;
+use rustdct::{RequiredScratch, algorithm::type2and3_butterflies::*};
 use rustdct::algorithm::*;
 use rustdct::mdct::{window_fn, Mdct, MdctViaDct4};
 use rustdct::rustfft::FftPlanner;
@@ -19,10 +19,10 @@ fn bench_dct1_fft(b: &mut Bencher, len: usize) {
     let mut planner = FftPlanner::new();
     let dct = Dct1ConvertToFft::new(planner.plan_fft_forward((len - 1) * 2));
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct1(&mut signal, &mut spectrum);
+        dct.process_dct1_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -45,10 +45,10 @@ fn bench_dct2_fft(b: &mut Bencher, len: usize) {
     let mut planner = FftPlanner::new();
     let dct = Type2And3ConvertToFft::new(planner.plan_fft_forward(len));
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct2(&mut signal, &mut spectrum);
+        dct.process_dct2_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -99,10 +99,10 @@ fn bench_dct2_split(b: &mut Bencher, len: usize) {
     let dct = instances[power].clone();
     assert_eq!(dct.len(), len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct2(&mut signal, &mut spectrum);
+        dct.process_dct2_with_scratch(&mut buffer, &mut scratch);
     });
 }
 #[bench]
@@ -140,10 +140,10 @@ fn bench_dct3_fft(b: &mut Bencher, len: usize) {
     let mut planner = FftPlanner::new();
     let dct = Type2And3ConvertToFft::new(planner.plan_fft_forward(len));
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct3(&mut signal, &mut spectrum);
+        dct.process_dct3_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -219,10 +219,10 @@ fn bench_dct3_split(b: &mut Bencher, len: usize) {
     let dct = instances[power].clone();
     assert_eq!(dct.len(), len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct3(&mut signal, &mut spectrum);
+        dct.process_dct3_with_scratch(&mut buffer, &mut scratch);
     });
 }
 #[bench]
@@ -261,10 +261,10 @@ fn bench_dct4_via_dct3(b: &mut Bencher, len: usize) {
     let inner_dct3 = planner.plan_dct3(len / 2);
     let dct = Type4ConvertToType3Even::new(inner_dct3);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct4(&mut signal, &mut spectrum);
+        dct.process_dct4_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -301,10 +301,10 @@ fn bench_dct4_via_fft_odd(b: &mut Bencher, len: usize) {
     let inner_fft = planner.plan_fft_forward(len);
     let dct = Type4ConvertToFftOdd::new(inner_fft);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct4(&mut signal, &mut spectrum);
+        dct.process_dct4_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -339,10 +339,13 @@ fn bench_mdct_fft(b: &mut Bencher, len: usize) {
     let mut planner = DctPlanner::new();
     let dct = MdctViaDct4::new(planner.plan_dct4(len), window_fn::mp3);
 
-    let signal = vec![0_f32; len * 2];
-    let mut spectrum = vec![0_f32; len];
+    let input = vec![0_f32; len * 2];
+    let (input_a, input_b) = input.split_at(len);
+    let mut output = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
+
     b.iter(|| {
-        dct.process_mdct(&signal, &mut spectrum);
+        dct.process_mdct_with_scratch(input_a, input_b, &mut output, &mut scratch);
     });
 }
 #[bench]
@@ -376,10 +379,12 @@ fn bench_imdct_fft(b: &mut Bencher, len: usize) {
     let mut planner = DctPlanner::new();
     let dct = MdctViaDct4::new(planner.plan_dct4(len), window_fn::mp3);
 
-    let signal = vec![0_f32; len];
-    let mut spectrum = vec![0_f32; len * 2];
+    let input = vec![0_f32; len];
+    let mut output = vec![0_f32; len * 2];
+    let (output_a, output_b) = output.split_at_mut(len);
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_imdct(&signal, &mut spectrum);
+        dct.process_imdct_with_scratch(&input, output_a, output_b, &mut scratch);
     });
 }
 #[bench]
@@ -413,10 +418,10 @@ fn bench_dst6_fft(b: &mut Bencher, len: usize) {
     let mut planner = FftPlanner::new();
     let dct = Dst6And7ConvertToFft::new(planner.plan_fft_forward(len * 2 + 1));
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dst6(&mut signal, &mut spectrum);
+        dct.process_dst6_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -547,10 +552,10 @@ fn bench_dst7_fft(b: &mut Bencher, len: usize) {
     let mut planner = FftPlanner::new();
     let dct = Dst6And7ConvertToFft::new(planner.plan_fft_forward(len * 2 + 1));
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dst7(&mut signal, &mut spectrum);
+        dct.process_dst7_with_scratch(&mut buffer, &mut scratch);
     });
 }
 

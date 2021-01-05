@@ -2,7 +2,7 @@
 extern crate rustdct;
 extern crate test;
 
-use rustdct::algorithm::{Dct1Naive, Dst6And7Naive, Type2And3Naive, Type4Naive};
+use rustdct::{RequiredScratch, algorithm::{Dct1Naive, Dst6And7Naive, Type2And3Naive, Type4Naive}};
 use rustdct::mdct::{window_fn, Mdct, MdctNaive};
 use rustdct::{Dct1, Dct2, Dct3, Dct4, Dst6, Dst7};
 
@@ -13,10 +13,10 @@ use test::Bencher;
 fn bench_dct1_naive(b: &mut Bencher, len: usize) {
     let dct = Dct1Naive::new(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct1(&mut signal, &mut spectrum);
+        dct.process_dct1_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -38,10 +38,10 @@ fn dct1_naive_0026(b: &mut Bencher) {
 fn bench_dct2_naive(b: &mut Bencher, len: usize) {
     let dct = Type2And3Naive::new(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct2(&mut signal, &mut spectrum);
+        dct.process_dct2_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -75,10 +75,10 @@ fn dct2_naive_022(b: &mut Bencher) {
 fn bench_dct3_naive(b: &mut Bencher, len: usize) {
     let dct = Type2And3Naive::new(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct3(&mut signal, &mut spectrum);
+        dct.process_dct3_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -108,10 +108,10 @@ fn dct3_naive_0006(b: &mut Bencher) {
 fn bench_dct4_naive(b: &mut Bencher, len: usize) {
     let dct = Type4Naive::new(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dct4(&mut signal, &mut spectrum);
+        dct.process_dct4_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -162,10 +162,13 @@ fn dct4_odd_naive_09(b: &mut Bencher) {
 fn bench_mdct_naive(b: &mut Bencher, len: usize) {
     let dct = MdctNaive::new(len, window_fn::mp3);
 
-    let signal = vec![0_f32; len * 2];
-    let mut spectrum = vec![0_f32; len];
+    let input = vec![0_f32; len * 2];
+    let (input_a, input_b) = input.split_at(len);
+    let mut output = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
+
     b.iter(|| {
-        dct.process_mdct(&signal, &mut spectrum);
+        dct.process_mdct_with_scratch(input_a, input_b, &mut output, &mut scratch);
     });
 }
 
@@ -199,10 +202,12 @@ fn mdct_naive_12(b: &mut Bencher) {
 fn bench_imdct_naive(b: &mut Bencher, len: usize) {
     let dct = MdctNaive::new(len, window_fn::mp3);
 
-    let signal = vec![0_f32; len];
-    let mut spectrum = vec![0_f32; len * 2];
+    let input = vec![0_f32; len];
+    let mut output = vec![0_f32; len * 2];
+    let (output_a, output_b) = output.split_at_mut(len);
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_imdct(&signal, &mut spectrum);
+        dct.process_imdct_with_scratch(&input, output_a, output_b, &mut scratch);
     });
 }
 
@@ -236,10 +241,10 @@ fn imdct_naive_12(b: &mut Bencher) {
 fn bench_dst6_naive(b: &mut Bencher, len: usize) {
     let dct = Dst6And7Naive::new(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dst6(&mut signal, &mut spectrum);
+        dct.process_dst6_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
@@ -369,10 +374,10 @@ fn dst6_even_naive_39(b: &mut Bencher) {
 fn bench_dst7_naive(b: &mut Bencher, len: usize) {
     let dct = Dst6And7Naive::new(len);
 
-    let mut signal = vec![0_f32; len];
-    let mut spectrum = signal.clone();
+    let mut buffer = vec![0_f32; len];
+    let mut scratch = vec![0_f32; dct.get_scratch_len()];
     b.iter(|| {
-        dct.process_dst7(&mut signal, &mut spectrum);
+        dct.process_dst7_with_scratch(&mut buffer, &mut scratch);
     });
 }
 
