@@ -1,3 +1,7 @@
+# Release 0.6
+ - Upgraded RustFFT to 5.0
+ - Renamed most stucts and traits in the library in order to conform to the [Rust API guidelines](https://rust-lang.github.io/api-guidelines/naming.html) on acronyms
+ - Refactored all the process() methods to adopt a "in-place with scratch" architecture. This means that, for example, none of the "convert to FFT" algorithms have to allocate scratch space internally, because they now request it from the caller.
 # Release 0.5.1
  - Added a blanket impl for the DCTnum trait, making it easier to use arbitrary numeric types.
 # Release 0.5.0
