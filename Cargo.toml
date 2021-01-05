@@ -1,6 +1,6 @@
 [package]
 name = "rustdct"
-version = "0.6"
+version = "0.6.0"
 authors = ["Elliott Mahler <join.together at gmail>"]
 edition = "2018"
 
