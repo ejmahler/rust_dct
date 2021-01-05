@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use rustfft::num_traits::Zero;
+use rustfft::{FftDirection, num_traits::Zero};
 use rustfft::num_complex::Complex;
-use rustfft::{FFT, Length};
+use rustfft::{Fft, Length};
 
 use common;
 use ::{DCT1, DST1};
@@ -13,24 +13,24 @@ use ::{DCT1, DST1};
 /// // Computes a DCT Type 1 of size 1234
 /// use rustdct::DCT1;
 /// use rustdct::algorithm::DCT1ConvertToFFT;
-/// use rustdct::rustfft::FFTplanner;
+/// use rustdct::rustfft::FftPlanner;
 ///
 /// let len = 1234;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut planner = FFTplanner::new(false);
-/// let fft = planner.plan_fft(2 * (len - 1));
+/// let mut planner = FftPlanner::new();
+/// let fft = planner.plan_fft_forward(2 * (len - 1));
 ///
 /// let dct = DCT1ConvertToFFT::new(fft);
 /// dct.process_dct1(&mut input, &mut output);
 pub struct DCT1ConvertToFFT<T> {
-    fft: Arc<dyn FFT<T>>,
+    fft: Arc<dyn Fft<T>>,
 }
 
-impl<T: common::DCTnum> DCT1ConvertToFFT<T> {
+impl<T: common::DctNum> DCT1ConvertToFFT<T> {
     /// Creates a new DCT1 context that will process signals of length `inner_fft.len() / 2 + 1`.
-    pub fn new(inner_fft: Arc<dyn FFT<T>>) -> Self {
+    pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
         let inner_len = inner_fft.len();
 
         assert!(
@@ -38,8 +38,9 @@ impl<T: common::DCTnum> DCT1ConvertToFFT<T> {
             "For DCT1 via FFT, the inner FFT size must be even. Got {}",
             inner_len
         );
-        assert!(
-            !inner_fft.is_inverse(),
+        assert_eq!(
+            inner_fft.fft_direction(),
+            FftDirection::Forward,
             "The 'DCT type 1 via FFT' algorithm requires a forward FFT, but an inverse FFT \
                  was provided"
         );
@@ -50,15 +51,15 @@ impl<T: common::DCTnum> DCT1ConvertToFFT<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT1<T> for DCT1ConvertToFFT<T> {
+impl<T: common::DctNum> DCT1<T> for DCT1ConvertToFFT<T> {
     fn process_dct1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let inner_len = self.fft.len();
-        let mut buffer = vec![Complex::zero(); inner_len * 2];
-        let (mut fft_input, mut fft_output) = buffer.split_at_mut(inner_len);
+        let mut buffer = vec![Complex::zero(); inner_len + self.fft.get_inplace_scratch_len()];
+        let (fft_buffer, fft_scratch) = buffer.split_at_mut(inner_len);
 
-        for (&input_val, fft_cell) in input.iter().zip(&mut fft_input[..input.len()]) {
+        for (&input_val, fft_cell) in input.iter().zip(&mut fft_buffer[..input.len()]) {
             *fft_cell = Complex {
                 re: input_val,
                 im: T::zero(),
@@ -66,7 +67,7 @@ impl<T: common::DCTnum> DCT1<T> for DCT1ConvertToFFT<T> {
         }
         for (&input_val, fft_cell) in
             input.iter().rev().skip(1).zip(
-                &mut fft_input[input.len()..],
+                &mut fft_buffer[input.len()..],
             )
         {
             *fft_cell = Complex {
@@ -76,11 +77,11 @@ impl<T: common::DCTnum> DCT1<T> for DCT1ConvertToFFT<T> {
         }
 
         // run the fft
-        self.fft.process(&mut fft_input, &mut fft_output);
+        self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
         // apply a correction factor to the result
         let half = T::half();
-        for (fft_entry, output_val) in fft_output.iter().zip(output.iter_mut()) {
+        for (fft_entry, output_val) in fft_buffer.iter().zip(output.iter_mut()) {
             *output_val = fft_entry.re * half;
         }
     }
@@ -97,25 +98,25 @@ impl<T> Length for DCT1ConvertToFFT<T> {
 /// // Computes a DST Type 1 of size 1234
 /// use rustdct::DST1;
 /// use rustdct::algorithm::DST1ConvertToFFT;
-/// use rustdct::rustfft::FFTplanner;
+/// use rustdct::rustfft::FftPlanner;
 ///
 /// let len = 1234;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut planner = FFTplanner::new(false);
-/// let fft = planner.plan_fft(2 * (len + 1));
+/// let mut planner = FftPlanner::new();
+/// let fft = planner.plan_fft_forward(2 * (len + 1));
 ///
 /// let dct = DST1ConvertToFFT::new(fft);
 /// dct.process_dst1(&mut input, &mut output);
 /// ~~~
 pub struct DST1ConvertToFFT<T> {
-    fft: Arc<dyn FFT<T>>,
+    fft: Arc<dyn Fft<T>>,
 }
 
-impl<T: common::DCTnum> DST1ConvertToFFT<T> {
+impl<T: common::DctNum> DST1ConvertToFFT<T> {
     /// Creates a new DCT1 context that will process signals of length `inner_fft.len() / 2 - 1`.
-    pub fn new(inner_fft: Arc<dyn FFT<T>>) -> Self {
+    pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
         let inner_len = inner_fft.len();
 
         assert!(
@@ -123,8 +124,9 @@ impl<T: common::DCTnum> DST1ConvertToFFT<T> {
             "For DCT1 via FFT, the inner FFT size must be even. Got {}",
             inner_len
         );
-        assert!(
-            !inner_fft.is_inverse(),
+        assert_eq!(
+            inner_fft.fft_direction(),
+            FftDirection::Forward,
             "The 'DCT type 1 via FFT' algorithm requires a forward FFT, but an inverse FFT \
                  was provided"
         );
@@ -135,30 +137,30 @@ impl<T: common::DCTnum> DST1ConvertToFFT<T> {
     }
 }
 
-impl<T: common::DCTnum> DST1<T> for DST1ConvertToFFT<T> {
+impl<T: common::DctNum> DST1<T> for DST1ConvertToFFT<T> {
     fn process_dst1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let inner_len = self.fft.len();
-        let mut buffer = vec![Complex::zero(); inner_len * 2];
-        let (mut fft_input, mut fft_output) = buffer.split_at_mut(inner_len);
+        let mut buffer = vec![Complex::zero(); inner_len + self.fft.get_inplace_scratch_len()];
+        let (fft_buffer, fft_scratch) = buffer.split_at_mut(inner_len);
 
         // the first half of the FFT input will be a 0, followed by the input array
-        for (input_val, fft_cell) in input.iter().zip(fft_input.iter_mut().skip(1)) {
+        for (input_val, fft_cell) in input.iter().zip(fft_buffer.iter_mut().skip(1)) {
             *fft_cell = Complex::from(input_val);
         }
 
         // the second half of the FFT input will be a 0, followed by the input array, reversed and negated
-        for (input_val, fft_cell) in input.iter().zip(fft_input.iter_mut().rev()) {
+        for (input_val, fft_cell) in input.iter().zip(fft_buffer.iter_mut().rev()) {
             *fft_cell = Complex::from(-*input_val);
         }
 
         // run the fft
-        self.fft.process(&mut fft_input, &mut fft_output);
+        self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
         // apply a correction factor to the result
         let half = T::half();
-        for (fft_entry, output_val) in fft_output.iter().rev().zip(output.iter_mut()) {
+        for (fft_entry, output_val) in fft_buffer.iter().rev().zip(output.iter_mut()) {
             *output_val = fft_entry.im * half;
         }
     }
@@ -176,7 +178,7 @@ mod test {
     use algorithm::{DCT1Naive, DST1Naive};
 
     use test_utils::{compare_float_vectors, random_signal};
-    use rustfft::FFTplanner;
+    use rustfft::FftPlanner;
 
     /// Verify that our fast implementation of the DCT1 gives the same output as the slow version, for many different inputs
     #[test]
@@ -193,8 +195,8 @@ mod test {
             let naive_dct = DCT1Naive::new(size);
             naive_dct.process_dct1(&mut expected_input, &mut expected_output);
 
-            let mut fft_planner = FFTplanner::new(false);
-            let inner_fft = fft_planner.plan_fft((size - 1) * 2);
+            let mut fft_planner = FftPlanner::new();
+            let inner_fft = fft_planner.plan_fft_forward((size - 1) * 2);
             println!("size: {}", size);
             println!("inner fft len: {}", inner_fft.len());
             
@@ -225,8 +227,8 @@ mod test {
             let naive_dct = DST1Naive::new(size);
             naive_dct.process_dst1(&mut expected_input, &mut expected_output);
 
-            let mut fft_planner = FFTplanner::new(false);
-            let inner_fft = fft_planner.plan_fft((size + 1) * 2);
+            let mut fft_planner = FftPlanner::new();
+            let inner_fft = fft_planner.plan_fft_forward((size + 1) * 2);
             println!("size: {}", size);
             println!("inner fft len: {}", inner_fft.len());
 

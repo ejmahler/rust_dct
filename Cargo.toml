@@ -14,7 +14,7 @@ categories = ["algorithms", "compression", "multimedia::encoding", "science"]
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-rustfft = "~4"
+rustfft = "5"
 
 [dev-dependencies]
 rand = "~0.4"

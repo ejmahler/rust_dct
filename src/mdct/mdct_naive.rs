@@ -25,7 +25,7 @@ pub struct MDCTNaive<T> {
     window: Box<[T]>,
 }
 
-impl<T: common::DCTnum> MDCTNaive<T> {
+impl<T: common::DctNum> MDCTNaive<T> {
     /// Creates a new MDCT context that will process inputs of length `output_len * 2` and produce
     /// outputs of length `output_len`
     ///
@@ -55,7 +55,7 @@ impl<T: common::DCTnum> MDCTNaive<T> {
     }
 }
 
-impl<T: common::DCTnum> MDCT<T> for MDCTNaive<T> {
+impl<T: common::DctNum> MDCT<T> for MDCTNaive<T> {
     fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());

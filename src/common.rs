@@ -1,14 +1,14 @@
-use rustfft::FFTnum;
+use rustfft::FftNum;
 use rustfft::num_traits::FloatConst;
 
 
 /// Generic floating point number
-pub trait DCTnum: FFTnum + FloatConst {
+pub trait DctNum: FftNum + FloatConst {
 	fn half() -> Self;
 	fn two() -> Self;
 }
 
-impl<T: FFTnum + FloatConst> DCTnum for T {
+impl<T: FftNum + FloatConst> DctNum for T {
 	fn half() -> Self {
 		Self::from_f64(0.5).unwrap()
 	}

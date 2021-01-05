@@ -9,7 +9,7 @@ use common;
 
 macro_rules! butterfly_boilerplate {
     ($struct_name:ident, $size:expr) => (
-        impl<T: common::DCTnum> DCT2<T> for $struct_name<T> {
+        impl<T: common::DctNum> DCT2<T> for $struct_name<T> {
             fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
                 common::verify_length(input, output, self.len());
                 
@@ -17,7 +17,7 @@ macro_rules! butterfly_boilerplate {
                 unsafe { self.process_inplace_dct2(output); }
             }
         }
-        impl<T: common::DCTnum> DCT3<T> for $struct_name<T> {
+        impl<T: common::DctNum> DCT3<T> for $struct_name<T> {
             fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
                 common::verify_length(input, output, self.len());
                 
@@ -25,7 +25,7 @@ macro_rules! butterfly_boilerplate {
                 unsafe { self.process_inplace_dct3(output); }
             }
         }
-        impl<T: common::DCTnum> DST2<T> for $struct_name<T> {
+        impl<T: common::DctNum> DST2<T> for $struct_name<T> {
             fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
                 common::verify_length(input, output, self.len());
                 
@@ -33,7 +33,7 @@ macro_rules! butterfly_boilerplate {
                 unsafe { self.process_inplace_dst2(output); }
             }
         }
-        impl<T: common::DCTnum> DST3<T> for $struct_name<T> {
+        impl<T: common::DctNum> DST3<T> for $struct_name<T> {
             fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
                 common::verify_length(input, output, self.len());
                 
@@ -41,7 +41,7 @@ macro_rules! butterfly_boilerplate {
                 unsafe { self.process_inplace_dst3(output); }
             }
         }
-        impl<T: common::DCTnum> TransformType2And3<T> for $struct_name<T>{}
+        impl<T: common::DctNum> TransformType2And3<T> for $struct_name<T>{}
         impl<T> Length for $struct_name<T> {
             fn len(&self) -> usize {
                 $size
@@ -53,7 +53,7 @@ macro_rules! butterfly_boilerplate {
 pub struct Type2And3Butterfly2<T> {
     _phantom: PhantomData<T>
 }
-impl<T: common::DCTnum> Type2And3Butterfly2<T> {
+impl<T: common::DctNum> Type2And3Butterfly2<T> {
 	pub fn new() -> Self {
 		Type2And3Butterfly2 {
             _phantom: PhantomData,
@@ -100,7 +100,7 @@ impl<T: common::DCTnum> Type2And3Butterfly2<T> {
         *buffer.get_unchecked_mut(1) = frac_0 - half_1;
 	}
 }
-impl<T: common::DCTnum> DCT2<T> for Type2And3Butterfly2<T> {
+impl<T: common::DctNum> DCT2<T> for Type2And3Butterfly2<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -108,7 +108,7 @@ impl<T: common::DCTnum> DCT2<T> for Type2And3Butterfly2<T> {
         output[1] = (input[0] - input[1]) * T::FRAC_1_SQRT_2();      
     }
 }
-impl<T: common::DCTnum> DCT3<T> for Type2And3Butterfly2<T> {
+impl<T: common::DctNum> DCT3<T> for Type2And3Butterfly2<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -119,7 +119,7 @@ impl<T: common::DCTnum> DCT3<T> for Type2And3Butterfly2<T> {
 		output[1] = half_0 - frac_1;  
     }
 }
-impl<T: common::DCTnum> DST2<T> for Type2And3Butterfly2<T> {
+impl<T: common::DctNum> DST2<T> for Type2And3Butterfly2<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -127,7 +127,7 @@ impl<T: common::DCTnum> DST2<T> for Type2And3Butterfly2<T> {
         output[1] = input[0] - input[1];      
     }
 }
-impl<T: common::DCTnum> DST3<T> for Type2And3Butterfly2<T> {
+impl<T: common::DctNum> DST3<T> for Type2And3Butterfly2<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -138,7 +138,7 @@ impl<T: common::DCTnum> DST3<T> for Type2And3Butterfly2<T> {
         output[1] = frac_0 - half_1;
     }
 }
-impl<T: common::DCTnum> TransformType2And3<T> for Type2And3Butterfly2<T>{}
+impl<T: common::DctNum> TransformType2And3<T> for Type2And3Butterfly2<T>{}
 impl<T> Length for Type2And3Butterfly2<T> {
     fn len(&self) -> usize {
         2
@@ -148,7 +148,7 @@ impl<T> Length for Type2And3Butterfly2<T> {
 pub struct Type2And3Butterfly3<T> {
 	twiddle: T,
 }
-impl<T: common::DCTnum> Type2And3Butterfly3<T> {
+impl<T: common::DctNum> Type2And3Butterfly3<T> {
 	pub fn new() -> Self {
 		Self {
 			twiddle: twiddles::single_twiddle_re(1,12),
@@ -202,7 +202,7 @@ butterfly_boilerplate!(Type2And3Butterfly3, 3);
 pub struct Type2And3Butterfly4<T> {
 	twiddle: Complex<T>,
 }
-impl<T: common::DCTnum> Type2And3Butterfly4<T> {
+impl<T: common::DctNum> Type2And3Butterfly4<T> {
 	pub fn new() -> Self {
 		Type2And3Butterfly4 {
 			twiddle: twiddles::single_twiddle(1,16).conj()
@@ -276,7 +276,7 @@ pub struct Type2And3Butterfly8<T> {
 	butterfly2: Type2And3Butterfly2<T>,
     twiddles: [Complex<T>; 2],
 }
-impl<T: common::DCTnum> Type2And3Butterfly8<T> {
+impl<T: common::DctNum> Type2And3Butterfly8<T> {
 	pub fn new() -> Self {
 		Type2And3Butterfly8 {
 			butterfly4: Type2And3Butterfly4::new(),
@@ -467,7 +467,7 @@ pub struct Type2And3Butterfly16<T> {
 	butterfly4: Type2And3Butterfly4<T>,
     twiddles: [Complex<T>; 4],
 }
-impl<T: common::DCTnum> Type2And3Butterfly16<T> {
+impl<T: common::DctNum> Type2And3Butterfly16<T> {
 	pub fn new() -> Self {
 		Type2And3Butterfly16 {
 			butterfly8: Type2And3Butterfly8::new(),

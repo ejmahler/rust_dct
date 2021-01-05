@@ -1,5 +1,5 @@
 
-use rustdct::DCTplanner;
+use rustdct::DctPlanner;
 use common::{random_signal, compare_float_vectors};
 
 macro_rules! dct_test_with_known_data {
@@ -62,7 +62,7 @@ macro_rules! dct_test_with_planner {
 
             let naive_dct = $naive_struct::new(len);
 
-            let mut planner = DCTplanner::new();
+            let mut planner = DctPlanner::new();
             let actual_dct = planner.$planner_fn(len);
 
             assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length. Expected {}, got {}", len, actual_dct.len());
@@ -101,7 +101,7 @@ pub mod test_mdct {
 
         let naive_dct = MDCTNaive::new(len, &window_fn);
 
-        let mut planner = DCTplanner::new();
+        let mut planner = DctPlanner::new();
         let actual_dct = planner.plan_mdct(len, window_fn);
 
         assert_eq!(
@@ -127,7 +127,7 @@ pub mod test_mdct {
     where
         F: Fn(usize) -> Vec<f32>,
     {
-        let mut planner = DCTplanner::new();
+        let mut planner = DctPlanner::new();
         let mdct = planner.plan_mdct(len, &window_fn);
 
         const NUM_SEGMENTS: usize = 5;

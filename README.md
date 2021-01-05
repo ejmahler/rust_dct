@@ -13,12 +13,12 @@ RustDCT is a pure-Rust signal processing library that computes the most common D
 ## Example
 ```rust
 // Compute a DCT Type 2 of size 1234
-use rustdct::DCTplanner;
+use rustdct::DctPlanner;
 
 let mut input:  Vec<f32> = vec![0f32; 1234];
 let mut output: Vec<f32> = vec![0f32; 1234];
 
-let mut planner = DCTplanner::new();
+let mut planner = DctPlanner::new();
 let mut dct = planner.plan_dct2(1234);
 
 dct.process(&mut input, &mut output);

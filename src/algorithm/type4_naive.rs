@@ -27,7 +27,7 @@ pub struct Type4Naive<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DCTnum> Type4Naive<T> {
+impl<T: common::DctNum> Type4Naive<T> {
     /// Creates a new DCT4 and DTS4 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let twiddles: Vec<Complex<T>> = (0..len * 4)
@@ -38,7 +38,7 @@ impl<T: common::DCTnum> Type4Naive<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT4<T> for Type4Naive<T> {
+impl<T: common::DctNum> DCT4<T> for Type4Naive<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -62,7 +62,7 @@ impl<T: common::DCTnum> DCT4<T> for Type4Naive<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST4<T> for Type4Naive<T> {
+impl<T: common::DctNum> DST4<T> for Type4Naive<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -86,7 +86,7 @@ impl<T: common::DCTnum> DST4<T> for Type4Naive<T> {
         }
     }
 }
-impl<T: common::DCTnum> TransformType4<T> for Type4Naive<T>{}
+impl<T: common::DctNum> TransformType4<T> for Type4Naive<T>{}
 impl<T> Length for Type4Naive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 4

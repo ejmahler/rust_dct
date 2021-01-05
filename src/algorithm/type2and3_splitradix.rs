@@ -15,13 +15,13 @@ use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 /// // Computes a DCT Type 2 of size 1024
 /// use rustdct::algorithm::Type2And3SplitRadix;
 /// use rustdct::DCT2;
-/// use rustdct::DCTplanner;
+/// use rustdct::DctPlanner;
 ///
 /// let len = 1024;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut planner = DCTplanner::new();
+/// let mut planner = DctPlanner::new();
 /// let quarter_dct = planner.plan_dct2(len / 4);
 /// let half_dct = planner.plan_dct2(len / 2);
 ///
@@ -34,7 +34,7 @@ pub struct Type2And3SplitRadix<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DCTnum> Type2And3SplitRadix<T> {
+impl<T: common::DctNum> Type2And3SplitRadix<T> {
     /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `half_dct.len() * 2`
     pub fn new(half_dct: Arc<dyn TransformType2And3<T>>, quarter_dct: Arc<dyn TransformType2And3<T>>) -> Self {
         let half_len = half_dct.len();
@@ -61,7 +61,7 @@ impl<T: common::DCTnum> Type2And3SplitRadix<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT2<T> for Type2And3SplitRadix<T> {
+impl<T: common::DctNum> DCT2<T> for Type2And3SplitRadix<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -140,7 +140,7 @@ impl<T: common::DCTnum> DCT2<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST2<T> for Type2And3SplitRadix<T> {
+impl<T: common::DctNum> DST2<T> for Type2And3SplitRadix<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         
         for i in 0..(self.len() / 2) {
@@ -152,7 +152,7 @@ impl<T: common::DCTnum> DST2<T> for Type2And3SplitRadix<T> {
         output.reverse();
     }
 }
-impl<T: common::DCTnum> DCT3<T> for Type2And3SplitRadix<T> {
+impl<T: common::DctNum> DCT3<T> for Type2And3SplitRadix<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -231,7 +231,7 @@ impl<T: common::DCTnum> DCT3<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST3<T> for Type2And3SplitRadix<T> {
+impl<T: common::DctNum> DST3<T> for Type2And3SplitRadix<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         
         input.reverse();
@@ -243,7 +243,7 @@ impl<T: common::DCTnum> DST3<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DCTnum> TransformType2And3<T> for Type2And3SplitRadix<T>{}
+impl<T: common::DctNum> TransformType2And3<T> for Type2And3SplitRadix<T>{}
 impl<T> Length for Type2And3SplitRadix<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 4

@@ -7,7 +7,7 @@ mod common;
 use rustdct::{DCT1, DCT2, DCT3, DCT4, DCT5, DCT6, DCT7, DCT8, DST1, DST2, DST3, DST4, DST5, DST6, DST7, DST8};
 use rustdct::algorithm::{DCT1Naive, DST1Naive, Type2And3Naive, Type4Naive, DCT5Naive, DST5Naive, DCT6And7Naive, DST6And7Naive, DCT8Naive, DST8Naive};
 use rustdct::mdct::window_fn;
-use rustdct::DCTplanner;
+use rustdct::DctPlanner;
 
 use common::macros::test_mdct;
 use common::known_data::*;

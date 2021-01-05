@@ -1,29 +1,30 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use rustfft::FFTplanner;
-use common;
+use rustfft::FftPlanner;
 use ::{DCT1, DST1, TransformType4, TransformType2And3, DCT5, DST5, DCT6And7, DST6And7, DCT8, DST8};
 use mdct::*;
 use algorithm::*;
 use algorithm::type2and3_butterflies::*;
 
+use crate::DctNum;
+
 const DCT2_BUTTERFLIES: [usize; 5] = [2, 3, 4, 8, 16];
 
 /// The DCT planner is used to make new DCT algorithm instances.
 ///
-/// RustDCT has several DCT algorithms available for each DCT type; For a given DCT type and problem size, the FFTplanner
+/// RustDCT has several DCT algorithms available for each DCT type; For a given DCT type and problem size, the DctPlanner
 /// decides which of the available DCT algorithms to use and then initializes them.
 ///
 /// ~~~
 /// // Perform a DCT Type 4 of size 1234
 /// use std::sync::Arc;
-/// use rustdct::DCTplanner;
+/// use rustdct::DctPlanner;
 ///
 /// let mut input:  Vec<f32> = vec![0f32; 1234];
 /// let mut output: Vec<f32> = vec![0f32; 1234];
 ///
-/// let mut planner = DCTplanner::new();
+/// let mut planner = DctPlanner::new();
 /// let dct4 = planner.plan_dct4(1234);
 /// dct4.process_dct4(&mut input, &mut output);
 /// 
@@ -38,8 +39,8 @@ const DCT2_BUTTERFLIES: [usize; 5] = [2, 3, 4, 8, 16];
 ///
 /// Each DCT instance owns `Arc`s to its shared internal data, rather than borrowing it from the planner, so it's
 /// perfectly safe to drop the planner after creating DCT instances.
-pub struct DCTplanner<T> {
-    fft_planner: FFTplanner<T>,
+pub struct DctPlanner<T: DctNum> {
+    fft_planner: FftPlanner<T>,
 
     dct1_cache: HashMap<usize, Arc<dyn DCT1<T>>>,
     dst1_cache: HashMap<usize, Arc<dyn DST1<T>>>,
@@ -54,10 +55,10 @@ pub struct DCTplanner<T> {
 
     mdct_cache: HashMap<usize, Arc<dyn MDCT<T>>>,
 }
-impl<T: common::DCTnum> DCTplanner<T> {
+impl<T: DctNum> DctPlanner<T> {
     pub fn new() -> Self {
         Self {
-            fft_planner: FFTplanner::new(false),
+            fft_planner: FftPlanner::new(),
             dct1_cache: HashMap::new(),
             dst1_cache: HashMap::new(),
             dct23_cache: HashMap::new(),
@@ -89,7 +90,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         if len < 25 {
             Arc::new(DCT1Naive::new(len))
         } else {
-            let fft = self.fft_planner.plan_fft((len - 1) * 2);
+            let fft = self.fft_planner.plan_fft_forward((len - 1) * 2);
             Arc::new(DCT1ConvertToFFT::new(fft))
         }
     }
@@ -120,7 +121,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             //benchmarking shows that below about 16, it's faster to just use the naive DCT2 algorithm
             Arc::new(Type2And3Naive::new(len))
         } else {
-            let fft = self.fft_planner.plan_fft(len);
+            let fft = self.fft_planner.plan_fft_forward(len);
             Arc::new(Type2And3ConvertToFFT::new(fft))
         }
     }
@@ -173,7 +174,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
             if len < 7 {
                 Arc::new(Type4Naive::new(len))
             } else {
-                let fft = self.fft_planner.plan_fft(len);
+                let fft = self.fft_planner.plan_fft_forward(len);
                 Arc::new(Type4ConvertToFFTOdd::new(fft))
             }
         }
@@ -251,7 +252,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         if len < 25 {
             Arc::new(DST1Naive::new(len))
         } else {
-            let fft = self.fft_planner.plan_fft((len + 1) * 2);
+            let fft = self.fft_planner.plan_fft_forward((len + 1) * 2);
             Arc::new(DST1ConvertToFFT::new(fft))
         }
     }
@@ -306,7 +307,7 @@ impl<T: common::DCTnum> DCTplanner<T> {
         if len < 45 {
             Arc::new(DST6And7Naive::new(len))
         } else {
-            let fft = self.fft_planner.plan_fft(len * 2 + 1);
+            let fft = self.fft_planner.plan_fft_forward(len * 2 + 1);
             Arc::new(DST6And7ConvertToFFT::new(fft))
         }
     }

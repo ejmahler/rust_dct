@@ -20,7 +20,7 @@ use common;
 pub struct DCT8Naive<T> {
     twiddles: Box<[T]>,
 }
-impl<T: common::DCTnum> DCT8Naive<T> {
+impl<T: common::DctNum> DCT8Naive<T> {
     /// Creates a new DCT8 and DST8 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 + 1) as f64;
@@ -33,7 +33,7 @@ impl<T: common::DCTnum> DCT8Naive<T> {
         Self { twiddles: twiddles.into_boxed_slice() }
     }
 }
-impl<T: common::DCTnum> DCT8<T> for DCT8Naive<T> {
+impl<T: common::DctNum> DCT8<T> for DCT8Naive<T> {
     fn process_dct8(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -81,7 +81,7 @@ pub struct DST8Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> DST8Naive<T> {
+impl<T: common::DctNum> DST8Naive<T> {
     /// Creates a new DCT8 and DST8 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 - 1) as f64;
@@ -95,7 +95,7 @@ impl<T: common::DCTnum> DST8Naive<T> {
     }
 }
 
-impl<T: common::DCTnum> DST8<T> for DST8Naive<T> {
+impl<T: common::DctNum> DST8<T> for DST8Naive<T> {
     fn process_dst8(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 

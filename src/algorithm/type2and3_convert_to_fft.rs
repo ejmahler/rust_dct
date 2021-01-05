@@ -1,8 +1,8 @@
 use std::sync::Arc;
 
-use rustfft::num_traits::Zero;
+use rustfft::{FftDirection, num_traits::Zero};
 use rustfft::num_complex::Complex;
-use rustfft::{FFT, Length};
+use rustfft::{Fft, Length};
 
 use common;
 use twiddles;
@@ -14,11 +14,11 @@ use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 /// // Computes a O(NlogN) DCT2, DST2, DCT3, and DST3 of size 1234 by converting them to FFTs
 /// use rustdct::{DCT2, DST2, DCT3, DST3};
 /// use rustdct::algorithm::Type2And3ConvertToFFT;
-/// use rustdct::rustfft::FFTplanner;
+/// use rustdct::rustfft::FftPlanner;
 ///
 /// let len = 1234;
-/// let mut planner = FFTplanner::new(false);
-/// let fft = planner.plan_fft(len);
+/// let mut planner = FftPlanner::new();
+/// let fft = planner.plan_fft_forward(len);
 ///
 /// let dct = Type2And3ConvertToFFT::new(fft);
 /// 
@@ -39,17 +39,17 @@ use ::{DCT2, DST2, DCT3, DST3, TransformType2And3};
 /// dct.process_dst3(&mut dst3_input, &mut dst3_output);
 /// ~~~
 pub struct Type2And3ConvertToFFT<T> {
-    fft: Arc<dyn FFT<T>>,
+    fft: Arc<dyn Fft<T>>,
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DCTnum> Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> Type2And3ConvertToFFT<T> {
     /// Creates a new DCT2, DST2, DCT3, and DST3 context that will process signals of length `inner_fft.len()`.
-    pub fn new(inner_fft: Arc<dyn FFT<T>>) -> Self {
-        assert!(
-            !inner_fft.is_inverse(),
-            "The 'DCT type 2 via FFT' algorithm requires a forward FFT, but an inverse FFT \
-                 was provided"
+    pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
+        assert_eq!(
+            inner_fft.fft_direction(),
+            FftDirection::Forward,
+            "The 'DCT type 2 via FFT' algorithm requires a forward FFT, but an inverse FFT was provided"
         );
 
         let len = inner_fft.len();
@@ -65,79 +65,79 @@ impl<T: common::DCTnum> Type2And3ConvertToFFT<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT2<T> for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> DCT2<T> for Type2And3ConvertToFFT<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
-        let mut buffer = vec![Complex::zero(); self.len() * 2];
-        let (fft_input, fft_output) = buffer.split_at_mut(self.len());
+        let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
+        let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
 
         // the first half of the array will be the even elements, in order
         let even_end = (input.len() + 1) / 2;
         for i in 0..even_end {
-            fft_input[i] = Complex::from(input[i * 2]);
+            fft_buffer[i] = Complex::from(input[i * 2]);
         }
 
         // the second half is the odd elements, in reverse order
         let odd_end = input.len() - 1 - input.len() % 2;
         for i in 0..input.len() / 2 {
-            fft_input[even_end + i] = Complex::from(input[odd_end - 2 * i]);
+            fft_buffer[even_end + i] = Complex::from(input[odd_end - 2 * i]);
         }
 
         // run the fft
-        self.fft.process(fft_input, fft_output);
+        self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
         // apply a correction factor to the result
         for ((fft_entry, correction_entry), spectrum_entry) in
-            fft_output.iter().zip(self.twiddles.iter()).zip(output.iter_mut())
+        fft_buffer.iter().zip(self.twiddles.iter()).zip(output.iter_mut())
         {
             *spectrum_entry = (fft_entry * correction_entry).re;
         }
     }
 }
-impl<T: common::DCTnum> DST2<T> for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> DST2<T> for Type2And3ConvertToFFT<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
-        let mut buffer = vec![Complex::zero(); self.len() * 2];
-        let (fft_input, fft_output) = buffer.split_at_mut(self.len());
+        let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
+        let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
 
         // the first half of the array will be the even elements, in order
         let even_end = (input.len() + 1) / 2;
         for i in 0..even_end {
-            fft_input[i] = Complex::from(input[i * 2]);
+            fft_buffer[i] = Complex::from(input[i * 2]);
         }
 
         // the second half is the odd elements, in reverse order and negated
         let odd_end = input.len() - 1 - input.len() % 2;
         for i in 0..input.len() / 2 {
-            fft_input[even_end + i] = Complex::from(-input[odd_end - 2 * i]);
+            fft_buffer[even_end + i] = Complex::from(-input[odd_end - 2 * i]);
         }
 
         // run the fft
-        self.fft.process(fft_input, fft_output);
+        self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
         // apply a correction factor to the result, and put it in reversed order in the output buffer
         for ((fft_entry, correction_entry), spectrum_entry) in
-            fft_output.iter().zip(self.twiddles.iter()).zip(output.iter_mut().rev())
+        fft_buffer.iter().zip(self.twiddles.iter()).zip(output.iter_mut().rev())
         {
             *spectrum_entry = (fft_entry * correction_entry).re;
         }
     }
 }
-impl<T: common::DCTnum> DCT3<T> for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> DCT3<T> for Type2And3ConvertToFFT<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let half = T::half();
 
-        let mut buffer = vec![Complex::zero(); self.len() * 2];
-        let (mut fft_input, mut fft_output) = buffer.split_at_mut(self.len());
+        let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
+        let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
 
         // compute the FFT input based on the correction factors
-        fft_input[0] = Complex::from(input[0] * half);
+        fft_buffer[0] = Complex::from(input[0] * half);
 
-        for (i, (fft_input_element, twiddle)) in fft_input.iter_mut().zip(self.twiddles.iter()).enumerate().skip(1) {
+        for (i, (fft_input_element, twiddle)) in fft_buffer.iter_mut().zip(self.twiddles.iter()).enumerate().skip(1) {
             let c = Complex {
                 re: input[i],
                 im: input[input.len() - i],
@@ -146,34 +146,34 @@ impl<T: common::DCTnum> DCT3<T> for Type2And3ConvertToFFT<T> {
         }
 
         // run the fft
-        self.fft.process(&mut fft_input, &mut fft_output);
+        self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
         // copy the first half of the fft output into the even elements of the output
         let even_end = (input.len() + 1) / 2;
         for i in 0..even_end {
-            output[i * 2] = fft_output[i].re;
+            output[i * 2] = fft_buffer[i].re;
         }
 
         // copy the second half of the fft output into the odd elements, reversed
         let odd_end = input.len() - 1 - input.len() % 2;
         for i in 0..input.len() / 2 {
-            output[odd_end - 2 * i] = fft_output[i + even_end].re;
+            output[odd_end - 2 * i] = fft_buffer[i + even_end].re;
         }
     }
 }
-impl<T: common::DCTnum> DST3<T> for Type2And3ConvertToFFT<T> {
+impl<T: common::DctNum> DST3<T> for Type2And3ConvertToFFT<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let half = T::half();
         
-        let mut buffer = vec![Complex::zero(); self.len() * 2];
-        let (mut fft_input, mut fft_output) = buffer.split_at_mut(self.len());
+        let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
+        let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
 
         // compute the FFT input based on the correction factors
-        fft_input[0] = Complex::from(input[input.len() - 1] * half);
+        fft_buffer[0] = Complex::from(input[input.len() - 1] * half);
 
-        for (i, (fft_input_element, twiddle)) in fft_input.iter_mut().zip(self.twiddles.iter()).enumerate().skip(1) {
+        for (i, (fft_input_element, twiddle)) in fft_buffer.iter_mut().zip(self.twiddles.iter()).enumerate().skip(1) {
             let c = Complex {
                 re: input[input.len() - i - 1],
                 im: input[i - 1],
@@ -182,22 +182,22 @@ impl<T: common::DCTnum> DST3<T> for Type2And3ConvertToFFT<T> {
         }
 
         // run the fft
-        self.fft.process(&mut fft_input, &mut fft_output);
+        self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
         // copy the first half of the fft output into the even elements of the output
         let even_end = (self.len() + 1) / 2;
         for i in 0..even_end {
-            output[i * 2] = fft_output[i].re;
+            output[i * 2] = fft_buffer[i].re;
         }
 
         // copy the second half of the fft output into the odd elements, reversed
         let odd_end = self.len() - 1 - self.len() % 2;
         for i in 0..self.len() / 2 {
-            output[odd_end - 2 * i] = -fft_output[i + even_end].re;
+            output[odd_end - 2 * i] = -fft_buffer[i + even_end].re;
         }
     }
 }
-impl<T: common::DCTnum> TransformType2And3<T> for Type2And3ConvertToFFT<T>{}
+impl<T: common::DctNum> TransformType2And3<T> for Type2And3ConvertToFFT<T>{}
 impl<T> Length for Type2And3ConvertToFFT<T> {
     fn len(&self) -> usize {
         self.twiddles.len()
@@ -211,7 +211,7 @@ mod test {
     use algorithm::Type2And3Naive;
 
     use test_utils::{compare_float_vectors, random_signal};
-    use rustfft::FFTplanner;
+    use rustfft::FftPlanner;
 
     /// Verify that our fast implementation of the DCT2 gives the same output as the naive version, for many different inputs
     #[test]
@@ -226,8 +226,8 @@ mod test {
             let naive_dct = Type2And3Naive::new(size);
             naive_dct.process_dct2(&mut expected_input, &mut expected_output);
 
-            let mut fft_planner = FFTplanner::new(false);
-            let dct = Type2And3ConvertToFFT::new(fft_planner.plan_fft(size));
+            let mut fft_planner = FftPlanner::new();
+            let dct = Type2And3ConvertToFFT::new(fft_planner.plan_fft_forward(size));
             dct.process_dct2(&mut actual_input, &mut actual_output);
 
             println!("{}", size);
@@ -255,8 +255,8 @@ mod test {
             let naive_dst = Type2And3Naive::new(size);
             naive_dst.process_dst2(&mut expected_input, &mut expected_output);
 
-            let mut fft_planner = FFTplanner::new(false);
-            let dst = Type2And3ConvertToFFT::new(fft_planner.plan_fft(size));
+            let mut fft_planner = FftPlanner::new();
+            let dst = Type2And3ConvertToFFT::new(fft_planner.plan_fft_forward(size));
             dst.process_dst2(&mut actual_input, &mut actual_output);
 
             println!("{}", size);
@@ -284,8 +284,8 @@ mod test {
             let naive_dct = Type2And3Naive::new(size);
             naive_dct.process_dct3(&mut expected_input, &mut expected_output);
 
-            let mut fft_planner = FFTplanner::new(false);
-            let dct = Type2And3ConvertToFFT::new(fft_planner.plan_fft(size));
+            let mut fft_planner = FftPlanner::new();
+            let dct = Type2And3ConvertToFFT::new(fft_planner.plan_fft_forward(size));
             dct.process_dct3(&mut actual_input, &mut actual_output);
 
             println!("{}", size);
@@ -313,8 +313,8 @@ mod test {
             let naive_dst = Type2And3Naive::new(size);
             naive_dst.process_dst3(&mut expected_input, &mut expected_output);
 
-            let mut fft_planner = FFTplanner::new(false);
-            let dst = Type2And3ConvertToFFT::new(fft_planner.plan_fft(size));
+            let mut fft_planner = FftPlanner::new();
+            let dst = Type2And3ConvertToFFT::new(fft_planner.plan_fft_forward(size));
             dst.process_dst3(&mut actual_input, &mut actual_output);
 
             println!("{}", size);

@@ -25,7 +25,7 @@ pub struct DCT6And7Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> DCT6And7Naive<T> {
+impl<T: common::DctNum> DCT6And7Naive<T> {
     /// Creates a new DCT6 and DCT7 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 - 1) as f64;
@@ -39,7 +39,7 @@ impl<T: common::DCTnum> DCT6And7Naive<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT6<T> for DCT6And7Naive<T> {
+impl<T: common::DctNum> DCT6<T> for DCT6And7Naive<T> {
     fn process_dct6(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -66,7 +66,7 @@ impl<T: common::DCTnum> DCT6<T> for DCT6And7Naive<T> {
         }
     }
 }
-impl<T: common::DCTnum> DCT7<T> for DCT6And7Naive<T> {
+impl<T: common::DctNum> DCT7<T> for DCT6And7Naive<T> {
     fn process_dct7(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -92,7 +92,7 @@ impl<T: common::DCTnum> DCT7<T> for DCT6And7Naive<T> {
         }
     }
 }
-impl<T: common::DCTnum> DCT6And7<T> for DCT6And7Naive<T>{}
+impl<T: common::DctNum> DCT6And7<T> for DCT6And7Naive<T>{}
 impl<T> Length for DCT6And7Naive<T> {
     fn len(&self) -> usize {
         (self.twiddles.len() + 2) / 4
@@ -121,7 +121,7 @@ pub struct DST6And7Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> DST6And7Naive<T> {
+impl<T: common::DctNum> DST6And7Naive<T> {
     /// Creates a new DST6 and DST7 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 + 1) as f64;
@@ -135,7 +135,7 @@ impl<T: common::DCTnum> DST6And7Naive<T> {
     }
 }
 
-impl<T: common::DCTnum> DST6<T> for DST6And7Naive<T> {
+impl<T: common::DctNum> DST6<T> for DST6And7Naive<T> {
     fn process_dst6(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -159,7 +159,7 @@ impl<T: common::DCTnum> DST6<T> for DST6And7Naive<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST7<T> for DST6And7Naive<T> {
+impl<T: common::DctNum> DST7<T> for DST6And7Naive<T> {
     fn process_dst7(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -183,7 +183,7 @@ impl<T: common::DCTnum> DST7<T> for DST6And7Naive<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST6And7<T> for DST6And7Naive<T>{}
+impl<T: common::DctNum> DST6And7<T> for DST6And7Naive<T>{}
 impl<T> Length for DST6And7Naive<T> {
     fn len(&self) -> usize {
         (self.twiddles.len() - 2) / 4

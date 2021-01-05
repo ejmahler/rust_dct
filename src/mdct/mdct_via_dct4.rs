@@ -14,13 +14,13 @@ use common;
 /// ~~~
 /// // Computes a MDCT of input size 1234 via a DCT4, using the MP3 window function
 /// use rustdct::mdct::{MDCT, MDCTViaDCT4, window_fn};
-/// use rustdct::DCTplanner;
+/// use rustdct::DctPlanner;
 ///
 /// let len = 1234;
 /// let input:  Vec<f32> = vec![0f32; len * 2];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut planner = DCTplanner::new();
+/// let mut planner = DctPlanner::new();
 /// let inner_dct4 = planner.plan_dct4(len);
 /// 
 /// let dct = MDCTViaDCT4::new(inner_dct4, window_fn::mp3);
@@ -31,7 +31,7 @@ pub struct MDCTViaDCT4<T> {
     window: Box<[T]>,
 }
 
-impl<T: common::DCTnum> MDCTViaDCT4<T> {
+impl<T: common::DctNum> MDCTViaDCT4<T> {
     /// Creates a new MDCT context that will process signals of length `inner_dct.len() * 2`, with an output of length `inner_dct.len()`
     ///
     /// `inner_dct.len()` must be even.
@@ -55,7 +55,7 @@ impl<T: common::DCTnum> MDCTViaDCT4<T> {
         }
     }
 }
-impl<T: common::DCTnum> MDCT<T> for MDCTViaDCT4<T> {
+impl<T: common::DctNum> MDCT<T> for MDCTViaDCT4<T> {
     fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());

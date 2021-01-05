@@ -26,7 +26,7 @@ pub struct DCT5Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> DCT5Naive<T> {
+impl<T: common::DctNum> DCT5Naive<T> {
     pub fn new(len: usize) -> Self {
         let constant_factor = f64::consts::PI / (len as f64 - 0.5);
 
@@ -39,7 +39,7 @@ impl<T: common::DCTnum> DCT5Naive<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT5<T> for DCT5Naive<T> {
+impl<T: common::DctNum> DCT5<T> for DCT5Naive<T> {
     fn process_dct5(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -94,7 +94,7 @@ pub struct DST5Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> DST5Naive<T> {
+impl<T: common::DctNum> DST5Naive<T> {
     /// Creates a new DST5 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
 
@@ -109,7 +109,7 @@ impl<T: common::DCTnum> DST5Naive<T> {
     }
 }
 
-impl<T: common::DCTnum> DST5<T> for DST5Naive<T> {
+impl<T: common::DctNum> DST5<T> for DST5Naive<T> {
     fn process_dst5(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 

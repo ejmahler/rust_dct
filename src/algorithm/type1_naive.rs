@@ -27,7 +27,7 @@ pub struct DCT1Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> DCT1Naive<T> {
+impl<T: common::DctNum> DCT1Naive<T> {
     pub fn new(len: usize) -> Self {
         assert_ne!(len, 1, "DCT Type 1 is undefined for len == 1");
 
@@ -42,7 +42,7 @@ impl<T: common::DCTnum> DCT1Naive<T> {
     }
 }
 
-impl<T: common::DCTnum> DCT1<T> for DCT1Naive<T> {
+impl<T: common::DctNum> DCT1<T> for DCT1Naive<T> {
     fn process_dct1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -98,7 +98,7 @@ pub struct DST1Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DCTnum> DST1Naive<T> {
+impl<T: common::DctNum> DST1Naive<T> {
     /// Creates a new DST1 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
 
@@ -113,7 +113,7 @@ impl<T: common::DCTnum> DST1Naive<T> {
     }
 }
 
-impl<T: common::DCTnum> DST1<T> for DST1Naive<T> {
+impl<T: common::DctNum> DST1<T> for DST1Naive<T> {
     fn process_dst1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 

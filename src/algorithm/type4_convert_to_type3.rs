@@ -16,13 +16,13 @@ use ::{DCT4, DST4, TransformType2And3, TransformType4};
 /// use std::sync::Arc;
 /// use rustdct::DCT4;
 /// use rustdct::algorithm::Type4ConvertToType3Even;
-/// use rustdct::DCTplanner;
+/// use rustdct::DctPlanner;
 ///
 /// let len = 1234;
 /// let mut input:  Vec<f32> = vec![0f32; len];
 /// let mut output: Vec<f32> = vec![0f32; len];
 ///
-/// let mut planner = DCTplanner::new();
+/// let mut planner = DctPlanner::new();
 /// let inner_dct3 = planner.plan_dct3(len / 2);
 /// 
 /// let dct = Type4ConvertToType3Even::new(inner_dct3);
@@ -33,7 +33,7 @@ pub struct Type4ConvertToType3Even<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DCTnum> Type4ConvertToType3Even<T> {
+impl<T: common::DctNum> Type4ConvertToType3Even<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_dct.len() * 2`.
     pub fn new(inner_dct: Arc<dyn TransformType2And3<T>>) -> Self {
         let inner_len = inner_dct.len();
@@ -50,7 +50,7 @@ impl<T: common::DCTnum> Type4ConvertToType3Even<T> {
         }
     }
 }
-impl<T: common::DCTnum> DCT4<T> for Type4ConvertToType3Even<T> {
+impl<T: common::DctNum> DCT4<T> for Type4ConvertToType3Even<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -84,7 +84,7 @@ impl<T: common::DCTnum> DCT4<T> for Type4ConvertToType3Even<T> {
         }
     }
 }
-impl<T: common::DCTnum> DST4<T> for Type4ConvertToType3Even<T> {
+impl<T: common::DctNum> DST4<T> for Type4ConvertToType3Even<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -118,7 +118,7 @@ impl<T: common::DCTnum> DST4<T> for Type4ConvertToType3Even<T> {
         }
     }
 }
-impl<T: common::DCTnum> TransformType4<T> for Type4ConvertToType3Even<T>{}
+impl<T: common::DctNum> TransformType4<T> for Type4ConvertToType3Even<T>{}
 impl<T> Length for Type4ConvertToType3Even<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 2

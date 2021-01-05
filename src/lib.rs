@@ -1,10 +1,4 @@
 
-#[feature(min_specialization)]
-
-trait TestTrait<T> {}
-impl<T, I: Iterator<Item=T>> TestTrait<T> for I { /* default impl */ }
-impl<T> TestTrait<T> for std::vec::IntoIter<T> { /* specialized impl */ }
-
 pub extern crate rustfft;
 
 pub use rustfft::num_complex;
@@ -18,15 +12,15 @@ pub mod algorithm;
 mod plan;
 mod twiddles;
 mod common;
-pub use common::DCTnum;
+pub use common::DctNum;
 
-pub use self::plan::DCTplanner;
+pub use self::plan::DctPlanner;
 
 #[cfg(test)]
 mod test_utils;
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 1 (DCT1)
-pub trait DCT1<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DCT1<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DCT Type 1 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -35,7 +29,7 @@ pub trait DCT1<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 2 (DCT2)
-pub trait DCT2<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DCT2<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DCT Type 2 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -44,7 +38,7 @@ pub trait DCT2<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 3 (DCT3)
-pub trait DCT3<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DCT3<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DCT Type 3 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -53,7 +47,7 @@ pub trait DCT3<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 4 (DCT4)
-pub trait DCT4<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DCT4<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DCT Type 4 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -62,7 +56,7 @@ pub trait DCT4<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 5 (DCT5)
-pub trait DCT5<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DCT5<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DCT Type 5 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -71,7 +65,7 @@ pub trait DCT5<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 6 (DCT6)
-pub trait DCT6<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DCT6<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DCT Type 6 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -80,7 +74,7 @@ pub trait DCT6<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 7 (DCT7)
-pub trait DCT7<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DCT7<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DCT Type 7 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -89,7 +83,7 @@ pub trait DCT7<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 8 (DCT8)
-pub trait DCT8<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DCT8<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DCT Type 8 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -98,7 +92,7 @@ pub trait DCT8<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 1 (DST1)
-pub trait DST1<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DST1<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DST Type 1 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -107,7 +101,7 @@ pub trait DST1<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 2 (DST2)
-pub trait DST2<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DST2<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DST Type 2 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -116,7 +110,7 @@ pub trait DST2<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 3 (DST3)
-pub trait DST3<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DST3<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DST Type 3 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -125,7 +119,7 @@ pub trait DST3<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Sine Transform Type 4 (DST4)
-pub trait DST4<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DST4<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DST Type 4 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -134,7 +128,7 @@ pub trait DST4<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 5 (DST5)
-pub trait DST5<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DST5<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DST Type 5 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -143,7 +137,7 @@ pub trait DST5<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 6 (DST6)
-pub trait DST6<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DST6<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DST Type 6 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -152,7 +146,7 @@ pub trait DST6<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 7 (DST7)
-pub trait DST7<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DST7<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DST Type 7 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -161,7 +155,7 @@ pub trait DST7<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// An umbrella trait for algorithms which compute the Discrete Cosine Transform Type 8 (DST8)
-pub trait DST8<T: common::DCTnum>: rustfft::Length + Sync + Send {
+pub trait DST8<T: common::DctNum>: rustfft::Length + Sync + Send {
     /// Computes the DST Type 8 on the `input` buffer and places the result in the `output` buffer.
     ///
     /// This method uses the `input` buffer as scratch space, so the contents of `input` should be considered garbage
@@ -170,16 +164,16 @@ pub trait DST8<T: common::DCTnum>: rustfft::Length + Sync + Send {
 }
 
 /// A trait for algorithms that can compute all of DCT2, DCT3, DST2, DST3, all in one struct
-pub trait TransformType2And3<T: common::DCTnum> : DCT2<T> + DCT3<T> + DST2<T> + DST3<T> {}
+pub trait TransformType2And3<T: common::DctNum> : DCT2<T> + DCT3<T> + DST2<T> + DST3<T> {}
 
 /// A trait for algorithms that can compute both DCT4 and DST4, all in one struct
-pub trait TransformType4<T: common::DCTnum> : DCT4<T> + DST4<T> {}
+pub trait TransformType4<T: common::DctNum> : DCT4<T> + DST4<T> {}
 
 /// A trait for algorithms that can compute both DCT6 and DCT7, all in one struct
-pub trait DCT6And7<T: common::DCTnum> : DCT6<T> + DCT7<T> {}
+pub trait DCT6And7<T: common::DctNum> : DCT6<T> + DCT7<T> {}
 
 /// A trait for algorithms that can compute both DST6 and DST7, all in one struct
-pub trait DST6And7<T: common::DCTnum> : DST6<T> + DST7<T> {}
+pub trait DST6And7<T: common::DctNum> : DST6<T> + DST7<T> {}
 
 
 #[test]
