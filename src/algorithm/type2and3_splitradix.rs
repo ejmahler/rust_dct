@@ -3,8 +3,8 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use crate::{RequiredScratch, twiddles};
 use crate::{common, DctNum};
+use crate::{twiddles, RequiredScratch};
 use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
 /// DCT2, DCT3, DST2, and DST3 implemention that recursively divides the problem in half.
@@ -84,7 +84,6 @@ impl<T: DctNum> Dct2<T> for Type2And3SplitRadix<T> {
 
                 let input_half_bottom = *buffer.get_unchecked(half_len - i - 1);
                 let input_half_top = *buffer.get_unchecked(half_len + i);
-                
 
                 //prepare the inner DCT2
                 *input_dct2.get_unchecked_mut(i) = input_top + input_bottom;
@@ -176,8 +175,7 @@ impl<T: DctNum> Dct3<T> for Type2And3SplitRadix<T> {
             unsafe {
                 // the evens are the easy ones - just copy straight over
                 *recursive_input_evens.get_unchecked_mut(i * 2) = *buffer.get_unchecked(k);
-                *recursive_input_evens.get_unchecked_mut(i * 2 + 1) =
-                    *buffer.get_unchecked(k + 2);
+                *recursive_input_evens.get_unchecked_mut(i * 2 + 1) = *buffer.get_unchecked(k + 2);
 
                 // for the odd ones we're going to do the same addition/subtraction we do in the setup for DCT4ViaDCT3
                 *recursive_input_n1.get_unchecked_mut(i) =
@@ -188,9 +186,12 @@ impl<T: DctNum> Dct3<T> for Type2And3SplitRadix<T> {
         }
 
         //perform our recursive DCTs, using the original buffer as scratch space
-        self.half_dct.process_dct3_with_scratch(recursive_input_evens, buffer);
-        self.quarter_dct.process_dct3_with_scratch(recursive_input_n1, buffer);
-        self.quarter_dct.process_dct3_with_scratch(recursive_input_n3, buffer);
+        self.half_dct
+            .process_dct3_with_scratch(recursive_input_evens, buffer);
+        self.quarter_dct
+            .process_dct3_with_scratch(recursive_input_n1, buffer);
+        self.quarter_dct
+            .process_dct3_with_scratch(recursive_input_n3, buffer);
 
         //merge the results. we're going to combine 2 separate things:
         // - merging the two smaller DCT3 outputs into a DCT4 output
@@ -244,7 +245,6 @@ impl<T> RequiredScratch for Type2And3SplitRadix<T> {
         self.len()
     }
 }
-
 
 #[cfg(test)]
 mod test {

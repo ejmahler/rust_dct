@@ -2,8 +2,8 @@ use std::sync::Arc;
 
 use rustfft::Length;
 
-use crate::{RequiredScratch, common};
 use crate::mdct::Mdct;
+use crate::{common, RequiredScratch};
 use crate::{DctNum, TransformType4};
 
 /// MDCT implementation that converts the problem to a DCT Type 4 of the same size.
@@ -66,7 +66,13 @@ impl<T: DctNum> MdctViaDct4<T> {
     }
 }
 impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
-    fn process_mdct_with_scratch(&self, input_a: &[T], input_b: &[T], output: &mut [T], scratch: &mut [T]) {
+    fn process_mdct_with_scratch(
+        &self,
+        input_a: &[T],
+        input_b: &[T],
+        output: &mut [T],
+        scratch: &mut [T],
+    ) {
         let scratch = &mut scratch[..self.get_scratch_len()];
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
@@ -99,9 +105,7 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
             .skip(group_size);
 
         //the first half of the dct input is -Cr - D
-        for (element, (cr_val, d_val)) in output
-            .iter_mut()
-            .zip(group_c_rev_iter.zip(group_d_iter))
+        for (element, (cr_val, d_val)) in output.iter_mut().zip(group_c_rev_iter.zip(group_d_iter))
         {
             *element = -cr_val - d_val;
         }
@@ -117,7 +121,13 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
         self.dct.process_dct4_with_scratch(output, scratch);
     }
 
-    fn process_imdct_with_scratch(&self, input: &[T], output_a: &mut [T], output_b: &mut [T], scratch: &mut [T]) {
+    fn process_imdct_with_scratch(
+        &self,
+        input: &[T],
+        output_a: &mut [T],
+        output_b: &mut [T],
+        scratch: &mut [T],
+    ) {
         let scratch = &mut scratch[..self.get_scratch_len()];
         common::verify_length(input, output_a, self.len());
         assert_eq!(output_a.len(), output_b.len());
@@ -210,8 +220,18 @@ mod unit_tests {
                 let mut naive_scratch = vec![0f32; naive_mdct.get_scratch_len()];
                 let mut fast_scratch = vec![0f32; fast_mdct.get_scratch_len()];
 
-                naive_mdct.process_mdct_with_scratch(&input_a, &input_b, &mut naive_output, &mut naive_scratch);
-                fast_mdct.process_mdct_with_scratch(&input_a, &input_b, &mut fast_output, &mut fast_scratch);
+                naive_mdct.process_mdct_with_scratch(
+                    &input_a,
+                    &input_b,
+                    &mut naive_output,
+                    &mut naive_scratch,
+                );
+                fast_mdct.process_mdct_with_scratch(
+                    &input_a,
+                    &input_b,
+                    &mut fast_output,
+                    &mut fast_scratch,
+                );
 
                 assert!(
                     compare_float_vectors(&naive_output, &fast_output),
@@ -235,7 +255,7 @@ mod unit_tests {
                 // Fill both output buffers with ones, instead of zeroes, to verify that the IMDCT doesn't overwrite the output buffer
                 let mut naive_output = vec![1f32; output_len];
                 let (naive_output_a, naive_output_b) = naive_output.split_at_mut(input_len);
-                
+
                 let mut fast_output = vec![1f32; output_len];
                 let (fast_output_a, fast_output_b) = fast_output.split_at_mut(input_len);
 
@@ -247,8 +267,18 @@ mod unit_tests {
                 let mut naive_scratch = vec![0f32; naive_mdct.get_scratch_len()];
                 let mut fast_scratch = vec![0f32; fast_mdct.get_scratch_len()];
 
-                naive_mdct.process_imdct_with_scratch(&input, naive_output_a, naive_output_b, &mut naive_scratch);
-                fast_mdct.process_imdct_with_scratch(&input, fast_output_a, fast_output_b, &mut fast_scratch);
+                naive_mdct.process_imdct_with_scratch(
+                    &input,
+                    naive_output_a,
+                    naive_output_b,
+                    &mut naive_scratch,
+                );
+                fast_mdct.process_imdct_with_scratch(
+                    &input,
+                    fast_output_a,
+                    fast_output_b,
+                    &mut fast_scratch,
+                );
 
                 assert!(
                     compare_float_vectors(&naive_output, &fast_output),

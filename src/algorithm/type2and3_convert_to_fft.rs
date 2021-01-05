@@ -1,10 +1,10 @@
 use std::sync::Arc;
 
 use rustfft::num_complex::Complex;
-use rustfft::{Fft, Length, FftDirection};
+use rustfft::{Fft, FftDirection, Length};
 
-use crate::{RequiredScratch, array_utils::into_complex_mut, twiddles};
-use crate::{DctNum, Dct2, Dct3, Dst2, Dst3, TransformType2And3};
+use crate::{array_utils::into_complex_mut, twiddles, RequiredScratch};
+use crate::{Dct2, Dct3, DctNum, Dst2, Dst3, TransformType2And3};
 
 /// DCT2, DST2, DCT3, and DST3 implementation that converts the problem into a FFT of the same size
 ///

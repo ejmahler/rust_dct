@@ -2,8 +2,11 @@
 extern crate rustdct;
 extern crate test;
 
-use rustdct::{RequiredScratch, algorithm::{Dct1Naive, Dst6And7Naive, Type2And3Naive, Type4Naive}};
 use rustdct::mdct::{window_fn, Mdct, MdctNaive};
+use rustdct::{
+    algorithm::{Dct1Naive, Dst6And7Naive, Type2And3Naive, Type4Naive},
+    RequiredScratch,
+};
 use rustdct::{Dct1, Dct2, Dct3, Dct4, Dst6, Dst7};
 
 use test::Bencher;
@@ -19,11 +22,26 @@ fn bench_dct1_naive(b: &mut Bencher, len: usize) {
         dct.process_dct1_with_scratch(&mut buffer, &mut scratch);
     });
 }
-#[bench] fn dct1_naive_002(b: &mut Bencher) { bench_dct1_naive(b, 2); }
-#[bench] fn dct1_naive_004(b: &mut Bencher) { bench_dct1_naive(b, 4); }
-#[bench] fn dct1_naive_006(b: &mut Bencher) { bench_dct1_naive(b, 6); }
-#[bench] fn dct1_naive_008(b: &mut Bencher) { bench_dct1_naive(b, 8); }
-#[bench] fn dct1_naive_010(b: &mut Bencher) { bench_dct1_naive(b, 10); }
+#[bench]
+fn dct1_naive_002(b: &mut Bencher) {
+    bench_dct1_naive(b, 2);
+}
+#[bench]
+fn dct1_naive_004(b: &mut Bencher) {
+    bench_dct1_naive(b, 4);
+}
+#[bench]
+fn dct1_naive_006(b: &mut Bencher) {
+    bench_dct1_naive(b, 6);
+}
+#[bench]
+fn dct1_naive_008(b: &mut Bencher) {
+    bench_dct1_naive(b, 8);
+}
+#[bench]
+fn dct1_naive_010(b: &mut Bencher) {
+    bench_dct1_naive(b, 10);
+}
 
 /// Times just the DCT2 execution (not allocation and pre-calculation)
 /// for a given length

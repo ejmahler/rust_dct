@@ -1,7 +1,7 @@
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use crate::{RequiredScratch, common};
+use crate::{common, RequiredScratch};
 use crate::{twiddles, DctNum};
 use crate::{Dct4, Dst4, TransformType4};
 

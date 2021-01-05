@@ -2,7 +2,7 @@ use std::f64;
 
 use rustfft::Length;
 
-use crate::{RequiredScratch, common};
+use crate::{common, RequiredScratch};
 use crate::{mdct::Mdct, DctNum};
 
 /// Naive O(n^2 ) MDCT implementation
@@ -69,7 +69,13 @@ impl<T: DctNum> MdctNaive<T> {
 }
 
 impl<T: DctNum> Mdct<T> for MdctNaive<T> {
-    fn process_mdct_with_scratch(&self, input_a: &[T], input_b: &[T], output: &mut [T], _scratch: &mut [T]) {
+    fn process_mdct_with_scratch(
+        &self,
+        input_a: &[T],
+        input_b: &[T],
+        output: &mut [T],
+        _scratch: &mut [T],
+    ) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
 
@@ -106,7 +112,13 @@ impl<T: DctNum> Mdct<T> for MdctNaive<T> {
             }
         }
     }
-    fn process_imdct_with_scratch(&self, input: &[T], output_a: &mut [T], output_b: &mut [T], _scratch: &mut [T]) {
+    fn process_imdct_with_scratch(
+        &self,
+        input: &[T],
+        output_a: &mut [T],
+        output_b: &mut [T],
+        _scratch: &mut [T],
+    ) {
         common::verify_length(input, output_a, self.len());
         assert_eq!(output_a.len(), output_b.len());
 
@@ -345,7 +357,6 @@ mod unit_tests {
 
             let dct = MdctNaive::new(input.len(), window_fn::one);
             dct.process_imdct_with_scratch(&input, fast_output_a, fast_output_b, &mut []);
-
 
             assert!(compare_float_vectors(&expected, &slow_output));
             assert!(compare_float_vectors(&expected, &fast_output));

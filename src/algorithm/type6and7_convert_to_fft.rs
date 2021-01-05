@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
 use rustfft::num_complex::Complex;
-use rustfft::{Fft, Length, FftDirection};
+use rustfft::{Fft, FftDirection, Length};
 
-use crate::{DctNum, RequiredScratch, array_utils::into_complex_mut};
+use crate::{array_utils::into_complex_mut, DctNum, RequiredScratch};
 use crate::{Dst6, Dst6And7, Dst7};
 
 /// DST6 and DST7 implementation that converts the problem into a FFT of the same size
@@ -28,7 +28,7 @@ use crate::{Dst6, Dst6And7, Dst7};
 /// ~~~
 pub struct Dst6And7ConvertToFft<T> {
     fft: Arc<dyn Fft<T>>,
-    
+
     len: usize,
     scratch_len: usize,
     inner_fft_len: usize,
@@ -49,9 +49,9 @@ impl<T: DctNum> Dst6And7ConvertToFft<T> {
 
         let len = (inner_fft_len - 1) / 2;
 
-        Self { 
+        Self {
             scratch_len: 2 * (inner_fft_len + inner_fft.get_inplace_scratch_len()),
-            inner_fft_len, 
+            inner_fft_len,
             fft: inner_fft,
             len,
         }

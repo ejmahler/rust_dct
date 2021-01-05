@@ -85,7 +85,10 @@ macro_rules! dct_test_with_planner {
 
 pub mod test_mdct {
     use super::*;
-    use rustdct::{RequiredScratch, mdct::{Mdct, MdctNaive}};
+    use rustdct::{
+        mdct::{Mdct, MdctNaive},
+        RequiredScratch,
+    };
 
     pub fn planned_matches_naive<F>(len: usize, window_fn: F)
     where
@@ -113,8 +116,18 @@ pub mod test_mdct {
         let mut naive_scratch = vec![0f32; naive_dct.get_scratch_len()];
         let mut fast_scratch = vec![0f32; actual_dct.get_scratch_len()];
 
-        naive_dct.process_mdct_with_scratch(input_a, input_b, &mut naive_output, &mut naive_scratch);
-        actual_dct.process_mdct_with_scratch(input_a, input_b, &mut actual_output, &mut fast_scratch);
+        naive_dct.process_mdct_with_scratch(
+            input_a,
+            input_b,
+            &mut naive_output,
+            &mut naive_scratch,
+        );
+        actual_dct.process_mdct_with_scratch(
+            input_a,
+            input_b,
+            &mut actual_output,
+            &mut fast_scratch,
+        );
 
         println!("Naive output:   {:?}", naive_output);
         println!("Planned output: {:?}", actual_output);

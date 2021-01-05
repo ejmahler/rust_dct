@@ -116,7 +116,7 @@ impl<T: DctNum> DctPlanner<T> {
             let quarter_dct = self.plan_dct2(len / 4);
             Arc::new(Type2And3SplitRadix::new(half_dct, quarter_dct))
         } else {
-            // Benchmarking shows that it's always faster 
+            // Benchmarking shows that it's always faster
             let fft = self.fft_planner.plan_fft_forward(len);
             Arc::new(Type2And3ConvertToFft::new(fft))
         }

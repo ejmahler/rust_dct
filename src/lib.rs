@@ -9,10 +9,10 @@ pub mod mdct;
 
 pub mod algorithm;
 
+mod array_utils;
 mod common;
 mod plan;
 mod twiddles;
-mod array_utils;
 pub use crate::common::DctNum;
 
 pub use self::plan::DctPlanner;

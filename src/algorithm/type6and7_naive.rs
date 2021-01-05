@@ -1,6 +1,6 @@
 use rustfft::Length;
 
-use crate::{RequiredScratch, common};
+use crate::{common, RequiredScratch};
 use crate::{Dct6, Dct6And7, Dct7, DctNum, Dst6, Dst6And7, Dst7};
 
 /// Naive O(n^2 ) DCT Type 6 and DCT Type 7 implementation

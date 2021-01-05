@@ -4,7 +4,7 @@ use rustfft::num_complex::Complex;
 use rustfft::FftDirection;
 use rustfft::{Fft, Length};
 
-use crate::{DctNum, RequiredScratch, array_utils::into_complex_mut};
+use crate::{array_utils::into_complex_mut, DctNum, RequiredScratch};
 use crate::{Dct1, Dst1};
 
 /// DCT Type 1 implementation that converts the problem into a FFT of size 2 * (n - 1)
@@ -51,9 +51,9 @@ impl<T: DctNum> Dct1ConvertToFft<T> {
 
         let len = inner_fft_len / 2 + 1;
 
-        Self { 
+        Self {
             scratch_len: 2 * (inner_fft_len + inner_fft.get_inplace_scratch_len()),
-            inner_fft_len, 
+            inner_fft_len,
             fft: inner_fft,
             len,
         }
@@ -127,7 +127,7 @@ impl<T> Length for Dct1ConvertToFft<T> {
 /// ~~~
 pub struct Dst1ConvertToFft<T> {
     fft: Arc<dyn Fft<T>>,
-    
+
     len: usize,
     scratch_len: usize,
     inner_fft_len: usize,
@@ -152,9 +152,9 @@ impl<T: DctNum> Dst1ConvertToFft<T> {
 
         let len = inner_fft_len / 2 - 1;
 
-        Self { 
+        Self {
             scratch_len: 2 * (inner_fft_len + inner_fft.get_inplace_scratch_len()),
-            inner_fft_len, 
+            inner_fft_len,
             fft: inner_fft,
             len,
         }

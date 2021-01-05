@@ -1,6 +1,6 @@
 use rustfft::Length;
 
-use crate::{RequiredScratch, common};
+use crate::{common, RequiredScratch};
 use crate::{Dct8, DctNum, Dst8};
 
 /// Naive O(n^2 ) DCT Type 8 implementation

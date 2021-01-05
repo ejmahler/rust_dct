@@ -4,7 +4,7 @@ use rustfft::num_complex::Complex;
 use rustfft::FftDirection;
 use rustfft::{Fft, Length};
 
-use crate::{DctNum, RequiredScratch, array_utils::into_complex_mut};
+use crate::{array_utils::into_complex_mut, DctNum, RequiredScratch};
 use crate::{Dct4, Dst4, TransformType4};
 
 /// DCT Type 4 and DST Type 4 implementation that converts the problem into a FFT of the same size.
@@ -53,7 +53,7 @@ impl<T: DctNum> Type4ConvertToFftOdd<T> {
             len
         );
 
-        Self { 
+        Self {
             scratch_len: 2 * (len + inner_fft.get_inplace_scratch_len()),
             fft: inner_fft,
             len,

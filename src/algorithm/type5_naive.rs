@@ -2,7 +2,7 @@ use std::f64;
 
 use rustfft::Length;
 
-use crate::{RequiredScratch, common};
+use crate::{common, RequiredScratch};
 use crate::{Dct5, DctNum, Dst5};
 
 /// Naive O(n^2 ) DCT Type 5 implementation

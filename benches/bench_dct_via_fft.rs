@@ -4,11 +4,11 @@ extern crate test;
 
 use std::sync::Arc;
 
-use rustdct::{RequiredScratch, algorithm::type2and3_butterflies::*};
 use rustdct::algorithm::*;
 use rustdct::mdct::{window_fn, Mdct, MdctViaDct4};
 use rustdct::rustfft::FftPlanner;
 use rustdct::DctPlanner;
+use rustdct::{algorithm::type2and3_butterflies::*, RequiredScratch};
 use rustdct::{Dct1, Dct2, Dct3, Dct4, Dst6, Dst7, TransformType2And3};
 
 use test::Bencher;
@@ -26,11 +26,26 @@ fn bench_dct1_fft(b: &mut Bencher, len: usize) {
     });
 }
 
-#[bench] fn dct1_fft_002(b: &mut Bencher) { bench_dct1_fft(b, 2); }
-#[bench] fn dct1_fft_004(b: &mut Bencher) { bench_dct1_fft(b, 4); }
-#[bench] fn dct1_fft_006(b: &mut Bencher) { bench_dct1_fft(b, 6); }
-#[bench] fn dct1_fft_008(b: &mut Bencher) { bench_dct1_fft(b, 8); }
-#[bench] fn dct1_fft_010(b: &mut Bencher) { bench_dct1_fft(b, 10); }
+#[bench]
+fn dct1_fft_002(b: &mut Bencher) {
+    bench_dct1_fft(b, 2);
+}
+#[bench]
+fn dct1_fft_004(b: &mut Bencher) {
+    bench_dct1_fft(b, 4);
+}
+#[bench]
+fn dct1_fft_006(b: &mut Bencher) {
+    bench_dct1_fft(b, 6);
+}
+#[bench]
+fn dct1_fft_008(b: &mut Bencher) {
+    bench_dct1_fft(b, 8);
+}
+#[bench]
+fn dct1_fft_010(b: &mut Bencher) {
+    bench_dct1_fft(b, 10);
+}
 
 /// Times just the DCT2 execution (not allocation and pre-calculation)
 /// for a given length
@@ -113,7 +128,8 @@ fn dct2_power2_split_0008(b: &mut Bencher) {
 #[bench]
 fn dct2_power2_split_0016(b: &mut Bencher) {
     bench_dct2_split(b, 16);
-}#[bench]
+}
+#[bench]
 fn dct2_power2_split_0032(b: &mut Bencher) {
     bench_dct2_split(b, 32);
 }
@@ -124,7 +140,8 @@ fn dct2_power2_split_0064(b: &mut Bencher) {
 #[bench]
 fn dct2_power2_split_0128(b: &mut Bencher) {
     bench_dct2_split(b, 128);
-}#[bench]
+}
+#[bench]
 fn dct2_power2_split_0256(b: &mut Bencher) {
     bench_dct2_split(b, 256);
 }
@@ -160,7 +177,8 @@ fn dct2_power2_fft_0064(b: &mut Bencher) {
 #[bench]
 fn dct2_power2_fft_0128(b: &mut Bencher) {
     bench_dct2_fft(b, 128);
-}#[bench]
+}
+#[bench]
 fn dct2_power2_fft_0256(b: &mut Bencher) {
     bench_dct2_fft(b, 256);
 }
