@@ -19,19 +19,11 @@ fn bench_dct1_naive(b: &mut Bencher, len: usize) {
         dct.process_dct1_with_scratch(&mut buffer, &mut scratch);
     });
 }
-
-#[bench]
-fn dct1_naive_0024(b: &mut Bencher) {
-    bench_dct1_naive(b, 24);
-}
-#[bench]
-fn dct1_naive_0025(b: &mut Bencher) {
-    bench_dct1_naive(b, 25);
-}
-#[bench]
-fn dct1_naive_0026(b: &mut Bencher) {
-    bench_dct1_naive(b, 26);
-}
+#[bench] fn dct1_naive_002(b: &mut Bencher) { bench_dct1_naive(b, 2); }
+#[bench] fn dct1_naive_004(b: &mut Bencher) { bench_dct1_naive(b, 4); }
+#[bench] fn dct1_naive_006(b: &mut Bencher) { bench_dct1_naive(b, 6); }
+#[bench] fn dct1_naive_008(b: &mut Bencher) { bench_dct1_naive(b, 8); }
+#[bench] fn dct1_naive_010(b: &mut Bencher) { bench_dct1_naive(b, 10); }
 
 /// Times just the DCT2 execution (not allocation and pre-calculation)
 /// for a given length
@@ -46,28 +38,28 @@ fn bench_dct2_naive(b: &mut Bencher, len: usize) {
 }
 
 #[bench]
-fn dct2_naive_017(b: &mut Bencher) {
-    bench_dct2_naive(b, 17);
+fn dct2_naive_06(b: &mut Bencher) {
+    bench_dct2_naive(b, 6);
 }
 #[bench]
-fn dct2_naive_018(b: &mut Bencher) {
-    bench_dct2_naive(b, 18);
+fn dct2_naive_05(b: &mut Bencher) {
+    bench_dct2_naive(b, 5);
 }
 #[bench]
-fn dct2_naive_019(b: &mut Bencher) {
-    bench_dct2_naive(b, 19);
+fn dct2_naive_04(b: &mut Bencher) {
+    bench_dct2_naive(b, 4);
 }
 #[bench]
-fn dct2_naive_020(b: &mut Bencher) {
-    bench_dct2_naive(b, 20);
+fn dct2_naive_03(b: &mut Bencher) {
+    bench_dct2_naive(b, 3);
 }
 #[bench]
-fn dct2_naive_021(b: &mut Bencher) {
-    bench_dct2_naive(b, 21);
+fn dct2_naive_02(b: &mut Bencher) {
+    bench_dct2_naive(b, 2);
 }
 #[bench]
-fn dct2_naive_022(b: &mut Bencher) {
-    bench_dct2_naive(b, 22);
+fn dct2_naive_01(b: &mut Bencher) {
+    bench_dct2_naive(b, 1);
 }
 
 /// Times just the DCT3 execution (not allocation and pre-calculation)

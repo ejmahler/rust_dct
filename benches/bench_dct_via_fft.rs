@@ -26,18 +26,11 @@ fn bench_dct1_fft(b: &mut Bencher, len: usize) {
     });
 }
 
-#[bench]
-fn dct1_fft_0024(b: &mut Bencher) {
-    bench_dct1_fft(b, 24);
-}
-#[bench]
-fn dct1_fft_0025(b: &mut Bencher) {
-    bench_dct1_fft(b, 25);
-}
-#[bench]
-fn dct1_fft_0026(b: &mut Bencher) {
-    bench_dct1_fft(b, 26);
-}
+#[bench] fn dct1_fft_002(b: &mut Bencher) { bench_dct1_fft(b, 2); }
+#[bench] fn dct1_fft_004(b: &mut Bencher) { bench_dct1_fft(b, 4); }
+#[bench] fn dct1_fft_006(b: &mut Bencher) { bench_dct1_fft(b, 6); }
+#[bench] fn dct1_fft_008(b: &mut Bencher) { bench_dct1_fft(b, 8); }
+#[bench] fn dct1_fft_010(b: &mut Bencher) { bench_dct1_fft(b, 10); }
 
 /// Times just the DCT2 execution (not allocation and pre-calculation)
 /// for a given length
@@ -53,28 +46,28 @@ fn bench_dct2_fft(b: &mut Bencher, len: usize) {
 }
 
 #[bench]
-fn dct2_fft_017(b: &mut Bencher) {
-    bench_dct2_fft(b, 17);
+fn dct2_fft_06(b: &mut Bencher) {
+    bench_dct2_fft(b, 6);
 }
 #[bench]
-fn dct2_fft_018(b: &mut Bencher) {
-    bench_dct2_fft(b, 18);
+fn dct2_fft_05(b: &mut Bencher) {
+    bench_dct2_fft(b, 5);
 }
 #[bench]
-fn dct2_fft_019(b: &mut Bencher) {
-    bench_dct2_fft(b, 19);
+fn dct2_fft_04(b: &mut Bencher) {
+    bench_dct2_fft(b, 4);
 }
 #[bench]
-fn dct2_fft_020(b: &mut Bencher) {
-    bench_dct2_fft(b, 20);
+fn dct2_fft_03(b: &mut Bencher) {
+    bench_dct2_fft(b, 3);
 }
 #[bench]
-fn dct2_fft_021(b: &mut Bencher) {
-    bench_dct2_fft(b, 21);
+fn dct2_fft_02(b: &mut Bencher) {
+    bench_dct2_fft(b, 2);
 }
 #[bench]
-fn dct2_fft_022(b: &mut Bencher) {
-    bench_dct2_fft(b, 22);
+fn dct2_fft_01(b: &mut Bencher) {
+    bench_dct2_fft(b, 1);
 }
 
 /// Times just the DCT2 execution (not allocation and pre-calculation)
@@ -120,18 +113,60 @@ fn dct2_power2_split_0008(b: &mut Bencher) {
 #[bench]
 fn dct2_power2_split_0016(b: &mut Bencher) {
     bench_dct2_split(b, 16);
+}#[bench]
+fn dct2_power2_split_0032(b: &mut Bencher) {
+    bench_dct2_split(b, 32);
 }
 #[bench]
 fn dct2_power2_split_0064(b: &mut Bencher) {
     bench_dct2_split(b, 64);
 }
 #[bench]
+fn dct2_power2_split_0128(b: &mut Bencher) {
+    bench_dct2_split(b, 128);
+}#[bench]
 fn dct2_power2_split_0256(b: &mut Bencher) {
     bench_dct2_split(b, 256);
 }
 #[bench]
 fn dct2_power2_split_065536(b: &mut Bencher) {
     bench_dct2_split(b, 65536);
+}
+
+#[bench]
+fn dct2_power2_fft_0002(b: &mut Bencher) {
+    bench_dct2_fft(b, 2);
+}
+#[bench]
+fn dct2_power2_fft_0004(b: &mut Bencher) {
+    bench_dct2_fft(b, 4);
+}
+#[bench]
+fn dct2_power2_fft_0008(b: &mut Bencher) {
+    bench_dct2_fft(b, 4);
+}
+#[bench]
+fn dct2_power2_fft_0016(b: &mut Bencher) {
+    bench_dct2_fft(b, 16);
+}
+#[bench]
+fn dct2_power2_fft_0032(b: &mut Bencher) {
+    bench_dct2_fft(b, 32);
+}
+#[bench]
+fn dct2_power2_fft_0064(b: &mut Bencher) {
+    bench_dct2_fft(b, 64);
+}
+#[bench]
+fn dct2_power2_fft_0128(b: &mut Bencher) {
+    bench_dct2_fft(b, 128);
+}#[bench]
+fn dct2_power2_fft_0256(b: &mut Bencher) {
+    bench_dct2_fft(b, 256);
+}
+#[bench]
+fn dct2_power2_fft_065536(b: &mut Bencher) {
+    bench_dct2_fft(b, 65536);
 }
 
 /// Times just the DCT3 execution (not allocation and pre-calculation)
