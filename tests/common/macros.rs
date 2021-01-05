@@ -1,6 +1,5 @@
-
+use crate::common::{compare_float_vectors, random_signal};
 use rustdct::DctPlanner;
-use common::{random_signal, compare_float_vectors};
 
 macro_rules! dct_test_with_known_data {
     ($reference_fn:ident, $naive_struct:ident, $process_fn: ident, $known_data_fn:ident) => (
@@ -49,7 +48,7 @@ macro_rules! dct_test_inverse {
 }
 
 macro_rules! dct_test_with_planner {
-    ($reference_fn:ident, $naive_struct:ident, $process_fn: ident, $planner_fn:ident, $first_size:expr) => (
+    ($reference_fn:ident, $naive_struct:ident, $process_fn: ident, $planner_fn:ident, $first_size:expr) => {
         // Compare our naive struct against the output from the planner
         for len in $first_size..20 {
             let input = random_signal(len);
@@ -65,7 +64,13 @@ macro_rules! dct_test_with_planner {
             let mut planner = DctPlanner::new();
             let actual_dct = planner.$planner_fn(len);
 
-            assert_eq!(actual_dct.len(), len, "Planner created a DCT of incorrect length. Expected {}, got {}", len, actual_dct.len());
+            assert_eq!(
+                actual_dct.len(),
+                len,
+                "Planner created a DCT of incorrect length. Expected {}, got {}",
+                len,
+                actual_dct.len()
+            );
 
             let reference_output = $reference_fn(&input);
             naive_dct.$process_fn(&mut naive_input, &mut naive_output);
@@ -79,9 +84,8 @@ macro_rules! dct_test_with_planner {
             assert!(compare_float_vectors(&reference_output, &naive_output));
             assert!(compare_float_vectors(&reference_output, &actual_output));
         }
-    )
+    };
 }
-
 
 pub mod test_mdct {
     use super::*;

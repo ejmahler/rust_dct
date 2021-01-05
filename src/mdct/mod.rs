@@ -1,14 +1,12 @@
 use rustfft::Length;
 
-use common;
-
 mod mdct_naive;
 mod mdct_via_dct4;
 
 pub mod window_fn;
 
 /// An umbrella trait for algorithms which compute the Modified Discrete Cosine Transform (MDCT)
-pub trait Mdct<T: common::DctNum>: Length + Sync + Send {
+pub trait Mdct<T: DctNum>: Length + Sync + Send {
     /// Computes the MDCT on the `input` buffer and places the result in the `output` buffer.
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
@@ -43,6 +41,8 @@ pub trait Mdct<T: common::DctNum>: Length + Sync + Send {
     /// the result of the IMDCT with what's already in the output buffer.
     fn process_imdct_split(&self, input: &[T], output_a: &mut [T], output_b: &mut [T]);
 }
+
+use crate::DctNum;
 
 pub use self::mdct_naive::MdctNaive;
 pub use self::mdct_via_dct4::MdctViaDct4;

@@ -3,12 +3,12 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use twiddles;
-use common;
-use ::{Dct4, Dst4, TransformType2And3, TransformType4};
+use crate::common;
+use crate::{twiddles, DctNum};
+use crate::{Dct4, Dst4, TransformType2And3, TransformType4};
 
 /// DCT4 and DST4 implementation that converts the problem into two DCT3 of half size.
-/// 
+///
 /// If the inner DCT3 is  O(nlogn), then so is this. This algorithm can only be used if the problem size is even.
 ///
 /// ~~~
@@ -24,7 +24,7 @@ use ::{Dct4, Dst4, TransformType2And3, TransformType4};
 ///
 /// let mut planner = DctPlanner::new();
 /// let inner_dct3 = planner.plan_dct3(len / 2);
-/// 
+///
 /// let dct = Type4ConvertToType3Even::new(inner_dct3);
 /// dct.process_dct4(&mut input, &mut output);
 /// ~~~
@@ -33,12 +33,11 @@ pub struct Type4ConvertToType3Even<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DctNum> Type4ConvertToType3Even<T> {
+impl<T: DctNum> Type4ConvertToType3Even<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_dct.len() * 2`.
     pub fn new(inner_dct: Arc<dyn TransformType2And3<T>>) -> Self {
         let inner_len = inner_dct.len();
         let len = inner_len * 2;
-
 
         let twiddles: Vec<Complex<T>> = (0..inner_len)
             .map(|i| twiddles::single_twiddle(2 * i + 1, len * 8).conj())
@@ -50,7 +49,7 @@ impl<T: common::DctNum> Type4ConvertToType3Even<T> {
         }
     }
 }
-impl<T: common::DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
+impl<T: DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -62,16 +61,18 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
 
         output_left[0] = input[0] * T::two();
         for k in 1..inner_len {
-            output_left[k] =        input[2 * k - 1] + input[2 * k];
-            output_right[k - 1] =   input[2 * k - 1] - input[2 * k];
+            output_left[k] = input[2 * k - 1] + input[2 * k];
+            output_right[k - 1] = input[2 * k - 1] - input[2 * k];
         }
         output_right[inner_len - 1] = input[len - 1] * T::two();
 
         //run the two inner DCTs on our separated arrays
         let (mut inner_result_cos, mut inner_result_sin) = input.split_at_mut(inner_len);
 
-        self.inner_dct.process_dct3(&mut output_left, &mut inner_result_cos);
-        self.inner_dct.process_dst3(&mut output_right, &mut inner_result_sin);
+        self.inner_dct
+            .process_dct3(&mut output_left, &mut inner_result_cos);
+        self.inner_dct
+            .process_dst3(&mut output_right, &mut inner_result_sin);
 
         //post-process the data by combining it back into a single array
         for k in 0..inner_len {
@@ -79,12 +80,12 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
             let cos_value = inner_result_cos[k];
             let sin_value = inner_result_sin[k];
 
-            output_left[k] =                  cos_value * twiddle.re + sin_value * twiddle.im;
+            output_left[k] = cos_value * twiddle.re + sin_value * twiddle.im;
             output_right[inner_len - 1 - k] = cos_value * twiddle.im - sin_value * twiddle.re;
         }
     }
 }
-impl<T: common::DctNum> Dst4<T> for Type4ConvertToType3Even<T> {
+impl<T: DctNum> Dst4<T> for Type4ConvertToType3Even<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -96,16 +97,18 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToType3Even<T> {
 
         output_right[0] = input[0] * T::two();
         for k in 1..inner_len {
-            output_left[k - 1] =  input[2 * k - 1] + input[2 * k];
-            output_right[k] =     input[2 * k] - input[2 * k - 1];
+            output_left[k - 1] = input[2 * k - 1] + input[2 * k];
+            output_right[k] = input[2 * k] - input[2 * k - 1];
         }
         output_left[inner_len - 1] = input[len - 1] * T::two();
 
         //run the two inner DCTs on our separated arrays
         let (mut inner_result_cos, mut inner_result_sin) = input.split_at_mut(inner_len);
 
-        self.inner_dct.process_dst3(&mut output_left, &mut inner_result_cos);
-        self.inner_dct.process_dct3(&mut output_right, &mut inner_result_sin);
+        self.inner_dct
+            .process_dst3(&mut output_left, &mut inner_result_cos);
+        self.inner_dct
+            .process_dct3(&mut output_right, &mut inner_result_sin);
 
         //post-process the data by combining it back into a single array
         for k in 0..inner_len {
@@ -113,24 +116,23 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToType3Even<T> {
             let cos_value = inner_result_cos[k];
             let sin_value = inner_result_sin[k];
 
-            output_left[k] =                  cos_value * twiddle.re + sin_value * twiddle.im;
+            output_left[k] = cos_value * twiddle.re + sin_value * twiddle.im;
             output_right[inner_len - 1 - k] = sin_value * twiddle.re - cos_value * twiddle.im;
         }
     }
 }
-impl<T: common::DctNum> TransformType4<T> for Type4ConvertToType3Even<T>{}
+impl<T: DctNum> TransformType4<T> for Type4ConvertToType3Even<T> {}
 impl<T> Length for Type4ConvertToType3Even<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 2
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use test_utils::{compare_float_vectors, random_signal};
-    use algorithm::{Type2And3Naive, Type4Naive};
+    use crate::algorithm::{Type2And3Naive, Type4Naive};
+    use crate::test_utils::{compare_float_vectors, random_signal};
 
     #[test]
     fn unittest_dct4_via_type3() {
@@ -143,7 +145,6 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            
             let naive_dct4 = Type4Naive::new(size);
             naive_dct4.process_dct4(&mut expected_input, &mut expected_output);
 
@@ -174,7 +175,6 @@ mod test {
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
 
-            
             let naive_dst4 = Type4Naive::new(size);
             naive_dst4.process_dst4(&mut expected_input, &mut expected_output);
 

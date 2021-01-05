@@ -1,9 +1,9 @@
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use twiddles;
-use ::{Dct2, Dst2, Dct3, Dst3, TransformType2And3};
-use common;
+use crate::common;
+use crate::{twiddles, DctNum};
+use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
 /// Naive O(n^2 ) DCT Type 2, DST Type 2, DCT Type 3, and DST Type 3 implementation
 ///
@@ -14,19 +14,19 @@ use common;
 ///
 /// let len = 23;
 /// let naive = Type2And3Naive::new(len);
-/// 
+///
 /// let mut dct2_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct2_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dct2(&mut dct2_input, &mut dct2_output);
-/// 
+///
 /// let mut dst2_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst2_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dst2(&mut dst2_input, &mut dst2_output);
-/// 
+///
 /// let mut dct3_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct3_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dct3(&mut dct3_input, &mut dct3_output);
-/// 
+///
 /// let mut dst3_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst3_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dst3(&mut dst3_input, &mut dst3_output);
@@ -35,18 +35,20 @@ pub struct Type2And3Naive<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DctNum> Type2And3Naive<T> {
+impl<T: DctNum> Type2And3Naive<T> {
     /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let twiddles: Vec<Complex<T>> = (0..len * 4)
             .map(|i| twiddles::single_twiddle(i, len * 4))
             .collect();
 
-        Type2And3Naive { twiddles: twiddles.into_boxed_slice() }
+        Type2And3Naive {
+            twiddles: twiddles.into_boxed_slice(),
+        }
     }
 }
 
-impl<T: common::DctNum> Dct2<T> for Type2And3Naive<T> {
+impl<T: DctNum> Dct2<T> for Type2And3Naive<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -70,7 +72,7 @@ impl<T: common::DctNum> Dct2<T> for Type2And3Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> Dst2<T> for Type2And3Naive<T> {
+impl<T: DctNum> Dst2<T> for Type2And3Naive<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -94,7 +96,7 @@ impl<T: common::DctNum> Dst2<T> for Type2And3Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> Dct3<T> for Type2And3Naive<T> {
+impl<T: DctNum> Dct3<T> for Type2And3Naive<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -120,7 +122,7 @@ impl<T: common::DctNum> Dct3<T> for Type2And3Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> Dst3<T> for Type2And3Naive<T> {
+impl<T: DctNum> Dst3<T> for Type2And3Naive<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -147,7 +149,7 @@ impl<T: common::DctNum> Dst3<T> for Type2And3Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> TransformType2And3<T> for Type2And3Naive<T>{}
+impl<T: DctNum> TransformType2And3<T> for Type2And3Naive<T> {}
 impl<T> Length for Type2And3Naive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 4

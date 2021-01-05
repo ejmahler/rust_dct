@@ -1,18 +1,23 @@
-extern crate rustdct;
 extern crate rand;
+extern crate rustdct;
 
 #[macro_use]
 mod common;
 
-use rustdct::{Dct1, Dct2, Dct3, Dct4, Dct5, Dct6, Dct7, Dct8, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6, Dst7, Dst8};
-use rustdct::algorithm::{Dct1Naive, Dst1Naive, Type2And3Naive, Type4Naive, Dct5Naive, Dst5Naive, Dct6And7Naive, Dst6And7Naive, Dct8Naive, Dst8Naive};
+use rustdct::algorithm::{
+    Dct1Naive, Dct5Naive, Dct6And7Naive, Dct8Naive, Dst1Naive, Dst5Naive, Dst6And7Naive, Dst8Naive,
+    Type2And3Naive, Type4Naive,
+};
 use rustdct::mdct::window_fn;
 use rustdct::DctPlanner;
+use rustdct::{
+    Dct1, Dct2, Dct3, Dct4, Dct5, Dct6, Dct7, Dct8, Dst1, Dst2, Dst3, Dst4, Dst5, Dst6, Dst7, Dst8,
+};
 
-use common::macros::test_mdct;
-use common::known_data::*;
-use common::reference_impls::*;
-use common::{random_signal, compare_float_vectors};
+use crate::common::known_data::*;
+use crate::common::macros::test_mdct;
+use crate::common::reference_impls::*;
+use crate::common::{compare_float_vectors, random_signal};
 
 use std::f32;
 
@@ -40,13 +45,23 @@ fn test_dct1_accuracy() {
 }
 #[test]
 fn test_dct2_accuracy() {
-    dct_test_with_known_data!(reference_dct2, Type2And3Naive, process_dct2, known_values_dct2);
+    dct_test_with_known_data!(
+        reference_dct2,
+        Type2And3Naive,
+        process_dct2,
+        known_values_dct2
+    );
     dct_test_with_planner!(reference_dct2, Type2And3Naive, process_dct2, plan_dct2, 1);
     dct_test_inverse!(reference_dct2, reference_dct3, inverse_scale_normal, 1);
 }
 #[test]
 fn test_dct3_accuracy() {
-    dct_test_with_known_data!(reference_dct3, Type2And3Naive, process_dct3, known_values_dct3);
+    dct_test_with_known_data!(
+        reference_dct3,
+        Type2And3Naive,
+        process_dct3,
+        known_values_dct3
+    );
     dct_test_with_planner!(reference_dct3, Type2And3Naive, process_dct3, plan_dct3, 1);
     dct_test_inverse!(reference_dct3, reference_dct2, inverse_scale_normal, 1);
 }
@@ -77,8 +92,6 @@ fn test_dct8_accuracy() {
     dct_test_inverse!(reference_dct8, reference_dct8, inverse_scale_plushalf, 1);
 }
 
-
-
 #[test]
 fn test_dst1_accuracy() {
     dct_test_with_known_data!(reference_dst1, Dst1Naive, process_dst1, known_values_dst1);
@@ -87,13 +100,23 @@ fn test_dst1_accuracy() {
 }
 #[test]
 fn test_dst2_accuracy() {
-    dct_test_with_known_data!(reference_dst2, Type2And3Naive, process_dst2, known_values_dst2);
+    dct_test_with_known_data!(
+        reference_dst2,
+        Type2And3Naive,
+        process_dst2,
+        known_values_dst2
+    );
     dct_test_with_planner!(reference_dst2, Type2And3Naive, process_dst2, plan_dst2, 1);
     dct_test_inverse!(reference_dst2, reference_dst3, inverse_scale_normal, 1);
 }
 #[test]
 fn test_dst3_accuracy() {
-    dct_test_with_known_data!(reference_dst3, Type2And3Naive, process_dst3, known_values_dst3);
+    dct_test_with_known_data!(
+        reference_dst3,
+        Type2And3Naive,
+        process_dst3,
+        known_values_dst3
+    );
     dct_test_with_planner!(reference_dst3, Type2And3Naive, process_dst3, plan_dst3, 1);
     dct_test_inverse!(reference_dst3, reference_dst2, inverse_scale_normal, 1);
 }
@@ -124,8 +147,6 @@ fn test_dst8_accuracy() {
     dct_test_inverse!(reference_dst8, reference_dst8, inverse_scale_minushalf, 1);
 }
 
-
-
 #[test]
 fn test_mdct_accuracy() {
     for curent_window_fn in &[window_fn::one, window_fn::mp3, window_fn::vorbis] {
@@ -146,22 +167,38 @@ fn test_mdct_tdac() {
         scale_fn: &'a dyn Fn(usize) -> f32,
     }
     impl<'a> TdacTestStruct<'a> {
-        fn new(name: &'static str, window: &'a dyn Fn(usize) -> Vec<f32>, scale_fn: &'a dyn Fn(usize) -> f32) -> Self {
-            Self { name, window, scale_fn }
+        fn new(
+            name: &'static str,
+            window: &'a dyn Fn(usize) -> Vec<f32>,
+            scale_fn: &'a dyn Fn(usize) -> f32,
+        ) -> Self {
+            Self {
+                name,
+                window,
+                scale_fn,
+            }
         }
     }
 
-    let non_window_scale = |len: usize| 1.0/(len as f32);
-    let window_scale = |len : usize| 2.0/(len as f32);
+    let non_window_scale = |len: usize| 1.0 / (len as f32);
+    let window_scale = |len: usize| 2.0 / (len as f32);
     let invertible_scale = |_| 1.0;
 
     let tests = [
-        TdacTestStruct::new("one",                  &window_fn::one,                &non_window_scale),
-        TdacTestStruct::new("mp3",                  &window_fn::mp3,                &window_scale),
-        TdacTestStruct::new("vorbis",               &window_fn::vorbis,             &window_scale),
-        TdacTestStruct::new("invertible",           &window_fn::invertible,         &invertible_scale),
-        TdacTestStruct::new("mp3_invertible",       &window_fn::mp3_invertible,     &invertible_scale),
-        TdacTestStruct::new("vorbis_invertible",    &window_fn::vorbis_invertible,  &invertible_scale),
+        TdacTestStruct::new("one", &window_fn::one, &non_window_scale),
+        TdacTestStruct::new("mp3", &window_fn::mp3, &window_scale),
+        TdacTestStruct::new("vorbis", &window_fn::vorbis, &window_scale),
+        TdacTestStruct::new("invertible", &window_fn::invertible, &invertible_scale),
+        TdacTestStruct::new(
+            "mp3_invertible",
+            &window_fn::mp3_invertible,
+            &invertible_scale,
+        ),
+        TdacTestStruct::new(
+            "vorbis_invertible",
+            &window_fn::vorbis_invertible,
+            &invertible_scale,
+        ),
     ];
 
     for test_data in &tests {

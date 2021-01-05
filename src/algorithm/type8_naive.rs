@@ -1,7 +1,7 @@
 use rustfft::Length;
 
-use ::{Dct8, Dst8};
-use common;
+use crate::common;
+use crate::{Dct8, DctNum, Dst8};
 
 /// Naive O(n^2 ) DCT Type 8 implementation
 ///
@@ -12,7 +12,7 @@ use common;
 ///
 /// let len = 23;
 /// let naive = Dct8Naive::new(len);
-/// 
+///
 /// let mut dct8_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct8_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dct8(&mut dct8_input, &mut dct8_output);
@@ -20,20 +20,22 @@ use common;
 pub struct Dct8Naive<T> {
     twiddles: Box<[T]>,
 }
-impl<T: common::DctNum> Dct8Naive<T> {
+impl<T: DctNum> Dct8Naive<T> {
     /// Creates a new DCT8 and DST8 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 + 1) as f64;
 
-        let twiddles: Vec<T> = (0..len*4 + 2)
+        let twiddles: Vec<T> = (0..len * 4 + 2)
             .map(|i| (constant_factor * (i as f64 + 0.5)).cos())
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        Self { twiddles: twiddles.into_boxed_slice() }
+        Self {
+            twiddles: twiddles.into_boxed_slice(),
+        }
     }
 }
-impl<T: common::DctNum> Dct8<T> for Dct8Naive<T> {
+impl<T: DctNum> Dct8<T> for Dct8Naive<T> {
     fn process_dct8(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -72,7 +74,7 @@ impl<T> Length for Dct8Naive<T> {
 ///
 /// let len = 23;
 /// let naive = Dst8Naive::new(len);
-/// 
+///
 /// let mut dst8_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst8_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dst8(&mut dst8_input, &mut dst8_output);
@@ -81,21 +83,23 @@ pub struct Dst8Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DctNum> Dst8Naive<T> {
+impl<T: DctNum> Dst8Naive<T> {
     /// Creates a new DCT8 and DST8 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let constant_factor = std::f64::consts::PI / (len * 2 - 1) as f64;
 
-        let twiddles: Vec<T> = (0..len*4 - 2)
+        let twiddles: Vec<T> = (0..len * 4 - 2)
             .map(|i| (constant_factor * (i as f64 + 0.5)).sin())
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        Self { twiddles: twiddles.into_boxed_slice() }
+        Self {
+            twiddles: twiddles.into_boxed_slice(),
+        }
     }
 }
 
-impl<T: common::DctNum> Dst8<T> for Dst8Naive<T> {
+impl<T: DctNum> Dst8<T> for Dst8Naive<T> {
     fn process_dst8(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 

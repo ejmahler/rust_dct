@@ -1,11 +1,13 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::algorithm::type2and3_butterflies::*;
+use crate::algorithm::*;
+use crate::mdct::*;
+use crate::{
+    Dct1, Dct5, Dct6And7, Dct8, Dst1, Dst5, Dst6And7, Dst8, TransformType2And3, TransformType4,
+};
 use rustfft::FftPlanner;
-use ::{Dct1, Dst1, TransformType4, TransformType2And3, Dct5, Dst5, Dct6And7, Dst6And7, Dct8, Dst8};
-use mdct::*;
-use algorithm::*;
-use algorithm::type2and3_butterflies::*;
 
 use crate::DctNum;
 
@@ -27,7 +29,7 @@ const DCT2_BUTTERFLIES: [usize; 5] = [2, 3, 4, 8, 16];
 /// let mut planner = DctPlanner::new();
 /// let dct4 = planner.plan_dct4(1234);
 /// dct4.process_dct4(&mut input, &mut output);
-/// 
+///
 /// // The DCT instance returned by the planner is stored behind an `Arc`, so it's cheap to clone
 /// let dct4_clone = Arc::clone(&dct4);
 /// ~~~
@@ -95,9 +97,6 @@ impl<T: DctNum> DctPlanner<T> {
         }
     }
 
-
-
-
     /// Returns a DCT Type 2 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct2(&mut self, len: usize) -> Arc<dyn TransformType2And3<T>> {
@@ -133,19 +132,16 @@ impl<T: DctNum> DctPlanner<T> {
             4 => Arc::new(Type2And3Butterfly4::new()),
             8 => Arc::new(Type2And3Butterfly8::new()),
             16 => Arc::new(Type2And3Butterfly16::new()),
-            _ => panic!("Invalid butterfly size for DCT2: {}", len)
+            _ => panic!("Invalid butterfly size for DCT2: {}", len),
         }
     }
-
-
-
 
     /// Returns DCT Type 3 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct3(&mut self, len: usize) -> Arc<dyn TransformType2And3<T>> {
         self.plan_dct2(len)
     }
-    
+
     /// Returns a DCT Type 4 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dct4(&mut self, len: usize) -> Arc<dyn TransformType4<T>> {
@@ -234,7 +230,6 @@ impl<T: DctNum> DctPlanner<T> {
         Arc::new(Dct8Naive::new(len))
     }
 
-
     /// Returns a DST Type 1 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dst1(&mut self, len: usize) -> Arc<dyn Dst1<T>> {
@@ -318,7 +313,7 @@ impl<T: DctNum> DctPlanner<T> {
         self.plan_dst6(len)
     }
 
-     /// Returns a DST Type 8 instance which processes signals of size `len`.
+    /// Returns a DST Type 8 instance which processes signals of size `len`.
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_dst8(&mut self, len: usize) -> Arc<dyn Dst8<T>> {
         if self.dst8_cache.contains_key(&len) {
@@ -334,7 +329,6 @@ impl<T: DctNum> DctPlanner<T> {
         Arc::new(Dst8Naive::new(len))
     }
 
-
     /// Returns a MDCT instance which processes inputs of size ` len * 2` and produces outputs of size `len`.
     ///
     /// `window_fn` is a function that takes a `size` and returns a `Vec` containing `size` window values.
@@ -342,7 +336,9 @@ impl<T: DctNum> DctPlanner<T> {
     ///
     /// If this is called multiple times, it will attempt to re-use internal data between instances
     pub fn plan_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<dyn Mdct<T>>
-    where F: (FnOnce(usize) -> Vec<T>) {
+    where
+        F: (FnOnce(usize) -> Vec<T>),
+    {
         if self.mdct_cache.contains_key(&len) {
             Arc::clone(self.mdct_cache.get(&len).unwrap())
         } else {
@@ -353,7 +349,9 @@ impl<T: DctNum> DctPlanner<T> {
     }
 
     fn plan_new_mdct<F>(&mut self, len: usize, window_fn: F) -> Arc<dyn Mdct<T>>
-    where F: (FnOnce(usize) -> Vec<T>) {
+    where
+        F: (FnOnce(usize) -> Vec<T>),
+    {
         //benchmarking shows that using the inner dct4 algorithm is always faster than computing the naive algorithm
         let inner_dct4 = self.plan_dct4(len);
         Arc::new(MdctViaDct4::new(inner_dct4, window_fn))

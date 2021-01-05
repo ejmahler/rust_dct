@@ -1,10 +1,10 @@
-
-use std::f64;
 use rustfft::num_complex::Complex;
-use common;
+use std::f64;
+
+use crate::DctNum;
 
 #[inline(always)]
-pub fn single_twiddle<T: common::DctNum>(i: usize, fft_len: usize) -> Complex<T> {
+pub fn single_twiddle<T: DctNum>(i: usize, fft_len: usize) -> Complex<T> {
     let angle_constant = f64::consts::PI * -2f64 / fft_len as f64;
 
     let c = Complex::from_polar(1f64, angle_constant * i as f64);
@@ -17,7 +17,7 @@ pub fn single_twiddle<T: common::DctNum>(i: usize, fft_len: usize) -> Complex<T>
 
 // Same as above, but only return the real portion, not the imaginary portion
 #[inline(always)]
-pub fn single_twiddle_re<T: common::DctNum>(i: usize, fft_len: usize) -> T {
+pub fn single_twiddle_re<T: DctNum>(i: usize, fft_len: usize) -> T {
     let angle_constant = f64::consts::PI * -2f64 / fft_len as f64;
 
     let c = (angle_constant * i as f64).cos();
@@ -25,11 +25,11 @@ pub fn single_twiddle_re<T: common::DctNum>(i: usize, fft_len: usize) -> T {
     T::from_f64(c).unwrap()
 }
 
-// Same as above, but we add 0.5 to 0 before 
+// Same as above, but we add 0.5 to 0 before
 #[inline(always)]
-pub fn single_twiddle_halfoffset<T: common::DctNum>(i: usize, fft_len: usize) -> Complex<T> {
+pub fn single_twiddle_halfoffset<T: DctNum>(i: usize, fft_len: usize) -> Complex<T> {
     let angle_constant = f64::consts::PI * -2f64 / fft_len as f64;
-    
+
     let c = Complex::from_polar(1f64, angle_constant * (i as f64 + 0.5f64));
 
     Complex {
@@ -43,7 +43,7 @@ mod unit_tests {
     use super::*;
     use std::f32;
 
-    use test_utils::fuzzy_cmp;
+    use crate::test_utils::fuzzy_cmp;
 
     #[test]
     fn test_single() {

@@ -2,9 +2,8 @@ use std::f64;
 
 use rustfft::Length;
 
-use ::{Dct1, Dst1};
-use common;
-
+use crate::common;
+use crate::{Dct1, DctNum, Dst1};
 
 /// Naive O(n^2 ) DCT Type 1 implementation
 ///
@@ -27,7 +26,7 @@ pub struct Dct1Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DctNum> Dct1Naive<T> {
+impl<T: DctNum> Dct1Naive<T> {
     pub fn new(len: usize) -> Self {
         assert_ne!(len, 1, "DCT Type 1 is undefined for len == 1");
 
@@ -38,11 +37,13 @@ impl<T: common::DctNum> Dct1Naive<T> {
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        Dct1Naive { twiddles: twiddles.into_boxed_slice() }
+        Dct1Naive {
+            twiddles: twiddles.into_boxed_slice(),
+        }
     }
 }
 
-impl<T: common::DctNum> Dct1<T> for Dct1Naive<T> {
+impl<T: DctNum> Dct1<T> for Dct1Naive<T> {
     fn process_dct1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -68,7 +69,6 @@ impl<T: common::DctNum> Dct1<T> for Dct1Naive<T> {
                 }
             }
         }
-
     }
 }
 impl<T> Length for Dct1Naive<T> {
@@ -76,7 +76,6 @@ impl<T> Length for Dct1Naive<T> {
         self.twiddles.len() / 2 + 1
     }
 }
-
 
 /// Naive O(n^2 ) DST Type 1 implementation
 ///
@@ -98,10 +97,9 @@ pub struct Dst1Naive<T> {
     twiddles: Box<[T]>,
 }
 
-impl<T: common::DctNum> Dst1Naive<T> {
+impl<T: DctNum> Dst1Naive<T> {
     /// Creates a new DST1 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
-
         let constant_factor = f64::consts::PI / ((len + 1) as f64);
 
         let twiddles: Vec<T> = (0..(len + 1) * 2)
@@ -109,11 +107,13 @@ impl<T: common::DctNum> Dst1Naive<T> {
             .map(|c| T::from_f64(c).unwrap())
             .collect();
 
-        Dst1Naive { twiddles: twiddles.into_boxed_slice() }
+        Dst1Naive {
+            twiddles: twiddles.into_boxed_slice(),
+        }
     }
 }
 
-impl<T: common::DctNum> Dst1<T> for Dst1Naive<T> {
+impl<T: DctNum> Dst1<T> for Dst1Naive<T> {
     fn process_dst1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 

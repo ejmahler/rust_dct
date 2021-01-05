@@ -3,12 +3,12 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use common;
-use twiddles;
-use ::{Dct2, Dst2, Dct3, Dst3, TransformType2And3};
+use crate::twiddles;
+use crate::{common, DctNum};
+use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
 /// DCT2, DCT3, DST2, and DST3 implemention that recursively divides the problem in half.
-/// 
+///
 /// The problem size must be 2^n, n > 1
 ///
 /// ~~~
@@ -34,9 +34,12 @@ pub struct Type2And3SplitRadix<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DctNum> Type2And3SplitRadix<T> {
+impl<T: DctNum> Type2And3SplitRadix<T> {
     /// Creates a new DCT2, DCT3, DST2, and DST3 context that will process signals of length `half_dct.len() * 2`
-    pub fn new(half_dct: Arc<dyn TransformType2And3<T>>, quarter_dct: Arc<dyn TransformType2And3<T>>) -> Self {
+    pub fn new(
+        half_dct: Arc<dyn TransformType2And3<T>>,
+        quarter_dct: Arc<dyn TransformType2And3<T>>,
+    ) -> Self {
         let half_len = half_dct.len();
         let quarter_len = quarter_dct.len();
         let len = half_len * 2;
@@ -49,7 +52,7 @@ impl<T: common::DctNum> Type2And3SplitRadix<T> {
             "half_dct.len() must be 2 * quarter_dct.len(). Got half_dct.len()={}, quarter_dct.len()={}", half_len, quarter_len
         );
 
-        let twiddles: Vec<Complex<T>> = (0..(len/4))
+        let twiddles: Vec<Complex<T>> = (0..(len / 4))
             .map(|i| twiddles::single_twiddle(2 * i + 1, len * 4).conj())
             .collect();
 
@@ -61,7 +64,7 @@ impl<T: common::DctNum> Type2And3SplitRadix<T> {
     }
 }
 
-impl<T: common::DctNum> Dct2<T> for Type2And3SplitRadix<T> {
+impl<T: DctNum> Dct2<T> for Type2And3SplitRadix<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -76,14 +79,15 @@ impl<T: common::DctNum> Dct2<T> for Type2And3SplitRadix<T> {
 
             for i in 0..quarter_len {
                 let input_bottom = *input.get_unchecked(i);
-                let input_top =    *input.get_unchecked(len - i - 1);
+                let input_top = *input.get_unchecked(len - i - 1);
 
                 let input_half_bottom = *input.get_unchecked(half_len - i - 1);
-                let input_half_top =    *input.get_unchecked(half_len + i);
+                let input_half_top = *input.get_unchecked(half_len + i);
 
                 //prepare the inner DCT2
-                *input_dct2.get_unchecked_mut(i) =                input_top + input_bottom;
-                *input_dct2.get_unchecked_mut(half_len - i - 1) = input_half_bottom + input_half_top;
+                *input_dct2.get_unchecked_mut(i) = input_top + input_bottom;
+                *input_dct2.get_unchecked_mut(half_len - i - 1) =
+                    input_half_bottom + input_half_top;
 
                 //prepare the inner DCT4 - which consists of two DCT2s of half size
                 let lower_dct4 = input_bottom - input_top;
@@ -94,11 +98,8 @@ impl<T: common::DctNum> Dct2<T> for Type2And3SplitRadix<T> {
                 let sin_input = upper_dct4 * twiddle.re - lower_dct4 * twiddle.im;
 
                 *input_dct4_even.get_unchecked_mut(i) = cos_input;
-                *input_dct4_odd.get_unchecked_mut(quarter_len - i - 1) = if i % 2 == 0 {
-                    sin_input
-                } else {
-                    -sin_input
-                };
+                *input_dct4_odd.get_unchecked_mut(quarter_len - i - 1) =
+                    if i % 2 == 0 { sin_input } else { -sin_input };
             }
 
             // compute the recursive DCT2s
@@ -106,11 +107,11 @@ impl<T: common::DctNum> Dct2<T> for Type2And3SplitRadix<T> {
             let (output_dct4_even, output_dct4_odd) = output_dct4.split_at_mut(quarter_len);
 
             self.half_dct.process_dct2(input_dct2, output_dct2);
-            self.quarter_dct.process_dct2(input_dct4_even, output_dct4_even);
-            self.quarter_dct.process_dct2(input_dct4_odd, output_dct4_odd);
+            self.quarter_dct
+                .process_dct2(input_dct4_even, output_dct4_even);
+            self.quarter_dct
+                .process_dct2(input_dct4_odd, output_dct4_odd);
         }
-
-
 
         let (output_dct2, output_dct4) = input.split_at(half_len);
         let (output_dct4_even, output_dct4_odd) = output_dct4.split_at(quarter_len);
@@ -132,7 +133,7 @@ impl<T: common::DctNum> Dct2<T> for Type2And3SplitRadix<T> {
                 *output.get_unchecked_mut(i * 4 - 1) = dct4_cos_output + dct4_sin_output;
                 *output.get_unchecked_mut(i * 4) = *output_dct2.get_unchecked(i * 2);
 
-                *output.get_unchecked_mut(i * 4 + 1) =  dct4_cos_output - dct4_sin_output;
+                *output.get_unchecked_mut(i * 4 + 1) = dct4_cos_output - dct4_sin_output;
                 *output.get_unchecked_mut(i * 4 + 2) = *output_dct2.get_unchecked(i * 2 + 1);
             }
 
@@ -140,9 +141,8 @@ impl<T: common::DctNum> Dct2<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DctNum> Dst2<T> for Type2And3SplitRadix<T> {
+impl<T: DctNum> Dst2<T> for Type2And3SplitRadix<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
-        
         for i in 0..(self.len() / 2) {
             input[2 * i + 1] = input[2 * i + 1].neg();
         }
@@ -152,18 +152,19 @@ impl<T: common::DctNum> Dst2<T> for Type2And3SplitRadix<T> {
         output.reverse();
     }
 }
-impl<T: common::DctNum> Dct3<T> for Type2And3SplitRadix<T> {
+impl<T: DctNum> Dct3<T> for Type2And3SplitRadix<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let len = input.len();
         let half_len = len / 2;
         let quarter_len = len / 4;
-        
+
         {
             // divide the output into 3 sub-lists to use for our inner DCTs, one of size N/2 and two of size N/4
             let (recursive_input_evens, recursive_input_odds) = output.split_at_mut(half_len);
-            let (recursive_input_n1, recursive_input_n3) = recursive_input_odds.split_at_mut(quarter_len);
+            let (recursive_input_n1, recursive_input_n3) =
+                recursive_input_odds.split_at_mut(quarter_len);
 
             // do the same pre-loop setup as DCT4ViaDCT3, and since we're skipping the first iteration of the loop we
             // to also set up the corresponding evens cells
@@ -178,28 +179,36 @@ impl<T: common::DctNum> Dct3<T> for Type2And3SplitRadix<T> {
 
                 unsafe {
                     // the evens are the easy ones - just copy straight over
-                    *recursive_input_evens.get_unchecked_mut(i * 2) =     *input.get_unchecked(k);
-                    *recursive_input_evens.get_unchecked_mut(i * 2 + 1) = *input.get_unchecked(k + 2);
+                    *recursive_input_evens.get_unchecked_mut(i * 2) = *input.get_unchecked(k);
+                    *recursive_input_evens.get_unchecked_mut(i * 2 + 1) =
+                        *input.get_unchecked(k + 2);
 
                     // for the odd ones we're going to do the same addition/subtraction we do in the setup for DCT4ViaDCT3
-                    *recursive_input_n1.get_unchecked_mut(i) =               *input.get_unchecked(k - 1) + *input.get_unchecked(k + 1);
-                    *recursive_input_n3.get_unchecked_mut(quarter_len - i) = *input.get_unchecked(k - 1) - *input.get_unchecked(k + 1);
+                    *recursive_input_n1.get_unchecked_mut(i) =
+                        *input.get_unchecked(k - 1) + *input.get_unchecked(k + 1);
+                    *recursive_input_n3.get_unchecked_mut(quarter_len - i) =
+                        *input.get_unchecked(k - 1) - *input.get_unchecked(k + 1);
                 }
             }
 
             //now that we're done with the input, divide it up the same way we did the output
             let (recursive_output_evens, recursive_output_odds) = input.split_at_mut(half_len);
-            let (recursive_output_n1, recursive_output_n3) = recursive_output_odds.split_at_mut(quarter_len);
+            let (recursive_output_n1, recursive_output_n3) =
+                recursive_output_odds.split_at_mut(quarter_len);
 
             //perform our recursive DCTs
-            self.half_dct.process_dct3(recursive_input_evens, recursive_output_evens);
-            self.quarter_dct.process_dct3(recursive_input_n1, recursive_output_n1);
-            self.quarter_dct.process_dct3(recursive_input_n3, recursive_output_n3);
+            self.half_dct
+                .process_dct3(recursive_input_evens, recursive_output_evens);
+            self.quarter_dct
+                .process_dct3(recursive_input_n1, recursive_output_n1);
+            self.quarter_dct
+                .process_dct3(recursive_input_n3, recursive_output_n3);
         }
 
         //we want the input array to stay split, but to placate the borrow checker it's easier to just re-split it
         let (recursive_output_evens, recursive_output_odds) = input.split_at(half_len);
-        let (recursive_output_n1, recursive_output_n3) = recursive_output_odds.split_at(quarter_len);
+        let (recursive_output_n1, recursive_output_n3) =
+            recursive_output_odds.split_at(quarter_len);
 
         //merge the results. we're going to combine 2 separate things:
         // - merging the two smaller DCT3 outputs into a DCT4 output
@@ -222,18 +231,17 @@ impl<T: common::DctNum> Dct3<T> for Type2And3SplitRadix<T> {
                 let lower_dct3 = *recursive_output_evens.get_unchecked(i);
                 let upper_dct3 = *recursive_output_evens.get_unchecked(half_len - i - 1);
 
-                *output.get_unchecked_mut(i) =                lower_dct3 + lower_dct4;
-                *output.get_unchecked_mut(len - i - 1) =      lower_dct3 - lower_dct4;
+                *output.get_unchecked_mut(i) = lower_dct3 + lower_dct4;
+                *output.get_unchecked_mut(len - i - 1) = lower_dct3 - lower_dct4;
 
                 *output.get_unchecked_mut(half_len - i - 1) = upper_dct3 + upper_dct4;
-                *output.get_unchecked_mut(half_len + i) =     upper_dct3 - upper_dct4;
+                *output.get_unchecked_mut(half_len + i) = upper_dct3 - upper_dct4;
             }
         }
     }
 }
-impl<T: common::DctNum> Dst3<T> for Type2And3SplitRadix<T> {
+impl<T: DctNum> Dst3<T> for Type2And3SplitRadix<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
-        
         input.reverse();
 
         self.process_dct3(input, output);
@@ -243,27 +251,23 @@ impl<T: common::DctNum> Dst3<T> for Type2And3SplitRadix<T> {
         }
     }
 }
-impl<T: common::DctNum> TransformType2And3<T> for Type2And3SplitRadix<T>{}
+impl<T: DctNum> TransformType2And3<T> for Type2And3SplitRadix<T> {}
 impl<T> Length for Type2And3SplitRadix<T> {
     fn len(&self) -> usize {
         self.twiddles.len() * 4
     }
 }
 
-
-
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::Type2And3Naive;
+    use crate::algorithm::Type2And3Naive;
 
-    use test_utils::{compare_float_vectors, random_signal};
+    use crate::test_utils::{compare_float_vectors, random_signal};
 
     /// Verify that our fast implementation of the DCT2 gives the same output as the slow version, for many different inputs
     #[test]
     fn test_dct2_splitradix() {
-
         for i in 2..8 {
             let size = 1 << i;
             println!("len: {}", size);
@@ -277,8 +281,8 @@ mod test {
             let naive_dct = Type2And3Naive::new(size);
             naive_dct.process_dct2(&mut expected_input, &mut expected_output);
 
-            let quarter_dct = Arc::new(Type2And3Naive::new(size/4));
-            let half_dct = Arc::new(Type2And3Naive::new(size/2));
+            let quarter_dct = Arc::new(Type2And3Naive::new(size / 4));
+            let half_dct = Arc::new(Type2And3Naive::new(size / 2));
 
             let dct = Type2And3SplitRadix::new(half_dct, quarter_dct);
             dct.process_dct2(&mut actual_input, &mut actual_output);

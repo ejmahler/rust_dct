@@ -1,9 +1,9 @@
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use twiddles;
-use ::{Dct4, Dst4, TransformType4};
-use common;
+use crate::common;
+use crate::{twiddles, DctNum};
+use crate::{Dct4, Dst4, TransformType4};
 
 /// Naive O(n^2 ) DCT Type 4 and DST Type 4 implementation
 ///
@@ -14,11 +14,11 @@ use common;
 ///
 /// let len = 23;
 /// let naive = Type4Naive::new(len);
-/// 
+///
 /// let mut dct4_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct4_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dct4(&mut dct4_input, &mut dct4_output);
-/// 
+///
 /// let mut dst4_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst4_output: Vec<f32> = vec![0f32; len];
 /// naive.process_dst4(&mut dst4_input, &mut dst4_output);
@@ -27,18 +27,20 @@ pub struct Type4Naive<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DctNum> Type4Naive<T> {
+impl<T: DctNum> Type4Naive<T> {
     /// Creates a new DCT4 and DTS4 context that will process signals of length `len`
     pub fn new(len: usize) -> Self {
         let twiddles: Vec<Complex<T>> = (0..len * 4)
             .map(|i| twiddles::single_twiddle_halfoffset(i, len * 4))
             .collect();
 
-        Type4Naive { twiddles: twiddles.into_boxed_slice() }
+        Type4Naive {
+            twiddles: twiddles.into_boxed_slice(),
+        }
     }
 }
 
-impl<T: common::DctNum> Dct4<T> for Type4Naive<T> {
+impl<T: DctNum> Dct4<T> for Type4Naive<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -62,7 +64,7 @@ impl<T: common::DctNum> Dct4<T> for Type4Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> Dst4<T> for Type4Naive<T> {
+impl<T: DctNum> Dst4<T> for Type4Naive<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -86,7 +88,7 @@ impl<T: common::DctNum> Dst4<T> for Type4Naive<T> {
         }
     }
 }
-impl<T: common::DctNum> TransformType4<T> for Type4Naive<T>{}
+impl<T: DctNum> TransformType4<T> for Type4Naive<T> {}
 impl<T> Length for Type4Naive<T> {
     fn len(&self) -> usize {
         self.twiddles.len() / 4

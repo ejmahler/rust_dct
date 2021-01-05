@@ -1,12 +1,12 @@
 use std::sync::Arc;
 
-use rustfft::{FftDirection, num_traits::Zero};
 use rustfft::num_complex::Complex;
+use rustfft::{num_traits::Zero, FftDirection};
 use rustfft::{Fft, Length};
 
-use common;
-use twiddles;
-use ::{Dct2, Dst2, Dct3, Dst3, TransformType2And3};
+use crate::twiddles;
+use crate::{common, DctNum};
+use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
 /// DCT2, DST2, DCT3, and DST3 implementation that converts the problem into a FFT of the same size
 ///
@@ -21,19 +21,19 @@ use ::{Dct2, Dst2, Dct3, Dst3, TransformType2And3};
 /// let fft = planner.plan_fft_forward(len);
 ///
 /// let dct = Type2And3ConvertToFft::new(fft);
-/// 
+///
 /// let mut dct2_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct2_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dct2(&mut dct2_input, &mut dct2_output);
-/// 
+///
 /// let mut dst2_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst2_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dst2(&mut dst2_input, &mut dst2_output);
-/// 
+///
 /// let mut dct3_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct3_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dct3(&mut dct3_input, &mut dct3_output);
-/// 
+///
 /// let mut dst3_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst3_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dst3(&mut dst3_input, &mut dst3_output);
@@ -43,7 +43,7 @@ pub struct Type2And3ConvertToFft<T> {
     twiddles: Box<[Complex<T>]>,
 }
 
-impl<T: common::DctNum> Type2And3ConvertToFft<T> {
+impl<T: DctNum> Type2And3ConvertToFft<T> {
     /// Creates a new DCT2, DST2, DCT3, and DST3 context that will process signals of length `inner_fft.len()`.
     pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
         assert_eq!(
@@ -65,7 +65,7 @@ impl<T: common::DctNum> Type2And3ConvertToFft<T> {
     }
 }
 
-impl<T: common::DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
+impl<T: DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
     fn process_dct2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -88,14 +88,16 @@ impl<T: common::DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
         self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
         // apply a correction factor to the result
-        for ((fft_entry, correction_entry), spectrum_entry) in
-        fft_buffer.iter().zip(self.twiddles.iter()).zip(output.iter_mut())
+        for ((fft_entry, correction_entry), spectrum_entry) in fft_buffer
+            .iter()
+            .zip(self.twiddles.iter())
+            .zip(output.iter_mut())
         {
             *spectrum_entry = (fft_entry * correction_entry).re;
         }
     }
 }
-impl<T: common::DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
+impl<T: DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
     fn process_dst2(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -118,14 +120,16 @@ impl<T: common::DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
         self.fft.process_with_scratch(fft_buffer, fft_scratch);
 
         // apply a correction factor to the result, and put it in reversed order in the output buffer
-        for ((fft_entry, correction_entry), spectrum_entry) in
-        fft_buffer.iter().zip(self.twiddles.iter()).zip(output.iter_mut().rev())
+        for ((fft_entry, correction_entry), spectrum_entry) in fft_buffer
+            .iter()
+            .zip(self.twiddles.iter())
+            .zip(output.iter_mut().rev())
         {
             *spectrum_entry = (fft_entry * correction_entry).re;
         }
     }
 }
-impl<T: common::DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
+impl<T: DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
     fn process_dct3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -137,7 +141,12 @@ impl<T: common::DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
         // compute the FFT input based on the correction factors
         fft_buffer[0] = Complex::from(input[0] * half);
 
-        for (i, (fft_input_element, twiddle)) in fft_buffer.iter_mut().zip(self.twiddles.iter()).enumerate().skip(1) {
+        for (i, (fft_input_element, twiddle)) in fft_buffer
+            .iter_mut()
+            .zip(self.twiddles.iter())
+            .enumerate()
+            .skip(1)
+        {
             let c = Complex {
                 re: input[i],
                 im: input[input.len() - i],
@@ -161,19 +170,24 @@ impl<T: common::DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
         }
     }
 }
-impl<T: common::DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
+impl<T: DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
     fn process_dst3(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
         let half = T::half();
-        
+
         let mut buffer = vec![Complex::zero(); self.len() + self.fft.get_inplace_scratch_len()];
         let (fft_buffer, fft_scratch) = buffer.split_at_mut(self.len());
 
         // compute the FFT input based on the correction factors
         fft_buffer[0] = Complex::from(input[input.len() - 1] * half);
 
-        for (i, (fft_input_element, twiddle)) in fft_buffer.iter_mut().zip(self.twiddles.iter()).enumerate().skip(1) {
+        for (i, (fft_input_element, twiddle)) in fft_buffer
+            .iter_mut()
+            .zip(self.twiddles.iter())
+            .enumerate()
+            .skip(1)
+        {
             let c = Complex {
                 re: input[input.len() - i - 1],
                 im: input[i - 1],
@@ -197,20 +211,19 @@ impl<T: common::DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
         }
     }
 }
-impl<T: common::DctNum> TransformType2And3<T> for Type2And3ConvertToFft<T>{}
+impl<T: DctNum> TransformType2And3<T> for Type2And3ConvertToFft<T> {}
 impl<T> Length for Type2And3ConvertToFft<T> {
     fn len(&self) -> usize {
         self.twiddles.len()
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::Type2And3Naive;
+    use crate::algorithm::Type2And3Naive;
 
-    use test_utils::{compare_float_vectors, random_signal};
+    use crate::test_utils::{compare_float_vectors, random_signal};
     use rustfft::FftPlanner;
 
     /// Verify that our fast implementation of the DCT2 gives the same output as the naive version, for many different inputs

@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use rustfft::{FftDirection, num_traits::Zero};
 use rustfft::num_complex::Complex;
+use rustfft::{num_traits::Zero, FftDirection};
 use rustfft::{Fft, Length};
 
-use common;
-use ::{Dct1, Dst1};
+use crate::{common, DctNum};
+use crate::{Dct1, Dst1};
 
 /// DCT Type 1 implementation that converts the problem into a FFT of size 2 * (n - 1)
 ///
@@ -28,7 +28,7 @@ pub struct Dct1ConvertToFft<T> {
     fft: Arc<dyn Fft<T>>,
 }
 
-impl<T: common::DctNum> Dct1ConvertToFft<T> {
+impl<T: DctNum> Dct1ConvertToFft<T> {
     /// Creates a new DCT1 context that will process signals of length `inner_fft.len() / 2 + 1`.
     pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
         let inner_len = inner_fft.len();
@@ -45,13 +45,11 @@ impl<T: common::DctNum> Dct1ConvertToFft<T> {
                  was provided"
         );
 
-        Dct1ConvertToFft {
-            fft: inner_fft,
-        }
+        Dct1ConvertToFft { fft: inner_fft }
     }
 }
 
-impl<T: common::DctNum> Dct1<T> for Dct1ConvertToFft<T> {
+impl<T: DctNum> Dct1<T> for Dct1ConvertToFft<T> {
     fn process_dct1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -65,10 +63,11 @@ impl<T: common::DctNum> Dct1<T> for Dct1ConvertToFft<T> {
                 im: T::zero(),
             };
         }
-        for (&input_val, fft_cell) in
-            input.iter().rev().skip(1).zip(
-                &mut fft_buffer[input.len()..],
-            )
+        for (&input_val, fft_cell) in input
+            .iter()
+            .rev()
+            .skip(1)
+            .zip(&mut fft_buffer[input.len()..])
         {
             *fft_cell = Complex {
                 re: input_val,
@@ -114,7 +113,7 @@ pub struct Dst1ConvertToFft<T> {
     fft: Arc<dyn Fft<T>>,
 }
 
-impl<T: common::DctNum> Dst1ConvertToFft<T> {
+impl<T: DctNum> Dst1ConvertToFft<T> {
     /// Creates a new DCT1 context that will process signals of length `inner_fft.len() / 2 - 1`.
     pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
         let inner_len = inner_fft.len();
@@ -131,13 +130,11 @@ impl<T: common::DctNum> Dst1ConvertToFft<T> {
                  was provided"
         );
 
-        Dst1ConvertToFft {
-            fft: inner_fft,
-        }
+        Dst1ConvertToFft { fft: inner_fft }
     }
 }
 
-impl<T: common::DctNum> Dst1<T> for Dst1ConvertToFft<T> {
+impl<T: DctNum> Dst1<T> for Dst1ConvertToFft<T> {
     fn process_dst1(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -171,23 +168,20 @@ impl<T> Length for Dst1ConvertToFft<T> {
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::{Dct1Naive, Dst1Naive};
+    use crate::algorithm::{Dct1Naive, Dst1Naive};
 
-    use test_utils::{compare_float_vectors, random_signal};
+    use crate::test_utils::{compare_float_vectors, random_signal};
     use rustfft::FftPlanner;
 
     /// Verify that our fast implementation of the DCT1 gives the same output as the slow version, for many different inputs
     #[test]
     fn test_dct1_via_fft() {
         for size in 2..20 {
-
             let mut expected_input = random_signal(size);
             let mut actual_input = expected_input.clone();
-
 
             let mut expected_output = vec![0f32; size];
             let mut actual_output = vec![0f32; size];
@@ -199,7 +193,6 @@ mod test {
             let inner_fft = fft_planner.plan_fft_forward((size - 1) * 2);
             println!("size: {}", size);
             println!("inner fft len: {}", inner_fft.len());
-            
 
             let dct = Dct1ConvertToFft::new(inner_fft);
             println!("dct len: {}", dct.len());
@@ -217,7 +210,6 @@ mod test {
     #[test]
     fn test_dst1_via_fft() {
         for size in 2..20 {
-
             let mut expected_input = random_signal(size);
             let mut actual_input = expected_input.clone();
 

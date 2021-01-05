@@ -1,13 +1,13 @@
 use std::sync::Arc;
 
-use rustfft::{FftDirection, num_traits::Zero};
 use rustfft::num_complex::Complex;
+use rustfft::{num_traits::Zero, FftDirection};
 use rustfft::{Fft, Length};
 
-use common;
-use ::{Dct4, Dst4, TransformType4};
+use crate::{common, DctNum};
+use crate::{Dct4, Dst4, TransformType4};
 
-/// DCT Type 4 and DST Type 4 implementation that converts the problem into a FFT of the same size. 
+/// DCT Type 4 and DST Type 4 implementation that converts the problem into a FFT of the same size.
 ///
 /// This algorithm can only be used if the problem size is odd.
 ///
@@ -16,7 +16,7 @@ use ::{Dct4, Dst4, TransformType4};
 /// use rustdct::{Dct4, Dst4};
 /// use rustdct::algorithm::Type4ConvertToFftOdd;
 /// use rustdct::rustfft::FftPlanner;
-/// 
+///
 /// let len = 1233;
 /// let mut planner = FftPlanner::new();
 /// let fft = planner.plan_fft_forward(len);
@@ -25,7 +25,7 @@ use ::{Dct4, Dst4, TransformType4};
 /// let mut dct4_input:  Vec<f32> = vec![0f32; len];
 /// let mut dct4_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dct4(&mut dct4_input, &mut dct4_output);
-/// 
+///
 /// let mut dst4_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst4_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dst4(&mut dst4_input, &mut dst4_output);
@@ -34,25 +34,28 @@ pub struct Type4ConvertToFftOdd<T> {
     fft: Arc<dyn Fft<T>>,
 }
 
-impl<T: common::DctNum> Type4ConvertToFftOdd<T> {
+impl<T: DctNum> Type4ConvertToFftOdd<T> {
     /// Creates a new DCT4 context that will process signals of length `inner_fft.len()`. `inner_fft.len()` must be odd.
     pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
         assert_eq!(
             inner_fft.fft_direction(),
             FftDirection::Forward,
-            "Type4ConvertToFFTOdd requires a forward FFT, but an inverse FFT was provided");
+            "Type4ConvertToFFTOdd requires a forward FFT, but an inverse FFT was provided"
+        );
 
         let len = inner_fft.len();
 
-        assert!(len % 2 == 1, "Type4ConvertToFFTOdd size must be odd. Got {}", len);
+        assert!(
+            len % 2 == 1,
+            "Type4ConvertToFFTOdd size must be odd. Got {}",
+            len
+        );
 
-        Self {
-            fft: inner_fft,
-        }
+        Self { fft: inner_fft }
     }
 }
 
-impl<T: common::DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
+impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
     fn process_dct4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -67,7 +70,10 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
         let mut input_index = half_len;
         let mut fft_index = 0;
         while input_index < len {
-            fft_buffer[fft_index] = Complex{ re: input[input_index], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: input[input_index],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -76,7 +82,10 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
         //subtract len to simulate modular arithmetic
         input_index = input_index - len;
         while input_index < len {
-            fft_buffer[fft_index] = Complex{ re: -input[len - input_index - 1], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: -input[len - input_index - 1],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -84,7 +93,10 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
 
         input_index = input_index - len;
         while input_index < len {
-            fft_buffer[fft_index] = Complex{ re: -input[input_index], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: -input[input_index],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -92,7 +104,10 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
 
         input_index = input_index - len;
         while input_index < len {
-            fft_buffer[fft_index] = Complex{ re: input[len - input_index - 1], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: input[len - input_index - 1],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -100,7 +115,10 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
 
         input_index = input_index - len;
         while fft_index < len {
-            fft_buffer[fft_index] = Complex{ re: input[input_index], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: input[input_index],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -118,8 +136,8 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
             let fft_result = fft_buffer[4 * i + 1] * (output_sign * result_scale);
             let next_result = fft_buffer[4 * i + 3] * (output_sign * result_scale);
 
-            output[i * 2] =           fft_result.re + fft_result.im;
-            output[i * 2 + 1] =      -next_result.re + next_result.im;
+            output[i * 2] = fft_result.re + fft_result.im;
+            output[i * 2 + 1] = -next_result.re + next_result.im;
 
             output[len - i * 2 - 2] = (next_result.re + next_result.im) * second_half_sign;
             output[len - i * 2 - 1] = (fft_result.re - fft_result.im) * second_half_sign;
@@ -130,18 +148,16 @@ impl<T: common::DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
         //we either have 1 or 3 elements left over that we couldn't get in the above loop, handle them here
         if len % 4 == 1 {
             output[half_len] = fft_buffer[0].re * output_sign * result_scale;
-        }
-        else {
+        } else {
             let fft_result = fft_buffer[len - 2] * (output_sign * result_scale);
 
-            output[half_len - 1] =  fft_result.re + fft_result.im;
+            output[half_len - 1] = fft_result.re + fft_result.im;
             output[half_len + 1] = -fft_result.re + fft_result.im;
-            output[half_len] =     -fft_buffer[0].re * output_sign * result_scale;
+            output[half_len] = -fft_buffer[0].re * output_sign * result_scale;
         }
-        
     }
 }
-impl<T: common::DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
+impl<T: DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
     fn process_dst4(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -158,7 +174,10 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
         let mut input_index = half_len;
         let mut fft_index = 0;
         while input_index < len {
-            fft_buffer[fft_index] = Complex{ re: input[len - input_index - 1], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: input[len - input_index - 1],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -167,7 +186,10 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
         //subtract len to simulate modular arithmetic
         input_index = input_index - len;
         while input_index < len {
-            fft_buffer[fft_index] = Complex{ re: -input[input_index], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: -input[input_index],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -175,7 +197,10 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
 
         input_index = input_index - len;
         while input_index < len {
-            fft_buffer[fft_index] = Complex{ re: -input[len - input_index - 1], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: -input[len - input_index - 1],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -183,7 +208,10 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
 
         input_index = input_index - len;
         while input_index < len {
-            fft_buffer[fft_index] = Complex{ re: input[input_index], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: input[input_index],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -191,7 +219,10 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
 
         input_index = input_index - len;
         while fft_index < len {
-            fft_buffer[fft_index] = Complex{ re: input[len - input_index - 1], im: T::zero() };
+            fft_buffer[fft_index] = Complex {
+                re: input[len - input_index - 1],
+                im: T::zero(),
+            };
 
             input_index += 4;
             fft_index += 1;
@@ -209,8 +240,8 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
             let fft_result = fft_buffer[4 * i + 1] * (output_sign * result_scale);
             let next_result = fft_buffer[4 * i + 3] * (output_sign * result_scale);
 
-            output[i * 2] =           fft_result.re + fft_result.im;
-            output[i * 2 + 1] =       next_result.re - next_result.im;
+            output[i * 2] = fft_result.re + fft_result.im;
+            output[i * 2 + 1] = next_result.re - next_result.im;
 
             output[len - i * 2 - 2] = -(next_result.re + next_result.im) * second_half_sign;
             output[len - i * 2 - 1] = (fft_result.re - fft_result.im) * second_half_sign;
@@ -221,31 +252,28 @@ impl<T: common::DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
         //we either have 1 or 3 elements left over that we couldn't get in the above loop, handle them here
         if len % 4 == 1 {
             output[half_len] = fft_buffer[0].re * output_sign * result_scale;
-        }
-        else {
+        } else {
             let fft_result = fft_buffer[len - 2] * (output_sign * result_scale);
 
-            output[half_len - 1] =  fft_result.re + fft_result.im;
+            output[half_len - 1] = fft_result.re + fft_result.im;
             output[half_len + 1] = -fft_result.re + fft_result.im;
-            output[half_len] =      fft_buffer[0].re * output_sign * result_scale;
+            output[half_len] = fft_buffer[0].re * output_sign * result_scale;
         }
-        
     }
 }
-impl<T: common::DctNum> TransformType4<T> for Type4ConvertToFftOdd<T>{}
+impl<T: DctNum> TransformType4<T> for Type4ConvertToFftOdd<T> {}
 impl<T> Length for Type4ConvertToFftOdd<T> {
     fn len(&self) -> usize {
         self.fft.len()
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::Type4Naive;
+    use crate::algorithm::Type4Naive;
 
-    use test_utils::{compare_float_vectors, random_signal};
+    use crate::test_utils::{compare_float_vectors, random_signal};
     use rustfft::FftPlanner;
 
     /// Verify that our fast implementation of the DCT4 gives the same output as the slow version, for many different inputs

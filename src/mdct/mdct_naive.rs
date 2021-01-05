@@ -2,8 +2,8 @@ use std::f64;
 
 use rustfft::Length;
 
-use mdct::Mdct;
-use common;
+use crate::common;
+use crate::{mdct::Mdct, DctNum};
 
 /// Naive O(n^2 ) MDCT implementation
 ///
@@ -25,7 +25,7 @@ pub struct MdctNaive<T> {
     window: Box<[T]>,
 }
 
-impl<T: common::DctNum> MdctNaive<T> {
+impl<T: DctNum> MdctNaive<T> {
     /// Creates a new MDCT context that will process inputs of length `output_len * 2` and produce
     /// outputs of length `output_len`
     ///
@@ -37,7 +37,11 @@ impl<T: common::DctNum> MdctNaive<T> {
     where
         F: FnOnce(usize) -> Vec<T>,
     {
-        assert!(output_len % 2 == 0, "The MDCT len must be even. Got {}", output_len);
+        assert!(
+            output_len % 2 == 0,
+            "The MDCT len must be even. Got {}",
+            output_len
+        );
 
         let constant_factor = 0.5f64 * f64::consts::PI / (output_len as f64);
         let twiddles: Vec<T> = (0..output_len * 4)
@@ -46,7 +50,11 @@ impl<T: common::DctNum> MdctNaive<T> {
             .collect();
 
         let window = window_fn(output_len * 2);
-        assert_eq!(window.len(), output_len * 2, "Window function returned incorrect number of values");
+        assert_eq!(
+            window.len(),
+            output_len * 2,
+            "Window function returned incorrect number of values"
+        );
 
         Self {
             twiddles: twiddles.into_boxed_slice(),
@@ -55,7 +63,7 @@ impl<T: common::DctNum> MdctNaive<T> {
     }
 }
 
-impl<T: common::DctNum> Mdct<T> for MdctNaive<T> {
+impl<T: DctNum> Mdct<T> for MdctNaive<T> {
     fn process_mdct_split(&self, input_a: &[T], input_b: &[T], output: &mut [T]) {
         common::verify_length(input_a, output, self.len());
         assert_eq!(input_a.len(), input_b.len());
@@ -128,8 +136,8 @@ impl<T: common::DctNum> Mdct<T> for MdctNaive<T> {
                 input_len - k - 1
             };
 
-            let mut twiddle_index = self.twiddles.len() - input_len * 2 + half_input - twiddle_k -
-                1;
+            let mut twiddle_index =
+                self.twiddles.len() - input_len * 2 + half_input - twiddle_k - 1;
             let twiddle_stride = input_len - 1 - twiddle_k * 2;
 
             for i in 0..input.len() {
@@ -155,10 +163,10 @@ impl<T> Length for MdctNaive<T> {
 #[cfg(test)]
 mod unit_tests {
     use super::*;
+    use crate::mdct::window_fn;
     use std::f32;
-    use mdct::window_fn;
 
-    use test_utils::{compare_float_vectors, random_signal};
+    use crate::test_utils::{compare_float_vectors, random_signal};
 
     /// Verify our naive implementation against some known values
     #[test]
@@ -168,18 +176,7 @@ mod unit_tests {
             vec![1_f32, 1_f32, -5_f32, 5_f32],
             vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32],
             vec![
-                7_f32,
-                3_f32,
-                8_f32,
-                4_f32,
-                -1_f32,
-                3_f32,
-                0_f32,
-                4_f32,
-                1f32,
-                1f32,
-                1f32,
-                1f32,
+                7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32, 1f32, 1f32, 1f32, 1f32,
             ],
         ];
         let expected_list = vec![
@@ -211,18 +208,7 @@ mod unit_tests {
             vec![1_f32, 1_f32, -5_f32, 5_f32],
             vec![7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32],
             vec![
-                7_f32,
-                3_f32,
-                8_f32,
-                4_f32,
-                -1_f32,
-                3_f32,
-                0_f32,
-                4_f32,
-                1f32,
-                1f32,
-                1f32,
-                1f32,
+                7_f32, 3_f32, 8_f32, 4_f32, -1_f32, 3_f32, 0_f32, 4_f32, 1f32, 1f32, 1f32, 1f32,
             ],
         ];
         let expected_list = vec![
@@ -240,7 +226,6 @@ mod unit_tests {
         ];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
-
             let output = slow_mdct(&input, window_fn::mp3);
 
             assert!(compare_float_vectors(&expected, &output));
@@ -257,7 +242,6 @@ mod unit_tests {
 
                 let mut input = random_signal(input_len);
                 let slow_output = slow_mdct(&input, current_window_fn);
-
 
                 let mut fast_output = vec![0f32; output_len];
 
@@ -278,7 +262,6 @@ mod unit_tests {
         }
     }
 
-
     fn slow_mdct<F>(input: &[f32], window_fn: F) -> Vec<f32>
     where
         F: Fn(usize) -> Vec<f32>,
@@ -298,8 +281,10 @@ mod unit_tests {
             for n in 0..input.len() {
                 let n_float = n as f32;
 
-                let twiddle = (f32::consts::PI * (n_float + 0.5_f32 + size_float * 0.5) *
-                                   (k_float + 0.5_f32) / size_float)
+                let twiddle = (f32::consts::PI
+                    * (n_float + 0.5_f32 + size_float * 0.5)
+                    * (k_float + 0.5_f32)
+                    / size_float)
                     .cos();
 
                 current_value += windowed_input[n] * twiddle;
@@ -322,13 +307,7 @@ mod unit_tests {
             vec![0f32, 0f32, 0f32, 0f32],
             vec![-4.2367144, 4.2367153, -2.837299, -2.8372989],
             vec![
-                5.833236,
-                2.4275358,
-                -2.4275393,
-                -5.833232,
-                4.8335495,
-                -14.584825,
-                -14.584811,
+                5.833236, 2.4275358, -2.4275393, -5.833232, 4.8335495, -14.584825, -14.584811,
                 4.8335423,
             ],
             vec![
@@ -404,7 +383,6 @@ mod unit_tests {
         ];
 
         for (input, expected) in input_list.iter().zip(expected_list.iter()) {
-
             let slow_output = slow_imdct(&input, window_fn::mp3);
 
             let mut fast_output = vec![0f32; input.len() * 2];
@@ -442,7 +420,6 @@ mod unit_tests {
         }
     }
 
-
     fn slow_imdct<F>(input: &[f32], window_fn: F) -> Vec<f32>
     where
         F: Fn(usize) -> Vec<f32>,
@@ -459,8 +436,10 @@ mod unit_tests {
             for k in 0..input.len() {
                 let k_float = k as f32;
 
-                let twiddle = (f32::consts::PI * (n_float + 0.5_f32 + size_float * 0.5) *
-                                   (k_float + 0.5_f32) / size_float)
+                let twiddle = (f32::consts::PI
+                    * (n_float + 0.5_f32 + size_float * 0.5)
+                    * (k_float + 0.5_f32)
+                    / size_float)
                     .cos();
 
                 current_value += input[k] * twiddle;

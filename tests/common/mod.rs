@@ -1,6 +1,6 @@
+use rand::distributions::{IndependentSample, Normal};
+use rand::{SeedableRng, StdRng};
 use rustdct::num_traits::{Float, FromPrimitive};
-use rand::{StdRng, SeedableRng};
-use rand::distributions::{Normal, IndependentSample};
 
 pub mod known_data;
 pub mod reference_impls;

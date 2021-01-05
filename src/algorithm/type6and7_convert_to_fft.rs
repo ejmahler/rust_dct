@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
-use rustfft::{FftDirection, num_traits::Zero};
 use rustfft::num_complex::Complex;
+use rustfft::{num_traits::Zero, FftDirection};
 use rustfft::{Fft, Length};
 
-use common;
-use ::{Dst6, Dst7, Dst6And7};
+use crate::{common, DctNum};
+use crate::{Dst6, Dst6And7, Dst7};
 
 /// DST6 and DST7 implementation that converts the problem into a FFT of the same size
 ///
@@ -20,11 +20,11 @@ use ::{Dst6, Dst7, Dst6And7};
 /// let fft = planner.plan_fft_forward(len * 2 + 1);
 ///
 /// let dct = Dst6And7ConvertToFft::new(fft);
-/// 
+///
 /// let mut dst6_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst6_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dst6(&mut dst6_input, &mut dst6_output);
-/// 
+///
 /// let mut dst7_input:  Vec<f32> = vec![0f32; len];
 /// let mut dst7_output: Vec<f32> = vec![0f32; len];
 /// dct.process_dst7(&mut dst7_input, &mut dst7_output);
@@ -33,10 +33,14 @@ pub struct Dst6And7ConvertToFft<T> {
     fft: Arc<dyn Fft<T>>,
 }
 
-impl<T: common::DctNum> Dst6And7ConvertToFft<T> {
+impl<T: DctNum> Dst6And7ConvertToFft<T> {
     /// Creates a new DST6 and DST7 context that will process signals of length `(inner_fft.len() - 1) / 2`.
     pub fn new(inner_fft: Arc<dyn Fft<T>>) -> Self {
-        assert!(inner_fft.len() % 2 == 1, "The 'DST6And7ConvertToFFT' algorithm requires an odd-len FFT. Provided len={}", inner_fft.len());
+        assert!(
+            inner_fft.len() % 2 == 1,
+            "The 'DST6And7ConvertToFFT' algorithm requires an odd-len FFT. Provided len={}",
+            inner_fft.len()
+        );
         assert_eq!(
             inner_fft.fft_direction(),
             FftDirection::Forward, "The 'DST6And7ConvertToFFT' algorithm requires a forward FFT, but an inverse FFT was provided");
@@ -44,7 +48,7 @@ impl<T: common::DctNum> Dst6And7ConvertToFft<T> {
         Self { fft: inner_fft }
     }
 }
-impl<T: common::DctNum> Dst6<T> for Dst6And7ConvertToFft<T> {
+impl<T: DctNum> Dst6<T> for Dst6And7ConvertToFft<T> {
     fn process_dst6(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -75,7 +79,7 @@ impl<T: common::DctNum> Dst6<T> for Dst6And7ConvertToFft<T> {
         }
     }
 }
-impl<T: common::DctNum> Dst7<T> for Dst6And7ConvertToFft<T> {
+impl<T: DctNum> Dst7<T> for Dst6And7ConvertToFft<T> {
     fn process_dst7(&self, input: &mut [T], output: &mut [T]) {
         common::verify_length(input, output, self.len());
 
@@ -88,14 +92,20 @@ impl<T: common::DctNum> Dst7<T> for Dst6And7ConvertToFft<T> {
         for i in 0..even_count {
             let input_index = i * 2;
             let inner_index = input.len() + 1 + i;
-            fft_buffer[inner_index] = Complex{ re: input[input_index], im: T::zero() };
+            fft_buffer[inner_index] = Complex {
+                re: input[input_index],
+                im: T::zero(),
+            };
         }
-        // Copy all the odd-indexed elements in reverse order 
+        // Copy all the odd-indexed elements in reverse order
         let odd_count = input.len() - even_count;
         for i in 0..odd_count {
             let input_index = 2 * (odd_count - i) - 1;
             let inner_index = input.len() + even_count + 1 + i;
-            fft_buffer[inner_index] = Complex{ re: input[input_index], im: T::zero() };
+            fft_buffer[inner_index] = Complex {
+                re: input[input_index],
+                im: T::zero(),
+            };
         }
         // Copy the back of the array to the front, negated and reversed
         for i in 0..input.len() {
@@ -111,20 +121,19 @@ impl<T: common::DctNum> Dst7<T> for Dst6And7ConvertToFft<T> {
         }
     }
 }
-impl<T: common::DctNum> Dst6And7<T> for Dst6And7ConvertToFft<T>{}
+impl<T: DctNum> Dst6And7<T> for Dst6And7ConvertToFft<T> {}
 impl<T> Length for Dst6And7ConvertToFft<T> {
     fn len(&self) -> usize {
         (self.fft.len() - 1) / 2
     }
 }
 
-
 #[cfg(test)]
 mod test {
     use super::*;
-    use algorithm::Dst6And7Naive;
+    use crate::algorithm::Dst6And7Naive;
 
-    use test_utils::{compare_float_vectors, random_signal};
+    use crate::test_utils::{compare_float_vectors, random_signal};
     use rustfft::FftPlanner;
 
     /// Verify that our fast implementation of the DCT6 gives the same output as the naive version, for many different inputs
