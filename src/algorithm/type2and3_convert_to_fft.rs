@@ -81,9 +81,11 @@ impl<T: DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
         }
 
         // the second half is the odd elements, in reverse order
-        let odd_end = buffer.len() - 1 - buffer.len() % 2;
-        for i in 0..buffer.len() / 2 {
-            fft_buffer[even_end + i] = Complex::from(buffer[odd_end - 2 * i]);
+        if self.len() > 1 {
+            let odd_end = self.len() - 1 - self.len() % 2;
+            for i in 0..self.len() / 2 {
+                fft_buffer[even_end + i] = Complex::from(buffer[odd_end - 2 * i]);
+            }
         }
 
         // run the fft
@@ -116,9 +118,11 @@ impl<T: DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
         }
 
         // the second half is the odd elements, in reverse order and negated
-        let odd_end = buffer.len() - 1 - buffer.len() % 2;
-        for i in 0..buffer.len() / 2 {
-            fft_buffer[even_end + i] = Complex::from(-buffer[odd_end - 2 * i]);
+        if self.len() > 1 {
+            let odd_end = self.len() - 1 - self.len() % 2;
+            for i in 0..self.len() / 2 {
+                fft_buffer[even_end + i] = Complex::from(-buffer[odd_end - 2 * i]);
+            }
         }
 
         // run the fft
@@ -170,9 +174,11 @@ impl<T: DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
         }
 
         // copy the second half of the fft buffer into the odd elements, reversed
-        let odd_end = buffer.len() - 1 - buffer.len() % 2;
-        for i in 0..buffer.len() / 2 {
-            buffer[odd_end - 2 * i] = fft_buffer[i + even_end].re;
+        if self.len() > 1 {
+            let odd_end = self.len() - 1 - self.len() % 2;
+            for i in 0..self.len() / 2 {
+                buffer[odd_end - 2 * i] = fft_buffer[i + even_end].re;
+            }
         }
     }
 }
@@ -212,9 +218,11 @@ impl<T: DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
         }
 
         // copy the second half of the fft output into the odd elements, reversed
-        let odd_end = self.len() - 1 - self.len() % 2;
-        for i in 0..self.len() / 2 {
-            buffer[odd_end - 2 * i] = -fft_buffer[i + even_end].re;
+        if self.len() > 1 {
+            let odd_end = self.len() - 1 - self.len() % 2;
+            for i in 0..self.len() / 2 {
+                buffer[odd_end - 2 * i] = -fft_buffer[i + even_end].re;
+            }
         }
     }
 }
