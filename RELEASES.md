@@ -1,3 +1,7 @@
+# Release 0.7
+ - Upgraded RustFFT to 6.0
+ - Added consistent support for supplying oversized scratch to DCT methods. Instead of checking that the scratch buffer len is exactly the requested len, we now only check that it's greater than or equal to the requested len.
+ - Documented the normalization of all DCT/DST methods.
 # Release 0.6
  - Upgraded RustFFT to 5.0
  - Renamed most stucts and traits in the library in order to conform to the [Rust API guidelines](https://rust-lang.github.io/api-guidelines/naming.html) on acronyms

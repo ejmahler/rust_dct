@@ -11,6 +11,9 @@ pub trait Mdct<T: DctNum>: RequiredScratch + Length + Sync + Send {
     /// Uses `input_a` for the first half of the input, and `input_b` for the second half of the input
     ///
     /// To make overlapping array segments easier, this method DOES NOT modify the input buffer.
+    /// 
+    /// Normalization depends on which window function was chosen when planning the mdct --
+    /// each built-in window function documents whether it does normalization or not.
     fn process_mdct_with_scratch(
         &self,
         input_a: &[T],
@@ -25,6 +28,9 @@ pub trait Mdct<T: DctNum>: RequiredScratch + Length + Sync + Send {
     /// Since the IMDCT is designed with overlapping output segments in mind, this method DOES NOT zero
     /// out the output buffer before writing like most other DCT algorithms. Instead, it sums
     /// the result of the IMDCT with what's already in the output buffer.
+    /// 
+    /// Normalization depends on which window function was chosen when planning the mdct --
+    /// each built-in window function documents whether it does normalization or not.
     fn process_imdct_with_scratch(
         &self,
         input: &[T],

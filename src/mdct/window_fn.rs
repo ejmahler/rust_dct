@@ -12,7 +12,7 @@ pub fn mp3<T: DctNum>(len: usize) -> Vec<T> {
         .collect()
 }
 
-/// MP3 window function for MDCT -- Scales its window values by sqrt(2/n) as a convenience so that you don't have to manually scale your data when computing an inverse
+/// MP3 window function for MDCT. Combines a scale for normalization into the window function so that the process is conveniently invertible.
 pub fn mp3_invertible<T: DctNum>(len: usize) -> Vec<T> {
     let outer_scale = (4.0 / len as f64).sqrt();
     let constant_term = f64::consts::PI / len as f64;
@@ -37,7 +37,7 @@ pub fn vorbis<T: DctNum>(len: usize) -> Vec<T> {
         .collect()
 }
 
-/// Ogg Vorbis window function for MDCT -- Scales its window values by sqrt(2/n) as a convenience so that you don't have to manually scale your data when computing an inverse
+/// Ogg Vorbis window function for MDCT. Combines a scale for normalization into the window function so that the process is conveniently invertible.
 pub fn vorbis_invertible<T: DctNum>(len: usize) -> Vec<T> {
     let outer_scale = (4.0 / len as f64).sqrt();
     let constant_term = f64::consts::PI / len as f64;
@@ -57,7 +57,7 @@ pub fn one<T: DctNum>(len: usize) -> Vec<T> {
     (0..len).map(|_| T::one()).collect()
 }
 
-/// MDCT window function which is all ones (IE, no windowing will be applied) -- Scales its window values by sqrt(2/n) as a convenience so that you don't have to manually scale your data when computing an inverse
+/// MDCT window function which is all ones (IE, no windowing will be applied). Combines a scale for normalization into the window function so that the process is conveniently invertible.
 pub fn invertible<T: DctNum>(len: usize) -> Vec<T> {
     let constant_term = (2.0 / len as f64).sqrt();
     (0..len)

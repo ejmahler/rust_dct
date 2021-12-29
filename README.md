@@ -20,7 +20,7 @@ let mut dct = planner.plan_dct2(1234);
 
 let mut buffer = vec![0f32; 1234];
 
-dct.process(&mut buffer);
+dct.process_dct2(&mut buffer);
 
 ```
 
