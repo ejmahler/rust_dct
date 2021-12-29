@@ -3,6 +3,7 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::{Fft, FftDirection, Length};
 
+use crate::common::dct_error_inplace;
 use crate::{array_utils::into_complex_mut, twiddles, RequiredScratch};
 use crate::{Dct2, Dct3, DctNum, Dst2, Dst3, TransformType2And3};
 
@@ -66,8 +67,7 @@ impl<T: DctNum> Type2And3ConvertToFft<T> {
 
 impl<T: DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
     fn process_dct2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert_eq!(scratch.len(), self.get_scratch_len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let len = self.len();
 
@@ -103,8 +103,7 @@ impl<T: DctNum> Dct2<T> for Type2And3ConvertToFft<T> {
 }
 impl<T: DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
     fn process_dst2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert_eq!(scratch.len(), self.get_scratch_len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let len = self.len();
 
@@ -140,8 +139,7 @@ impl<T: DctNum> Dst2<T> for Type2And3ConvertToFft<T> {
 }
 impl<T: DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
     fn process_dct3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert_eq!(scratch.len(), self.get_scratch_len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let len = self.len();
 
@@ -184,8 +182,7 @@ impl<T: DctNum> Dct3<T> for Type2And3ConvertToFft<T> {
 }
 impl<T: DctNum> Dst3<T> for Type2And3ConvertToFft<T> {
     fn process_dst3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert_eq!(scratch.len(), self.get_scratch_len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let len = self.len();
 

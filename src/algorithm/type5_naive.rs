@@ -2,7 +2,8 @@ use std::f64;
 
 use rustfft::Length;
 
-use crate::{common, RequiredScratch};
+use crate::common::dct_error_inplace;
+use crate::RequiredScratch;
 use crate::{Dct5, DctNum, Dst5};
 
 /// Naive O(n^2 ) DCT Type 5 implementation
@@ -41,7 +42,7 @@ impl<T: DctNum> Dct5Naive<T> {
 
 impl<T: DctNum> Dct5<T> for Dct5Naive<T> {
     fn process_dct5_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         scratch[0] = scratch[0] * T::half();
@@ -115,7 +116,7 @@ impl<T: DctNum> Dst5Naive<T> {
 
 impl<T: DctNum> Dst5<T> for Dst5Naive<T> {
     fn process_dst5_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         for k in 0..buffer.len() {

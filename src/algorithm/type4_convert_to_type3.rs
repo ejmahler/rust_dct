@@ -3,7 +3,9 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
+use crate::common::dct_error_inplace;
 use crate::{twiddles, Dct4, DctNum, Dst4, RequiredScratch, TransformType2And3, TransformType4};
+
 /// DCT4 and DST4 implementation that converts the problem into two DCT3 of half size.
 ///
 /// If the inner DCT3 is O(nlogn), then so is this. This algorithm can only be used if the problem size is even.
@@ -56,9 +58,8 @@ impl<T: DctNum> Type4ConvertToType3Even<T> {
 }
 impl<T: DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
     fn process_dct4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert!(scratch.len() >= self.get_scratch_len());
-        let scratch = &mut scratch[..self.get_scratch_len()];
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
+
         let (self_scratch, extra_scratch) = scratch.split_at_mut(self.len());
 
         let len = self.len();
@@ -99,9 +100,8 @@ impl<T: DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
 }
 impl<T: DctNum> Dst4<T> for Type4ConvertToType3Even<T> {
     fn process_dst4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert!(scratch.len() >= self.get_scratch_len());
-        let scratch = &mut scratch[..self.get_scratch_len()];
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
+        
         let (self_scratch, extra_scratch) = scratch.split_at_mut(self.len());
 
         let len = self.len();

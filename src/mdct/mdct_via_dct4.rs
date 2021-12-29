@@ -2,8 +2,9 @@ use std::sync::Arc;
 
 use rustfft::Length;
 
+use crate::common::mdct_error_inplace;
 use crate::mdct::Mdct;
-use crate::{common, RequiredScratch};
+use crate::RequiredScratch;
 use crate::{DctNum, TransformType4};
 
 /// MDCT implementation that converts the problem to a DCT Type 4 of the same size.
@@ -73,9 +74,7 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
         output: &mut [T],
         scratch: &mut [T],
     ) {
-        let scratch = &mut scratch[..self.get_scratch_len()];
-        common::verify_length(input_a, output, self.len());
-        assert_eq!(input_a.len(), input_b.len());
+        let scratch = validate_buffers_mdct!(input_a, input_b, output, scratch, self.len(), self.get_scratch_len());
 
         let group_size = self.len() / 2;
 
@@ -128,9 +127,7 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
         output_b: &mut [T],
         scratch: &mut [T],
     ) {
-        let scratch = &mut scratch[..self.get_scratch_len()];
-        common::verify_length(input, output_a, self.len());
-        assert_eq!(output_a.len(), output_b.len());
+        let scratch = validate_buffers_mdct!(input, output_a, output_b, scratch, self.len(), self.get_scratch_len());
 
         let (dct_buffer, dct_scratch) = scratch.split_at_mut(self.len());
         dct_buffer.copy_from_slice(input);

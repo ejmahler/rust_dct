@@ -3,8 +3,8 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use crate::{common, DctNum};
-use crate::{twiddles, RequiredScratch};
+use crate::common::dct_error_inplace;
+use crate::{twiddles, RequiredScratch, DctNum};
 use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
 /// DCT2, DCT3, DST2, and DST3 implemention that recursively divides the problem in half.
@@ -66,8 +66,7 @@ impl<T: DctNum> Type2And3SplitRadix<T> {
 
 impl<T: DctNum> Dct2<T> for Type2And3SplitRadix<T> {
     fn process_dct2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        let scratch = &mut scratch[..self.len()];
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let len = self.len();
         let half_len = len / 2;
@@ -149,8 +148,7 @@ impl<T: DctNum> Dst2<T> for Type2And3SplitRadix<T> {
 }
 impl<T: DctNum> Dct3<T> for Type2And3SplitRadix<T> {
     fn process_dct3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        let scratch = &mut scratch[..self.len()];
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let len = buffer.len();
         let half_len = len / 2;

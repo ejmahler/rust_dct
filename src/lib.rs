@@ -4,13 +4,16 @@ pub use rustfft::num_traits;
 
 use rustfft::Length;
 
+#[macro_use]
+mod common;
+
 /// Algorithms for computing the Modified Discrete Cosine Transform
 pub mod mdct;
 
 pub mod algorithm;
 
 mod array_utils;
-mod common;
+
 mod plan;
 mod twiddles;
 pub use crate::common::DctNum;

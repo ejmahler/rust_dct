@@ -1,6 +1,7 @@
 use rustfft::Length;
 
-use crate::{common, RequiredScratch};
+use crate::common::dct_error_inplace;
+use crate::RequiredScratch;
 use crate::{Dct6, Dct6And7, Dct7, DctNum, Dst6, Dst6And7, Dst7};
 
 /// Naive O(n^2 ) DCT Type 6 and DCT Type 7 implementation
@@ -41,7 +42,7 @@ impl<T: DctNum> Dct6And7Naive<T> {
 
 impl<T: DctNum> Dct6<T> for Dct6And7Naive<T> {
     fn process_dct6_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         scratch[scratch.len() - 1] = scratch[scratch.len() - 1] * T::half();
@@ -69,7 +70,7 @@ impl<T: DctNum> Dct6<T> for Dct6And7Naive<T> {
 }
 impl<T: DctNum> Dct7<T> for Dct6And7Naive<T> {
     fn process_dct7_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         scratch[0] = scratch[0] * T::half();
@@ -144,7 +145,7 @@ impl<T: DctNum> Dst6And7Naive<T> {
 
 impl<T: DctNum> Dst6<T> for Dst6And7Naive<T> {
     fn process_dst6_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         for k in 0..buffer.len() {
@@ -169,7 +170,7 @@ impl<T: DctNum> Dst6<T> for Dst6And7Naive<T> {
 }
 impl<T: DctNum> Dst7<T> for Dst6And7Naive<T> {
     fn process_dst7_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         for k in 0..buffer.len() {

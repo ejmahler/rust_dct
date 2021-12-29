@@ -1,6 +1,7 @@
 use rustfft::Length;
 
-use crate::{common, RequiredScratch};
+use crate::common::dct_error_inplace;
+use crate::RequiredScratch;
 use crate::{Dct8, DctNum, Dst8};
 
 /// Naive O(n^2 ) DCT Type 8 implementation
@@ -36,7 +37,7 @@ impl<T: DctNum> Dct8Naive<T> {
 }
 impl<T: DctNum> Dct8<T> for Dct8Naive<T> {
     fn process_dct8_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         for k in 0..buffer.len() {
@@ -105,7 +106,7 @@ impl<T: DctNum> Dst8Naive<T> {
 
 impl<T: DctNum> Dst8<T> for Dst8Naive<T> {
     fn process_dst8_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         scratch[scratch.len() - 1] = scratch[scratch.len() - 1] * T::half();

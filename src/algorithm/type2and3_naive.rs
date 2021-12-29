@@ -1,7 +1,8 @@
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use crate::{common, RequiredScratch};
+use crate::common::dct_error_inplace;
+use crate::RequiredScratch;
 use crate::{twiddles, DctNum};
 use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
@@ -46,8 +47,7 @@ impl<T: DctNum> Type2And3Naive<T> {
 
 impl<T: DctNum> Dct2<T> for Type2And3Naive<T> {
     fn process_dct2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        let scratch = &mut scratch[..self.len()];
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         for k in 0..buffer.len() {
@@ -72,8 +72,7 @@ impl<T: DctNum> Dct2<T> for Type2And3Naive<T> {
 }
 impl<T: DctNum> Dst2<T> for Type2And3Naive<T> {
     fn process_dst2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        let scratch = &mut scratch[..self.len()];
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         for k in 0..buffer.len() {
@@ -98,8 +97,7 @@ impl<T: DctNum> Dst2<T> for Type2And3Naive<T> {
 }
 impl<T: DctNum> Dct3<T> for Type2And3Naive<T> {
     fn process_dct3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        let scratch = &mut scratch[..self.len()];
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         let half_first = T::half() * scratch[0];
@@ -126,8 +124,7 @@ impl<T: DctNum> Dct3<T> for Type2And3Naive<T> {
 }
 impl<T: DctNum> Dst3<T> for Type2And3Naive<T> {
     fn process_dst3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        let scratch = &mut scratch[..self.len()];
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         // scale the last scratch value by half before going into the loop

@@ -3,6 +3,7 @@ use std::marker::PhantomData;
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
+use crate::common::dct_error_inplace;
 use crate::{twiddles, DctNum, RequiredScratch};
 use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
@@ -10,7 +11,7 @@ macro_rules! butterfly_boilerplate {
     ($struct_name:ident, $size:expr) => {
         impl<T: DctNum> Dct2<T> for $struct_name<T> {
             fn process_dct2_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
-                assert_eq!(buffer.len(), self.len());
+                validate_buffer!(buffer, self.len());
 
                 unsafe {
                     self.process_inplace_dct2(buffer);
@@ -19,7 +20,7 @@ macro_rules! butterfly_boilerplate {
         }
         impl<T: DctNum> Dct3<T> for $struct_name<T> {
             fn process_dct3_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
-                assert_eq!(buffer.len(), self.len());
+                validate_buffer!(buffer, self.len());
 
                 unsafe {
                     self.process_inplace_dct3(buffer);
@@ -28,7 +29,7 @@ macro_rules! butterfly_boilerplate {
         }
         impl<T: DctNum> Dst2<T> for $struct_name<T> {
             fn process_dst2_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
-                assert_eq!(buffer.len(), self.len());
+                validate_buffer!(buffer, self.len());
 
                 unsafe {
                     self.process_inplace_dst2(buffer);
@@ -37,7 +38,7 @@ macro_rules! butterfly_boilerplate {
         }
         impl<T: DctNum> Dst3<T> for $struct_name<T> {
             fn process_dst3_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
-                assert_eq!(buffer.len(), self.len());
+                validate_buffer!(buffer, self.len());
 
                 unsafe {
                     self.process_inplace_dst3(buffer);
@@ -112,7 +113,7 @@ impl<T: DctNum> Type2And3Butterfly2<T> {
 }
 impl<T: DctNum> Dct2<T> for Type2And3Butterfly2<T> {
     fn process_dct2_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
+        validate_buffer!(buffer, self.len());
 
         let sum = buffer[0] + buffer[1];
         buffer[1] = (buffer[0] - buffer[1]) * T::FRAC_1_SQRT_2();
@@ -121,7 +122,7 @@ impl<T: DctNum> Dct2<T> for Type2And3Butterfly2<T> {
 }
 impl<T: DctNum> Dct3<T> for Type2And3Butterfly2<T> {
     fn process_dct3_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
+        validate_buffer!(buffer, self.len());
 
         let half_0 = buffer[0] * T::half();
         let frac_1 = buffer[1] * T::FRAC_1_SQRT_2();
@@ -132,7 +133,7 @@ impl<T: DctNum> Dct3<T> for Type2And3Butterfly2<T> {
 }
 impl<T: DctNum> Dst2<T> for Type2And3Butterfly2<T> {
     fn process_dst2_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
+        validate_buffer!(buffer, self.len());
 
         let sum = (buffer[0] + buffer[1]) * T::FRAC_1_SQRT_2();
         buffer[1] = buffer[0] - buffer[1];
@@ -141,7 +142,7 @@ impl<T: DctNum> Dst2<T> for Type2And3Butterfly2<T> {
 }
 impl<T: DctNum> Dst3<T> for Type2And3Butterfly2<T> {
     fn process_dst3_with_scratch(&self, buffer: &mut [T], _scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
+        validate_buffer!(buffer, self.len());
 
         let frac_0 = buffer[0] * T::FRAC_1_SQRT_2();
         let half_1 = buffer[1] * T::half();

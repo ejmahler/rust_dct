@@ -3,6 +3,7 @@ use std::sync::Arc;
 use rustfft::num_complex::Complex;
 use rustfft::{Fft, FftDirection, Length};
 
+use crate::common::dct_error_inplace;
 use crate::{array_utils::into_complex_mut, DctNum, RequiredScratch};
 use crate::{Dst6, Dst6And7, Dst7};
 
@@ -59,8 +60,7 @@ impl<T: DctNum> Dst6And7ConvertToFft<T> {
 }
 impl<T: DctNum> Dst6<T> for Dst6And7ConvertToFft<T> {
     fn process_dst6_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert_eq!(scratch.len(), self.get_scratch_len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let complex_scratch = into_complex_mut(scratch);
         let (fft_buffer, fft_scratch) = complex_scratch.split_at_mut(self.inner_fft_len);
@@ -90,8 +90,7 @@ impl<T: DctNum> Dst6<T> for Dst6And7ConvertToFft<T> {
 }
 impl<T: DctNum> Dst7<T> for Dst6And7ConvertToFft<T> {
     fn process_dst7_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert_eq!(scratch.len(), self.get_scratch_len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let complex_scratch = into_complex_mut(scratch);
         let (fft_buffer, fft_scratch) = complex_scratch.split_at_mut(self.inner_fft_len);

@@ -1,7 +1,8 @@
 use rustfft::num_complex::Complex;
 use rustfft::Length;
 
-use crate::{common, RequiredScratch};
+use crate::common::dct_error_inplace;
+use crate::RequiredScratch;
 use crate::{twiddles, DctNum};
 use crate::{Dct4, Dst4, TransformType4};
 
@@ -40,8 +41,7 @@ impl<T: DctNum> Type4Naive<T> {
 
 impl<T: DctNum> Dct4<T> for Type4Naive<T> {
     fn process_dct4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        let scratch = &mut scratch[..self.len()];
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         for k in 0..buffer.len() {
@@ -66,8 +66,7 @@ impl<T: DctNum> Dct4<T> for Type4Naive<T> {
 }
 impl<T: DctNum> Dst4<T> for Type4Naive<T> {
     fn process_dst4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        let scratch = &mut scratch[..self.len()];
-        common::verify_length(buffer, scratch, self.len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
         scratch.copy_from_slice(buffer);
 
         for k in 0..buffer.len() {

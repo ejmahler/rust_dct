@@ -4,6 +4,7 @@ use rustfft::num_complex::Complex;
 use rustfft::FftDirection;
 use rustfft::{Fft, Length};
 
+use crate::common::dct_error_inplace;
 use crate::{array_utils::into_complex_mut, DctNum, RequiredScratch};
 use crate::{Dct4, Dst4, TransformType4};
 
@@ -63,8 +64,7 @@ impl<T: DctNum> Type4ConvertToFftOdd<T> {
 
 impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
     fn process_dct4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert_eq!(scratch.len(), self.get_scratch_len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let len = self.len();
         let half_len = len / 2;
@@ -166,8 +166,7 @@ impl<T: DctNum> Dct4<T> for Type4ConvertToFftOdd<T> {
 }
 impl<T: DctNum> Dst4<T> for Type4ConvertToFftOdd<T> {
     fn process_dst4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
-        assert_eq!(buffer.len(), self.len());
-        assert_eq!(scratch.len(), self.get_scratch_len());
+        let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
 
         let len = self.len();
         let half_len = len / 2;
