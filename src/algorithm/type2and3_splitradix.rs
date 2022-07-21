@@ -77,30 +77,30 @@ impl<T: DctNum> Dct2<T> for Type2And3SplitRadix<T> {
         let (input_dct4_even, input_dct4_odd) = input_dct4.split_at_mut(quarter_len);
 
         for i in 0..quarter_len {
-            unsafe {
-                let input_bottom = *buffer.get_unchecked(i);
-                let input_top = *buffer.get_unchecked(len - i - 1);
+            
+                let input_bottom = unsafe { *buffer.get_unchecked(i) };
+                let input_top = unsafe { *buffer.get_unchecked(len - i - 1) };
 
-                let input_half_bottom = *buffer.get_unchecked(half_len - i - 1);
-                let input_half_top = *buffer.get_unchecked(half_len + i);
+                let input_half_bottom = unsafe { *buffer.get_unchecked(half_len - i - 1) };
+                let input_half_top = unsafe { *buffer.get_unchecked(half_len + i) };
 
                 //prepare the inner DCT2
-                *input_dct2.get_unchecked_mut(i) = input_top + input_bottom;
-                *input_dct2.get_unchecked_mut(half_len - i - 1) =
-                    input_half_bottom + input_half_top;
+                unsafe {*input_dct2.get_unchecked_mut(i)  = input_top + input_bottom };
+                unsafe {*input_dct2.get_unchecked_mut(half_len - i - 1)  =
+                    input_half_bottom + input_half_top };
 
                 //prepare the inner DCT4 - which consists of two DCT2s of half size
                 let lower_dct4 = input_bottom - input_top;
                 let upper_dct4 = input_half_bottom - input_half_top;
-                let twiddle = self.twiddles.get_unchecked(i);
+                let twiddle = unsafe { self.twiddles.get_unchecked(i) };
 
                 let cos_input = lower_dct4 * twiddle.re + upper_dct4 * twiddle.im;
                 let sin_input = upper_dct4 * twiddle.re - lower_dct4 * twiddle.im;
 
-                *input_dct4_even.get_unchecked_mut(i) = cos_input;
-                *input_dct4_odd.get_unchecked_mut(quarter_len - i - 1) =
-                    if i % 2 == 0 { sin_input } else { -sin_input };
-            }
+                unsafe {*input_dct4_even.get_unchecked_mut(i) = cos_input };
+                unsafe {*input_dct4_odd.get_unchecked_mut(quarter_len - i - 1) =
+                    if i % 2 == 0 { sin_input } else { -sin_input } };
+            
         }
 
         // compute the recursive DCT2s, using the original buffer as scratch space
