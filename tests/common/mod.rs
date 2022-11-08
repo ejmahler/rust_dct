@@ -1,5 +1,4 @@
-use rand::distributions::{IndependentSample, Normal};
-use rand::{SeedableRng, StdRng};
+use rand::{distributions::Uniform, prelude::Distribution, rngs::StdRng, SeedableRng};
 use rustdct::num_traits::{Float, FromPrimitive};
 
 pub mod known_data;
@@ -27,13 +26,16 @@ pub fn compare_float_vectors<T: Float + FromPrimitive>(expected: &[T], observed:
 
 pub fn random_signal<T: Float + FromPrimitive>(length: usize) -> Vec<T> {
     let mut sig = Vec::with_capacity(length);
-    let normal_dist = Normal::new(0.0, 10.0);
+    let distribution = Uniform::new(0.0, 10.0);
 
-    let seed: [usize; 5] = [1910, 11431, 4984, 14828, length];
-    let mut rng: StdRng = SeedableRng::from_seed(&seed[..]);
+    let seed: [u8; 32] = [
+        1, 5, 6, 7, 1, 5, 3, 7, 4, 2, 6, 2, 6, 1, 5, 6, 7, 1, 5, 3, 7, 4, 2, 6, 2, 6, 1, 5, 1, 0,
+        1, 7,
+    ];
+    let mut rng: StdRng = SeedableRng::from_seed(seed);
 
     for _ in 0..length {
-        sig.push(T::from_f64(normal_dist.ind_sample(&mut rng)).unwrap());
+        sig.push(T::from_f64(distribution.sample(&mut rng)).unwrap());
     }
     return sig;
 }

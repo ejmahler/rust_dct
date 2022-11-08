@@ -2,8 +2,7 @@ extern crate rand;
 
 use std::f32;
 
-use self::rand::distributions::{IndependentSample, Normal};
-use self::rand::{SeedableRng, StdRng};
+use rand::{distributions::Uniform, prelude::Distribution, rngs::StdRng, SeedableRng};
 
 pub fn fuzzy_cmp(a: f32, b: f32, tolerance: f32) -> bool {
     a >= b - tolerance && a <= b + tolerance
@@ -24,13 +23,16 @@ pub fn compare_float_vectors(expected: &[f32], observed: &[f32]) -> bool {
 
 pub fn random_signal(length: usize) -> Vec<f32> {
     let mut sig = Vec::with_capacity(length);
-    let normal_dist = Normal::new(0.0, 10.0);
+    let normal_dist = Uniform::new(0.0, 10.0);
 
-    let seed: [usize; 5] = [1910, 11431, 4984, 14828, length];
-    let mut rng: StdRng = SeedableRng::from_seed(&seed[..]);
+    let seed: [u8; 32] = [
+        1, 5, 6, 4, 1, 5, 3, 7, 4, 2, 6, 2, 6, 4, 5, 6, 7, 1, 5, 3, 7, 4, 2, 6, 2, 6, 1, 5, 3, 0,
+        1, 0,
+    ];
+    let mut rng: StdRng = SeedableRng::from_seed(seed);
 
     for _ in 0..length {
-        sig.push(normal_dist.ind_sample(&mut rng) as f32);
+        sig.push(normal_dist.sample(&mut rng) as f32);
     }
     return sig;
 }
