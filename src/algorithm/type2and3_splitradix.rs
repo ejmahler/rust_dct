@@ -4,7 +4,7 @@ use rustfft::num_complex::Complex;
 use rustfft::Length;
 
 use crate::common::dct_error_inplace;
-use crate::{twiddles, RequiredScratch, DctNum};
+use crate::{twiddles, DctNum, RequiredScratch};
 use crate::{Dct2, Dct3, Dst2, Dst3, TransformType2And3};
 
 /// DCT2, DCT3, DST2, and DST3 implemention that recursively divides the problem in half.

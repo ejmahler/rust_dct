@@ -17,6 +17,6 @@ fn main() {
     let mut planner = DctPlanner::new();
     let dct = planner.plan_dct2(4);
 
-    let mut buffer : Vec<f32> = vec![0.0; dct.len()];
+    let mut buffer: Vec<f32> = vec![0.0; dct.len()];
     dct.process_dct2(&mut buffer);
 }

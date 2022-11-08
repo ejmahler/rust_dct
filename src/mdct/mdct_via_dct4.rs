@@ -74,7 +74,14 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
         output: &mut [T],
         scratch: &mut [T],
     ) {
-        let scratch = validate_buffers_mdct!(input_a, input_b, output, scratch, self.len(), self.get_scratch_len());
+        let scratch = validate_buffers_mdct!(
+            input_a,
+            input_b,
+            output,
+            scratch,
+            self.len(),
+            self.get_scratch_len()
+        );
 
         let group_size = self.len() / 2;
 
@@ -127,7 +134,14 @@ impl<T: DctNum> Mdct<T> for MdctViaDct4<T> {
         output_b: &mut [T],
         scratch: &mut [T],
     ) {
-        let scratch = validate_buffers_mdct!(input, output_a, output_b, scratch, self.len(), self.get_scratch_len());
+        let scratch = validate_buffers_mdct!(
+            input,
+            output_a,
+            output_b,
+            scratch,
+            self.len(),
+            self.get_scratch_len()
+        );
 
         let (dct_buffer, dct_scratch) = scratch.split_at_mut(self.len());
         dct_buffer.copy_from_slice(input);

@@ -77,7 +77,14 @@ impl<T: DctNum> Mdct<T> for MdctNaive<T> {
         output: &mut [T],
         scratch: &mut [T],
     ) {
-        validate_buffers_mdct!(input_a, input_b, output, scratch, self.len(), self.get_scratch_len());
+        validate_buffers_mdct!(
+            input_a,
+            input_b,
+            output,
+            scratch,
+            self.len(),
+            self.get_scratch_len()
+        );
 
         let output_len = output.len();
         let half_output = output.len() / 2;
@@ -119,7 +126,14 @@ impl<T: DctNum> Mdct<T> for MdctNaive<T> {
         output_b: &mut [T],
         scratch: &mut [T],
     ) {
-        validate_buffers_mdct!(input, output_a, output_b, scratch, self.len(), self.get_scratch_len());
+        validate_buffers_mdct!(
+            input,
+            output_a,
+            output_b,
+            scratch,
+            self.len(),
+            self.get_scratch_len()
+        );
 
         let input_len = input.len();
         let half_input = input_len / 2;

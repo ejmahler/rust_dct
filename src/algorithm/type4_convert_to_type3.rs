@@ -101,7 +101,7 @@ impl<T: DctNum> Dct4<T> for Type4ConvertToType3Even<T> {
 impl<T: DctNum> Dst4<T> for Type4ConvertToType3Even<T> {
     fn process_dst4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]) {
         let scratch = validate_buffers!(buffer, scratch, self.len(), self.get_scratch_len());
-        
+
         let (self_scratch, extra_scratch) = scratch.split_at_mut(self.len());
 
         let len = self.len();

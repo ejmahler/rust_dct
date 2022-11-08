@@ -33,14 +33,14 @@ pub trait Dct1<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dct1_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct1(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dct1_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DCT Type 1 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct1_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -51,14 +51,14 @@ pub trait Dct2<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dct2_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct2(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dct2_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DCT Type 2 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -69,14 +69,14 @@ pub trait Dct3<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dct3_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct3(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dct3_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DCT Type 3 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -87,14 +87,14 @@ pub trait Dct4<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst4_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct4(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dct4_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DCT Type 4 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -105,14 +105,14 @@ pub trait Dct5<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dct5_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct5(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dct5_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DCT Type 5 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct5_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -123,14 +123,14 @@ pub trait Dct6<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dct6_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct6(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dct6_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DCT Type 6 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct6_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -141,14 +141,14 @@ pub trait Dct7<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dct7_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct7(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dct7_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DCT Type 7 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct7_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -159,14 +159,14 @@ pub trait Dct8<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dct8_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct8(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dct8_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DCT Type 8 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dct8_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -177,14 +177,14 @@ pub trait Dst1<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst1_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst1(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dst1_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DST Type 1 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst1_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -195,14 +195,14 @@ pub trait Dst2<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst2_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst2(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dst2_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DST Type 2 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst2_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -213,14 +213,14 @@ pub trait Dst3<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst3_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst3(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dst3_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DST Type 3 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst3_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -231,14 +231,14 @@ pub trait Dst4<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst4_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst4(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dst4_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DST Type 4 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst4_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -249,14 +249,14 @@ pub trait Dst5<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst4_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst5(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dst5_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DST Type 5 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst5_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -267,14 +267,14 @@ pub trait Dst6<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst6_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst6(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dst6_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DST Type 6 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst6_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -285,14 +285,14 @@ pub trait Dst7<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst7_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst7(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dst7_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DST Type 7 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst7_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }
@@ -303,14 +303,14 @@ pub trait Dst8<T: DctNum>: RequiredScratch + Length + Sync + Send {
     ///
     /// This method may allocate a Vec<T> of scratch space as needed. If you'd like to reuse that allocation between
     /// multiple computations, consider calling `process_dst8_with_scratch` instead.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst8(&self, buffer: &mut [T]) {
         let mut scratch = vec![T::zero(); self.get_scratch_len()];
         self.process_dst8_with_scratch(buffer, &mut scratch);
     }
     /// Computes the DST Type 8 on the provided buffer, in-place. Uses the provided `scratch` buffer as scratch space.
-    /// 
+    ///
     /// Does not normalize outputs.
     fn process_dst8_with_scratch(&self, buffer: &mut [T], scratch: &mut [T]);
 }

@@ -23,48 +23,67 @@ macro_rules! validate_buffer {
             dct_error_inplace($buffer.len(), 0, $expected_buffer_len, 0);
             return;
         }
-    }}
+    }};
 }
 
 // Validates the given buffer and scratch by verifying that they have the correct length. Then, slices the scratch down to just the required amount
 macro_rules! validate_buffers {
     ($buffer: expr, $scratch: expr, $expected_buffer_len: expr, $expected_scratch_len: expr) => {{
         if $buffer.len() != $expected_buffer_len {
-            dct_error_inplace($buffer.len(), $scratch.len(), $expected_buffer_len, $expected_scratch_len);
+            dct_error_inplace(
+                $buffer.len(),
+                $scratch.len(),
+                $expected_buffer_len,
+                $expected_scratch_len,
+            );
             return;
         }
-        if let Some(sliced_scratch) = $scratch.get_mut(0..$expected_scratch_len)
-        {
+        if let Some(sliced_scratch) = $scratch.get_mut(0..$expected_scratch_len) {
             sliced_scratch
+        } else {
+            dct_error_inplace(
+                $buffer.len(),
+                $scratch.len(),
+                $expected_buffer_len,
+                $expected_scratch_len,
+            );
+            return;
         }
-        else
-        {
-            dct_error_inplace($buffer.len(), $scratch.len(), $expected_buffer_len, $expected_scratch_len);
-            return; 
-        }
-    }}
+    }};
 }
 
 // Validates the given buffer and scratch by verifying that they have the correct length. Then, slices the scratch down to just the required amount
 macro_rules! validate_buffers_mdct {
     ($buffer_a: expr, $buffer_b: expr, $buffer_c: expr, $scratch: expr, $expected_buffer_len: expr, $expected_scratch_len: expr) => {{
-        if $buffer_a.len() != $expected_buffer_len || $buffer_b.len() != $expected_buffer_len || $buffer_c.len() != $expected_buffer_len {
-            mdct_error_inplace($buffer_a.len(), $buffer_b.len(), $buffer_c.len(), $scratch.len(), $expected_buffer_len, $expected_scratch_len);
+        if $buffer_a.len() != $expected_buffer_len
+            || $buffer_b.len() != $expected_buffer_len
+            || $buffer_c.len() != $expected_buffer_len
+        {
+            mdct_error_inplace(
+                $buffer_a.len(),
+                $buffer_b.len(),
+                $buffer_c.len(),
+                $scratch.len(),
+                $expected_buffer_len,
+                $expected_scratch_len,
+            );
             return;
         }
-        if let Some(sliced_scratch) = $scratch.get_mut(0..$expected_scratch_len)
-        {
+        if let Some(sliced_scratch) = $scratch.get_mut(0..$expected_scratch_len) {
             sliced_scratch
+        } else {
+            mdct_error_inplace(
+                $buffer_a.len(),
+                $buffer_b.len(),
+                $buffer_c.len(),
+                $scratch.len(),
+                $expected_buffer_len,
+                $expected_scratch_len,
+            );
+            return;
         }
-        else
-        {
-            mdct_error_inplace($buffer_a.len(), $buffer_b.len(), $buffer_c.len(), $scratch.len(), $expected_buffer_len, $expected_scratch_len);
-            return; 
-        }
-    }}
+    }};
 }
-
-
 
 // Prints an error raised by an in-place FFT algorithm's `process_inplace` method
 // Marked cold and inline never to keep all formatting code out of the many monomorphized process_inplace methods
