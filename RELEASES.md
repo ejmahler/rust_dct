@@ -1,3 +1,6 @@
+# Release 0.7.1
+ - Upgraded Rand to 0.8
+ - Small style improvements to unsafe blocks
 # Release 0.7
  - Upgraded RustFFT to 6.0
  - Added consistent support for supplying oversized scratch to DCT methods. Instead of checking that the scratch buffer len is exactly the requested len, we now only check that it's greater than or equal to the requested len.
